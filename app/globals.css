@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: #fff8f5;
+  --foreground: #2c211c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: #f9dbe8;
+  color: #3c2920;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(216, 59, 125, 0.08), rgba(255, 248, 245, 0) 320px),
+    var(--background);
+  color: var(--foreground);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a,
+button,
+input {
+  outline-color: #d83b7d;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #d83b7d;
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff8f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8b9ad;
+  border: 2px solid #fff8f5;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #765039;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+    size: landscape;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body {
+    color: #1f1f1f;
+  }
+
+  main > aside,
+  header,
+  .print-hidden {
+    display: none !important;
+  }
+
+  main,
+  section {
+    display: block !important;
+  }
+
+  .print-area {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .manifest-table-wrap {
+    border: 1px solid #b8b8b8 !important;
+    overflow: visible !important;
+  }
+
+  .manifest-print-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 10px !important;
+  }
+
+  .manifest-print-table th,
+  .manifest-print-table td {
+    border: 1px solid #cfcfcf !important;
+    padding: 6px !important;
+  }
+
+  .manifest-print-table thead,
+  .manifest-print-table tfoot {
+    background: #f3f3f3 !important;
+    color: #1f1f1f !important;
+  }
+
+  .manifest-print-table tr {
+    break-inside: avoid;
+  }
+
+  .receipt-print {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .report-print-area {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
