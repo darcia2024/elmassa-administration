@@ -435,6 +435,17 @@ export function AppShell({ children }: AppShellProps) {
             
             {/* 🔍 Global Live Search Input Container */}
             <div className="relative">
+              {/* Mobile Search Icon Button */}
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="grid h-9 w-9 place-items-center rounded-full border border-stone-200 bg-stone-50 text-stone-600 md:hidden hover:bg-stone-100 transition"
+                aria-label="Buka pencarian"
+              >
+                <Search className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+
+              {/* Desktop Search Bar Input */}
               <div className="hidden items-center gap-2 rounded-full border border-stone-200 bg-stone-50/80 px-3.5 h-9 text-xs text-stone-500 md:flex w-72 shadow-2xs focus-within:border-brand-pink focus-within:bg-white focus-within:ring-2 focus-within:ring-rose-100 transition">
                 <Search className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.5} />
                 <input
@@ -687,10 +698,39 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         {/* Dashboard Main Content Area (Smooth Page Transition Animation) */}
-        <div key={pathname} className="p-6 animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
+        <div key={pathname} className="p-4 sm:p-6 pb-24 lg:pb-6 animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out">
           {children}
         </div>
       </section>
+
+      {/* 📱 SLEEK MOBILE BOTTOM NAVIGATION DOCK (100% Mobile Optimized Experience) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-md px-2 py-2 shadow-xl lg:hidden font-sans">
+        {[
+          { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+          { label: "Paket", icon: Plane, href: "/paket" },
+          { label: "Booking", icon: ClipboardList, href: "/booking" },
+          { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
+          { label: "Kasir", icon: CircleDollarSign, href: "/pembayaran" },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
+
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition text-[10px] font-bold ${
+                isActive
+                  ? "text-brand-pink bg-rose-50/80"
+                  : "text-stone-500 hover:text-stone-900"
+              }`}
+            >
+              <Icon className={`h-4 w-4 ${isActive ? "text-brand-pink" : "text-stone-400"}`} strokeWidth={isActive ? 2 : 1.5} />
+              <span>{tab.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
     </main>
   );
