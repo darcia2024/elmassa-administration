@@ -267,28 +267,28 @@ export function PackageList() {
             </div>
 
             {/* Title & Start Point */}
-            <div>
-              <p className="text-[11px] font-semibold text-stone-500 flex items-center gap-1 mb-1">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold text-stone-500 flex items-center gap-1 flex-wrap">
                 <MapPin className="h-3.5 w-3.5 text-brand-pink shrink-0" strokeWidth={1.5} />
-                <span>{pkg.startPoint}</span>
+                <span className="truncate max-w-full">{pkg.startPoint}</span>
                 <span className="text-stone-300">•</span>
-                <span>{pkg.programUmrah}</span>
+                <span className="truncate max-w-full">{pkg.programUmrah}</span>
               </p>
-              <h3 className="text-lg font-extrabold leading-snug text-brand-cocoa group-hover:text-brand-pink transition">
+              <h3 className="text-base sm:text-lg font-extrabold leading-snug text-brand-cocoa group-hover:text-brand-pink transition">
                 {pkg.name}
               </h3>
             </div>
 
             {/* Price & Date Row */}
-            <div className="flex items-baseline justify-between rounded-xl border border-stone-100 bg-stone-50/50 p-3">
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50/50 p-3">
               <div>
                 <p className="text-[10px] font-bold uppercase text-stone-400">Keberangkatan</p>
                 <p className="text-xs font-bold text-brand-cocoa">{pkg.departuresDate}</p>
               </div>
 
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-[10px] font-bold uppercase text-stone-400">Harga All In</p>
-                <p className="text-xl font-black text-brand-pink">{pkg.price}</p>
+                <p className="text-lg sm:text-xl font-black text-brand-pink">{pkg.price}</p>
               </div>
             </div>
 
