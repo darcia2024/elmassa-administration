@@ -327,14 +327,106 @@ export default function BookingsPage() {
             ))}
           </div>
 
-          {/* 📱 NATIVE MOBILE CARD LIST (Hidden on Desktop) */}
-          <div className="space-y-3 block md:hidden">
-            {filteredBookings.length === 0 ? (
-              <div className="py-6 text-center text-stone-400 text-xs rounded-xl border border-stone-200/60 bg-stone-50/50">
-                Tidak ada transaksi booking yang sesuai.
+          {/* 📱 NATIVE MOBILE CARD LIST (Indigo House Hotel Discovery & Booking App Referensi Style) */}
+          <div className="space-y-4 block md:hidden">
+            
+            {/* Header Title */}
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <h2 className="text-lg font-extrabold text-stone-900 tracking-tight">Booking & Pendaftaran Jamaah</h2>
+                <p className="text-[11px] font-medium text-stone-500">{filteredBookings.length} Registrasi Ditemukan</p>
               </div>
-            ) : (
-              filteredBookings.map((b) => {
+              <Link
+                href="/booking/form"
+                className="grid h-9 w-9 place-items-center rounded-full bg-stone-900 text-white shadow-xs active:scale-95 transition"
+              >
+                <Plus className="h-5 w-5" />
+              </Link>
+            </div>
+
+            {/* Horizontal Category Pill Row (Persis Referensi Indigo House) */}
+            <section className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+              {(["Semua", "Lunas", "DP", "Belum Bayar"] as const).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setSelectedStatus(st)}
+                  className={`h-8 rounded-full px-4 text-xs font-extrabold whitespace-nowrap transition active:scale-95 ${
+                    selectedStatus === st
+                      ? "bg-stone-900 text-white shadow-xs"
+                      : "bg-white text-stone-600 border border-stone-200/80 hover:bg-stone-50"
+                  }`}
+                >
+                  {st === "Semua" ? "Semua Booking" : st}
+                </button>
+              ))}
+            </section>
+
+            {/* Section 1: "Pendaftaran Populer Terbaru" (Indigo House Style Card Grid) */}
+            <section className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-extrabold text-stone-900">Pendaftaran Populer</span>
+                <span className="text-[10px] font-bold text-stone-400">Lihat Semua</span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {filteredBookings.slice(0, 2).map((b) => (
+                  <article
+                    key={b.code}
+                    className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-2xs space-y-3 active:bg-stone-50 transition"
+                  >
+                    {/* Top Image Preview Banner */}
+                    <div className="relative h-32 w-full overflow-hidden rounded-xl bg-stone-100 border border-stone-100">
+                      <img
+                        src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"
+                        alt={b.packageName}
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/80 backdrop-blur-xs text-stone-600">
+                        ♡
+                      </span>
+                      <span className="absolute left-2 bottom-2 rounded-full bg-stone-900/80 backdrop-blur-xs px-2.5 py-0.5 text-[9px] font-extrabold text-white font-mono">
+                        {b.code}
+                      </span>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <h4 className="text-sm font-extrabold text-stone-900 truncate">{b.customer}</h4>
+                        <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
+                          ★★★★★
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] font-medium text-stone-500 truncate flex items-center gap-1">
+                        <span className="truncate">{b.packageName}</span>
+                        <span className="text-stone-300">•</span>
+                        <span className="font-bold text-brand-pink">{b.participants} Pax</span>
+                      </p>
+
+                      <p className="text-[10px] text-stone-400 truncate">📍 {b.groupName}</p>
+                    </div>
+
+                    {/* Price & Status */}
+                    <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[8px] font-bold uppercase text-stone-400 block">Total Tagihan</span>
+                        <p className="text-sm font-black text-brand-pink leading-none">{b.totalDisplay}</p>
+                      </div>
+
+                      <StatusBadge status={b.status} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* Section 2: "Seluruh Riwayat Transaksi" Touch Cards */}
+            <section className="space-y-2 pt-2">
+              <span className="text-xs font-extrabold text-stone-900 px-1 block">Seluruh Transaksi Booking</span>
+
+              {filteredBookings.map((b) => {
                 const waText = encodeURIComponent(
                   `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${b.customer},\n\nKami dari *PT El Massa Tour & Travel* menginformasikan pemesanan paket *${b.packageName}* (Kode: ${b.code}).\n\nSisa tagihan pelunasan: *${b.remainingDisplay}*.\nTerima kasih.`,
                 );
@@ -342,35 +434,27 @@ export default function BookingsPage() {
                 return (
                   <div
                     key={b.code}
-                    className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-3 active:bg-stone-50 transition"
+                    className="rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-2xs space-y-3 active:bg-stone-50 transition"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <span className="font-mono text-[10px] font-bold text-stone-400 uppercase tracking-wide block">
                           {b.code}
                         </span>
-                        <h4 className="font-bold text-sm text-brand-cocoa">{b.customer}</h4>
+                        <h4 className="font-bold text-sm text-stone-900">{b.customer}</h4>
                         <p className="text-[11px] text-stone-500 font-medium">{b.phone}</p>
                       </div>
                       <StatusBadge status={b.status} />
                     </div>
 
-                    <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-100 space-y-2 text-xs">
+                    <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-100 space-y-1.5 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-stone-500 font-medium text-[11px]">Paket:</span>
+                        <span className="text-stone-500 text-[11px]">Paket:</span>
                         <span className="font-bold text-stone-800 text-right">{b.packageName}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-stone-500 font-medium text-[11px]">Pax & Flight:</span>
-                        <span className="font-semibold text-stone-700">{b.participants} Pax • {b.departure}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-stone-200/60 pt-2">
-                        <span className="text-stone-500 font-medium text-[11px]">Total Tagihan:</span>
-                        <span className="font-black text-brand-cocoa text-sm">{b.totalDisplay}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-stone-500 font-medium text-[11px]">Terbayar:</span>
-                        <span className="font-bold text-emerald-700">{b.paidDisplay}</span>
+                        <span className="text-stone-500 text-[11px]">Total / Paid:</span>
+                        <span className="font-black text-brand-pink">{b.totalDisplay} <span className="text-emerald-700 font-bold text-[10px]">({b.paidDisplay})</span></span>
                       </div>
                     </div>
 
@@ -395,35 +479,40 @@ export default function BookingsPage() {
                     </div>
 
                     {/* Mobile Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-100">
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-100">
                       <a
                         href={`https://wa.me/62${b.phone.replace(/[^0-9]/g, "").slice(1)}?text=${waText}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-8 items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-[11px] font-bold text-emerald-700"
+                        className="inline-flex items-center gap-1 font-bold text-emerald-700 text-[11px]"
                       >
-                        <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.5} />
-                        <span>WA</span>
+                        <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+                        <span>Kirim WA</span>
                       </a>
-                      <Link
-                        href={`/dokumen/invoice/${b.code}`}
-                        className="inline-flex h-8 items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 px-3 text-[11px] font-semibold text-stone-700"
-                      >
-                        <Receipt className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
-                        <span>Invoice</span>
-                      </Link>
+
                       <Link
                         href={`/booking/${b.code}`}
-                        className="inline-flex h-8 items-center gap-1 rounded-xl bg-stone-900 px-3 text-[11px] font-bold text-white shadow-2xs"
+                        className="inline-flex items-center gap-1 rounded-xl bg-stone-900 px-3 py-1 text-[10px] font-extrabold text-white active:scale-95 transition"
                       >
-                        <Eye className="h-3.5 w-3.5" strokeWidth={1.5} />
-                        <span>Detail</span>
+                        Detail Booking →
                       </Link>
                     </div>
                   </div>
                 );
-              })
-            )}
+              })}
+            </section>
+
+            {/* Mobile Fixed Floating Action Button (Persis Referensi Sticky Book Now Button) */}
+            <div className="fixed bottom-20 inset-x-4 z-40">
+              <Link
+                href="/booking/form"
+                className="w-full h-12 rounded-full bg-stone-900 text-white font-extrabold text-xs shadow-2xl active:scale-95 transition flex items-center justify-center gap-2 border border-stone-800"
+              >
+                <Plus className="h-4 w-4 text-brand-pink" />
+                <span>+ Buat Booking Jamaah Baru</span>
+              </Link>
+            </div>
+
           </div>
 
           {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
