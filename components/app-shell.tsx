@@ -704,55 +704,39 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </section>
 
-      {/* 🚀 NATIVE MOBILE FLOATING ACTION BUTTON (FAB) */}
-      <Link
-        href="/booking/form"
-        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-pink via-rose-600 to-amber-600 p-3.5 text-white shadow-2xl hover:shadow-brand-pink/40 active:scale-95 transition-all lg:hidden border border-white/20"
-        aria-label="Tambah Booking Baru"
-      >
-        <Plus className="h-5 w-5 stroke-[2.5]" />
-        <span className="text-xs font-black tracking-wide pr-1">Booking Baru</span>
-      </Link>
+      {/* 📱 SIMPLE & CLEAN STANDARD MOBILE BOTTOM NAVBAR (HANYA UNTUK MOBILE - DESKTOP 100% UNTOUCHED) */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-md px-1 py-1.5 shadow-lg lg:hidden font-sans">
+        {[
+          { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
+          { label: "Paket", icon: Plane, href: "/paket" },
+          { label: "Booking", icon: ClipboardList, href: "/booking" },
+          { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
+          { label: "Staf & Akses", icon: Users, href: "/pengaturan/staf" },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
 
-      {/* 📱 HIGH-END NATIVE MOBILE FLOATING BOTTOM DOCK (iOS Dynamic Island Style) */}
-      <div className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-md lg:hidden font-sans">
-        <nav className="flex items-center justify-between rounded-full border border-stone-800/80 bg-stone-950/95 backdrop-blur-xl p-1.5 text-stone-400 shadow-2xl ring-1 ring-white/10">
-          {[
-            { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
-            { label: "Paket", icon: Plane, href: "/paket" },
-            { label: "Booking", icon: ClipboardList, href: "/booking" },
-            { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
-            { label: "Kasir", icon: CircleDollarSign, href: "/pembayaran" },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
-
-            if (isActive) {
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className="flex items-center gap-2 rounded-full bg-brand-pink px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all active:scale-95 shrink-0"
-                >
-                  <Icon className="h-4 w-4" strokeWidth={2.5} />
-                  <span>{tab.label}</span>
-                </Link>
-              );
-            }
-
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className="grid h-10 w-10 place-items-center rounded-full text-stone-400 hover:text-white active:bg-stone-800/80 active:scale-90 transition"
-                aria-label={tab.label}
-              >
-                <Icon className="h-4 w-4" strokeWidth={1.75} />
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex flex-col items-center justify-center gap-1 flex-1 py-1 text-center transition active:scale-95 ${
+                isActive
+                  ? "text-brand-pink font-extrabold"
+                  : "text-stone-400 font-medium hover:text-stone-700"
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`h-5 w-5 ${isActive ? "text-brand-pink stroke-[2.2]" : "text-stone-400 stroke-[1.5]"}`} />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-brand-pink" />
+                )}
+              </div>
+              <span className="text-[10px] tracking-tight whitespace-nowrap">{tab.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
     </main>
   );
