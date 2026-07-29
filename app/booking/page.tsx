@@ -229,48 +229,48 @@ export default function BookingsPage() {
           </div>
         </section>
 
-        {/* 📊 Metric KPI Cards */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+        {/* 📊 Metric KPI Cards (Clean 2x2 Grid on Mobile) */}
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs space-y-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Transaksi</p>
-              <FileText className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Transaksi</p>
+              <FileText className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{filteredBookings.length} Booking</p>
-            <p className="mt-1 text-[11px] text-stone-400">Total {totalParticipants} Pax Jamaah</p>
+            <p className="text-lg sm:text-2xl font-bold text-brand-cocoa">{filteredBookings.length} Booking</p>
+            <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">Total {totalParticipants} Pax Jamaah</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs space-y-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Lunas Sempurna</p>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Lunas Sempurna</p>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-800">
+            <p className="text-lg sm:text-2xl font-bold text-emerald-800">
               {filteredBookings.filter((b) => b.status === "Lunas").length} Transaksi
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Siap Cetak Ticket & Visa</p>
+            <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">Siap Cetak Ticket & Visa</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs space-y-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Status DP / Cicilan</p>
-              <Clock className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Status DP / Cicilan</p>
+              <Clock className="h-4 w-4 text-amber-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-amber-800">
+            <p className="text-lg sm:text-2xl font-bold text-amber-800">
               {filteredBookings.filter((b) => b.status === "DP").length} Transaksi
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Dalam Masa Pelunasan</p>
+            <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">Dalam Masa Pelunasan</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs space-y-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Sisa Piutang</p>
-              <CreditCard className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Sisa Piutang</p>
+              <CreditCard className="h-4 w-4 text-rose-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-rose-700">
+            <p className="text-lg sm:text-2xl font-bold text-rose-700">
               Rp {(totalNominalRemaining / 1000000).toFixed(1)} Jt
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Sisa Tagihan Jamaah</p>
+            <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">Sisa Tagihan Jamaah</p>
           </article>
         </section>
 

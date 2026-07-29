@@ -38,18 +38,18 @@ export default function PaymentsPage() {
   return (
     <AppShell eyebrow="Keuangan" title="Pembayaran & Cicilan">
       <div className="space-y-5">
-        {/* Metric Cards Row */}
-        <section className="grid gap-4 md:grid-cols-4">
+        {/* Metric Cards Row (Clean 2x2 Grid on Mobile) */}
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
           {paymentSummary.map((item) => {
             const Icon = item.icon;
             return (
-              <article key={item.label} className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+              <article key={item.label} className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs space-y-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-stone-500">{item.label}</p>
-                  <Icon className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+                  <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">{item.label}</p>
+                  <Icon className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-brand-cocoa">{item.value}</p>
-                <p className="mt-1 text-[11px] text-stone-400">{item.note}</p>
+                <p className="text-lg sm:text-2xl font-bold text-brand-cocoa">{item.value}</p>
+                <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">{item.note}</p>
               </article>
             );
           })}
