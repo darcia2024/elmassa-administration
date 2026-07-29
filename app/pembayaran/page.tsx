@@ -79,7 +79,48 @@ export default function PaymentsPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
+          <div className="space-y-3 block md:hidden">
+            {payments.map((item) => (
+              <div
+                key={item.receipt}
+                className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-2.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-mono text-[10px] font-bold text-stone-400 block">{item.receipt} • {item.bookingCode}</span>
+                    <h4 className="font-bold text-xs text-stone-900">{item.customer}</h4>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                    item.status === "Terverifikasi"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200/60"
+                      : "bg-amber-50 text-amber-800 border-amber-200/60"
+                  }`}>
+                    {item.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">Nominal Bayar</span>
+                    <span className="font-bold text-emerald-700">{item.amountDisplay}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">Metode & Bank</span>
+                    <span className="font-bold text-stone-800">{item.method} ({item.account})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-stone-100 text-stone-500">
+                  <span className="truncate max-w-[180px]">{item.packageName}</span>
+                  <span>{item.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
             <table className="w-full min-w-[800px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

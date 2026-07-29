@@ -704,35 +704,39 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </section>
 
-      {/* 📱 SIMPLE & CLEAN STANDARD MOBILE BOTTOM NAVBAR (HANYA UNTUK MOBILE - DESKTOP 100% UNTOUCHED) */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-md px-1 py-1.5 shadow-lg lg:hidden font-sans">
+      {/* 📱 ULTRA-POLISHED NATIVE MOBILE BOTTOM NAVBAR (HANYA UNTUK MOBILE - DESKTOP 100% UNTOUCHED) */}
+      <nav className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-2xl lg:hidden font-sans">
         {[
           { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
           { label: "Paket", icon: Plane, href: "/paket" },
           { label: "Booking", icon: ClipboardList, href: "/booking" },
           { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
-          { label: "Staf & Akses", icon: Users, href: "/pengaturan/staf" },
+          { label: "Kasir", icon: CircleDollarSign, href: "/pembayaran" },
         ].map((tab) => {
           const Icon = tab.icon;
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
+          const isActive = pathname === tab.href || pathname === "/" || pathname.startsWith(tab.href + "/");
+
+          if (isActive) {
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className="flex items-center gap-1.5 rounded-full bg-brand-pink px-3.5 py-1.5 text-xs font-black text-white shadow-md active:scale-95 transition shrink-0"
+              >
+                <Icon className="h-4 w-4 stroke-[2.5]" />
+                <span className="text-[11px]">{tab.label}</span>
+              </Link>
+            );
+          }
 
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 py-1 text-center transition active:scale-95 ${
-                isActive
-                  ? "text-brand-pink font-extrabold"
-                  : "text-stone-400 font-medium hover:text-stone-700"
-              }`}
+              className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 text-stone-400 hover:text-stone-700 active:scale-90 transition"
             >
-              <div className="relative">
-                <Icon className={`h-5 w-5 ${isActive ? "text-brand-pink stroke-[2.2]" : "text-stone-400 stroke-[1.5]"}`} />
-                {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-brand-pink" />
-                )}
-              </div>
-              <span className="text-[10px] tracking-tight whitespace-nowrap">{tab.label}</span>
+              <Icon className="h-5 w-5 stroke-[1.75]" />
+              <span className="text-[10px] font-semibold tracking-tight">{tab.label}</span>
             </Link>
           );
         })}

@@ -334,7 +334,59 @@ export default function StaffAndSubUsersPage() {
             <p className="text-xs text-stone-400">Menampilkan {filteredAccounts.length} akun sub-user</p>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
+          <div className="space-y-3 block md:hidden">
+            {filteredAccounts.map((acc) => (
+              <div
+                key={acc.id}
+                className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-xs text-stone-900">{acc.name}</h4>
+                    <p className="text-[11px] text-stone-500 font-mono">{acc.email}</p>
+                  </div>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${roleBadgeStyles[acc.role]}`}>
+                    {acc.role}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">Divisi</span>
+                    <span className="font-bold text-stone-800">{acc.teamDivision}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">Cabang</span>
+                    <span className="font-bold text-stone-800">{acc.branch}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 text-xs border-t border-stone-100">
+                  <span className="font-mono text-[10px] text-stone-500">Pass: {acc.password || "admin123"}</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPasswordModal(acc)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-900"
+                    >
+                      <KeyRound className="h-3 w-3" /> Reset Pass
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(acc)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-bold text-stone-700"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
             <table className="w-full min-w-[950px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

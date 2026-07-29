@@ -163,7 +163,50 @@ export default function ManifestPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
+          <div className="space-y-3 block md:hidden">
+            {filteredParticipants.map((item, idx) => (
+              <div
+                key={item.id}
+                onClick={() => setSelectedParticipant(item)}
+                className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-2.5 active:bg-stone-50 cursor-pointer transition"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-stone-100 text-stone-700 font-bold text-xs">
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-xs text-stone-900">{item.name}</h4>
+                      <p className="font-mono text-[10px] text-stone-400">Paspor: {item.passportNumber}</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                    {item.documentStatus}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">E-Visa KSA</span>
+                    <span className="font-mono font-bold text-stone-800">{item.visaNumber}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-stone-400 block font-medium">E-Tiket Flight</span>
+                    <span className="font-mono font-bold text-stone-800">{item.ticketNumber}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] pt-1 text-stone-500">
+                  <span>📍 {item.city}</span>
+                  <span className="font-bold text-brand-pink flex items-center gap-1">Lihat Detail <Eye className="h-3 w-3" /></span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
             <table className="w-full min-w-[960px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
