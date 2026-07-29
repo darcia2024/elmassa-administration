@@ -327,8 +327,107 @@ export default function BookingsPage() {
             ))}
           </div>
 
-          {/* 📋 Interactive Data Table */}
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* 📱 NATIVE MOBILE CARD LIST (Hidden on Desktop) */}
+          <div className="space-y-3 block md:hidden">
+            {filteredBookings.length === 0 ? (
+              <div className="py-6 text-center text-stone-400 text-xs rounded-xl border border-stone-200/60 bg-stone-50/50">
+                Tidak ada transaksi booking yang sesuai.
+              </div>
+            ) : (
+              filteredBookings.map((b) => {
+                const waText = encodeURIComponent(
+                  `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${b.customer},\n\nKami dari *PT El Massa Tour & Travel* menginformasikan pemesanan paket *${b.packageName}* (Kode: ${b.code}).\n\nSisa tagihan pelunasan: *${b.remainingDisplay}*.\nTerima kasih.`,
+                );
+
+                return (
+                  <div
+                    key={b.code}
+                    className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-3 active:bg-stone-50 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-mono text-[10px] font-bold text-stone-400 uppercase tracking-wide block">
+                          {b.code}
+                        </span>
+                        <h4 className="font-bold text-sm text-brand-cocoa">{b.customer}</h4>
+                        <p className="text-[11px] text-stone-500 font-medium">{b.phone}</p>
+                      </div>
+                      <StatusBadge status={b.status} />
+                    </div>
+
+                    <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-100 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500 font-medium text-[11px]">Paket:</span>
+                        <span className="font-bold text-stone-800 text-right">{b.packageName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500 font-medium text-[11px]">Pax & Flight:</span>
+                        <span className="font-semibold text-stone-700">{b.participants} Pax • {b.departure}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-stone-200/60 pt-2">
+                        <span className="text-stone-500 font-medium text-[11px]">Total Tagihan:</span>
+                        <span className="font-black text-brand-cocoa text-sm">{b.totalDisplay}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-500 font-medium text-[11px]">Terbayar:</span>
+                        <span className="font-bold text-emerald-700">{b.paidDisplay}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold text-stone-600">
+                        <span>Pelunasan Tagihan</span>
+                        <span>{b.paymentProgress}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-stone-100 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            b.paymentProgress === 100
+                              ? "bg-emerald-500"
+                              : b.paymentProgress > 0
+                              ? "bg-amber-500"
+                              : "bg-rose-500"
+                          }`}
+                          style={{ width: `${b.paymentProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Mobile Action Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-100">
+                      <a
+                        href={`https://wa.me/62${b.phone.replace(/[^0-9]/g, "").slice(1)}?text=${waText}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-8 items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-[11px] font-bold text-emerald-700"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <span>WA</span>
+                      </a>
+                      <Link
+                        href={`/dokumen/invoice/${b.code}`}
+                        className="inline-flex h-8 items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 px-3 text-[11px] font-semibold text-stone-700"
+                      >
+                        <Receipt className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                        <span>Invoice</span>
+                      </Link>
+                      <Link
+                        href={`/booking/${b.code}`}
+                        className="inline-flex h-8 items-center gap-1 rounded-xl bg-stone-900 px-3 text-[11px] font-bold text-white shadow-2xs"
+                      >
+                        <Eye className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <span>Detail</span>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
             <table className="w-full min-w-[980px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

@@ -219,13 +219,13 @@ export function PackageList() {
             />
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
             {(["Semua", "Oktober", "November"] as const).map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`h-8 rounded-xl px-3.5 text-xs font-semibold transition ${
+                className={`h-8 rounded-xl px-3.5 text-xs font-semibold whitespace-nowrap transition ${
                   selectedCategory === cat
                     ? "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold shadow-2xs"
                     : "text-stone-600 hover:bg-stone-50"

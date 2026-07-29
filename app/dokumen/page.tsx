@@ -486,7 +486,7 @@ export default function EasyDocumentsPage() {
           </div>
 
           {/* 📄 FULL VERSION A4 SHEET PAPER PREVIEW (EXACT 210mm x 297mm PROPORTION) */}
-          <div className="print:m-0 print:p-0 print:shadow-none print:w-full relative w-full max-w-[210mm] bg-white p-8 sm:p-14 text-stone-900 shadow-2xl space-y-6 font-sans border border-stone-200">
+          <div className="print:m-0 print:p-0 print:shadow-none print:w-full relative w-full max-w-[210mm] bg-white p-4 sm:p-14 text-stone-900 shadow-2xl space-y-5 font-sans border border-stone-200 rounded-xl sm:rounded-none">
             
             {/* 🎨 PRINT STYLES FOR EXACT A4 PAPER OUTPUT */}
             <style jsx global>{`
