@@ -167,191 +167,343 @@ export function PackageList() {
   }, [searchQuery, selectedCategory]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       
-      {/* Hero Header Section */}
-      <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
-                Katalog Resmi Paket Umrah PT El Massa
-              </h1>
-              <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
-                Resmi Izin PPIU
-              </span>
+      {/* ========================================================================= */}
+      {/* 🖥️ 1. DESKTOP MODE LAYOUT (100% UNTOUCHED ORIGINAL 2-COLUMN) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:block space-y-6">
+        
+        {/* Hero Header Section */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                  Katalog Resmi Paket Umrah PT El Massa
+                </h1>
+                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
+                  Resmi Izin PPIU
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 mt-1 max-w-2xl">
+                Paket Umrah Spesial Oktober (2x Jum'at) & November Start Pangkal Pinang dengan maskapai Saudia / Garuda Indonesia dan Hotel Grand Al Massa Makkah.
+              </p>
             </div>
-            <p className="text-xs text-stone-500 mt-1 max-w-2xl">
-              Paket Umrah Spesial Oktober (2x Jum'at) & November Start Pangkal Pinang dengan maskapai Saudia / Garuda Indonesia dan Hotel Grand Al Massa Makkah.
-            </p>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href="/paket/kalkulator"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shrink-0"
+              >
+                <Calculator className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+                <span>Hitung HPP & Costing</span>
+              </Link>
+              <Link
+                href="/booking/form"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+              >
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                <span>Daftar Jamaah / Booking</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 🔎 Search Toolbar & Filters */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-4 sm:p-5 shadow-2xs space-y-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" strokeWidth={1.5} />
+              <input
+                type="text"
+                placeholder="Cari paket Oktober, November, hotel, atau maskapai..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 pl-9 pr-3 text-xs text-brand-cocoa font-medium placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
+              {(["Semua", "Oktober", "November"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`h-8 rounded-xl px-3.5 text-xs font-semibold whitespace-nowrap transition ${
+                    selectedCategory === cat
+                      ? "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold shadow-2xs"
+                      : "text-stone-600 hover:bg-stone-50"
+                  }`}
+                >
+                  {cat === "Semua" ? "Semua Paket" : `Bulan ${cat}`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 📦 Paket Grid Cards - Desktop 2-Column Grid */}
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+          {filteredPackages.map((pkg) => (
+            <article
+              key={pkg.id}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs hover:shadow-md hover:border-brand-pink/40 transition-all duration-300 space-y-4"
+            >
+              {/* Top Pill Badges Row */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
+                    {pkg.category}
+                  </span>
+                  <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
+                    {pkg.duration}
+                  </span>
+                  {pkg.featured && (
+                    <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/60 flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Recommended 2x Jum'at
+                    </span>
+                  )}
+                </div>
+
+                <span className="text-[11px] font-extrabold text-brand-cocoa bg-stone-50 border border-stone-200/60 rounded-full px-2.5 py-0.5">
+                  DP Mulai {pkg.dpMinimum}
+                </span>
+              </div>
+
+              {/* Title & Start Point */}
+              <div className="space-y-1">
+                <p className="text-[11px] font-semibold text-stone-500 flex items-center gap-1 flex-wrap">
+                  <MapPin className="h-3.5 w-3.5 text-brand-pink shrink-0" strokeWidth={1.5} />
+                  <span className="truncate max-w-full">{pkg.startPoint}</span>
+                  <span className="text-stone-300">•</span>
+                  <span className="truncate max-w-full">{pkg.programUmrah}</span>
+                </p>
+                <h3 className="text-base sm:text-lg font-extrabold leading-snug text-brand-cocoa group-hover:text-brand-pink transition">
+                  {pkg.name}
+                </h3>
+              </div>
+
+              {/* Price & Date Row */}
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50/50 p-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-stone-400">Keberangkatan</p>
+                  <p className="text-xs font-bold text-brand-cocoa">{pkg.departuresDate}</p>
+                </div>
+
+                <div className="sm:text-right">
+                  <p className="text-[10px] font-bold uppercase text-stone-400">Harga All In</p>
+                  <p className="text-lg sm:text-xl font-black text-brand-pink">{pkg.price}</p>
+                </div>
+              </div>
+
+              {/* Hotel & Airline Specs */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                  <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                    <Hotel className="h-3 w-3 text-brand-pink" strokeWidth={1.5} /> Hotel Makkah
+                  </p>
+                  <p className="font-bold text-brand-cocoa truncate">{pkg.makkahHotel}</p>
+                </div>
+
+                <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                  <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                    <Hotel className="h-3 w-3 text-emerald-600" strokeWidth={1.5} /> Hotel Madinah
+                  </p>
+                  <p className="font-bold text-stone-800 truncate">{pkg.madinahHotel}</p>
+                </div>
+
+                <div className="col-span-2 rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                  <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                    <Plane className="h-3 w-3 text-sky-600" strokeWidth={1.5} /> Maskapai & Flight
+                  </p>
+                  <p className="font-bold text-sky-900 truncate">{pkg.airline}</p>
+                </div>
+              </div>
+
+              {/* Bonus Highlights */}
+              <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-3 space-y-1.5">
+                <p className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+                  <Gift className="h-3.5 w-3.5 text-amber-700" strokeWidth={1.5} /> Bonus Spesial Paket:
+                </p>
+                <ul className="space-y-1 text-[11px] font-medium text-amber-950">
+                  {pkg.bonusHighlights.map((bonus, bIdx) => (
+                    <li key={bIdx} className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3 w-3 text-amber-600 shrink-0" />
+                      <span>{bonus}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPkg(pkg)}
+                  className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
+                >
+                  Lihat Detail & Brosur
+                </button>
+
+                <Link
+                  href="/booking/form"
+                  className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1"
+                >
+                  <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <span>Daftar / Booking</span>
+                </Link>
+              </div>
+            </article>
+          ))}
+        </section>
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 📱 2. MOBILE NATIVE E-COMMERCE LAYOUT (WEARIFY / H&M REFERENSI STYLE BRO) */}
+      {/* ========================================================================= */}
+      <div className="block md:hidden space-y-4">
+        
+        {/* A. Location & Branch Selector Pill (Wearify Header Style) */}
+        <section className="flex items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-stone-200/80 shadow-2xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-rose-50 text-brand-pink border border-brand-pink/20">
+              <MapPin className="h-4 w-4" strokeWidth={2} />
+            </span>
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase text-stone-400 block">Cabang Keberangkatan</span>
+              <p className="text-xs font-extrabold text-stone-900 truncate">Pangkalpinang, Bangka Belitung</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/paket/kalkulator"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shrink-0"
-            >
-              <Calculator className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
-              <span>Hitung HPP & Costing</span>
-            </Link>
-            <Link
-              href="/booking/form"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
-            >
-              <Plus className="h-4 w-4" strokeWidth={1.5} />
-              <span>Daftar Jamaah / Booking</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+          <button
+            type="button"
+            className="rounded-full bg-stone-900 px-3 py-1 text-[10px] font-black text-white active:scale-95 transition shrink-0"
+          >
+            Ubah
+          </button>
+        </section>
 
-      {/* 🔎 Search Toolbar & Filters */}
-      <section className="rounded-2xl border border-stone-200/70 bg-white p-4 sm:p-5 shadow-2xs space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" strokeWidth={1.5} />
+        {/* B. Full-Width Search Input */}
+        <section className="relative">
+          <div className="flex items-center gap-2 rounded-full border border-stone-200/90 bg-white px-3.5 h-10 shadow-2xs focus-within:border-brand-pink transition">
+            <Search className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.5} />
             <input
               type="text"
-              placeholder="Cari paket Oktober, November, hotel, atau maskapai..."
+              placeholder="Cari paket umrah, hotel, atau maskapai..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 pl-9 pr-3 text-xs text-brand-cocoa font-medium placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+              className="w-full bg-transparent outline-none text-xs font-medium text-stone-900 placeholder:text-stone-400"
             />
           </div>
+        </section>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
+        {/* C. Horizontal Brand / Month Pills (Wearify Category Row) */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-900">Kategori Paket</span>
+            <span className="text-[10px] font-bold text-stone-400">{filteredPackages.length} Paket Tersedia</span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
             {(["Semua", "Oktober", "November"] as const).map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`h-8 rounded-xl px-3.5 text-xs font-semibold whitespace-nowrap transition ${
+                className={`h-8 rounded-full px-4 text-xs font-extrabold whitespace-nowrap transition active:scale-95 ${
                   selectedCategory === cat
-                    ? "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold shadow-2xs"
-                    : "text-stone-600 hover:bg-stone-50"
+                    ? "bg-brand-cocoa text-white shadow-xs"
+                    : "bg-white text-stone-600 border border-stone-200/80 hover:bg-stone-50"
                 }`}
               >
                 {cat === "Semua" ? "Semua Paket" : `Bulan ${cat}`}
               </button>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 📦 Paket Grid Cards - Clean Modern Minimalist */}
-      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-        {filteredPackages.map((pkg) => (
-          <article
-            key={pkg.id}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs hover:shadow-md hover:border-brand-pink/40 transition-all duration-300 space-y-4"
-          >
-            {/* Top Pill Badges Row */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
-                  {pkg.category}
+        {/* D. 2-COLUMN MOBILE PRODUCT CARD GRID (WEARIFY / H&M E-COMMERCE PRODUCT GRID) */}
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          {filteredPackages.map((pkg) => (
+            <article
+              key={pkg.id}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-3 shadow-2xs active:bg-stone-50 transition-all duration-200 space-y-2"
+            >
+              {/* Product Poster Preview Container */}
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-stone-100 border border-stone-100 flex items-center justify-center">
+                {pkg.posterImg ? (
+                  <img
+                    src={pkg.posterImg}
+                    alt={pkg.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-2 text-center text-stone-400">
+                    <Plane className="h-6 w-6 text-stone-300 mb-1" />
+                    <span className="text-[9px] font-bold">El Massa Official</span>
+                  </div>
+                )}
+
+                {/* Top Badge Overlay */}
+                <span className="absolute left-1.5 top-1.5 rounded-full bg-emerald-600/90 backdrop-blur-xs px-2 py-0.5 text-[8px] font-black uppercase text-white shadow-xs">
+                  {pkg.category.includes("Oktober") ? "Bestseller" : "Populer"}
                 </span>
-                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
+              </div>
+
+              {/* Rating & Duration */}
+              <div className="flex items-center justify-between text-[9px] font-extrabold">
+                <span className="text-amber-600 flex items-center gap-0.5">
+                  <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" /> 4.9 (128)
+                </span>
+                <span className="text-stone-500 font-bold bg-stone-100 px-1.5 py-0.2 rounded">
                   {pkg.duration}
                 </span>
-                {pkg.featured && (
-                  <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/60 flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Recommended 2x Jum'at
-                  </span>
-                )}
               </div>
 
-              <span className="text-[11px] font-extrabold text-brand-cocoa bg-stone-50 border border-stone-200/60 rounded-full px-2.5 py-0.5">
-                DP Mulai {pkg.dpMinimum}
-              </span>
-            </div>
-
-            {/* Title & Start Point */}
-            <div className="space-y-1">
-              <p className="text-[11px] font-semibold text-stone-500 flex items-center gap-1 flex-wrap">
-                <MapPin className="h-3.5 w-3.5 text-brand-pink shrink-0" strokeWidth={1.5} />
-                <span className="truncate max-w-full">{pkg.startPoint}</span>
-                <span className="text-stone-300">•</span>
-                <span className="truncate max-w-full">{pkg.programUmrah}</span>
-              </p>
-              <h3 className="text-base sm:text-lg font-extrabold leading-snug text-brand-cocoa group-hover:text-brand-pink transition">
+              {/* Title (Clean 2-Line Clamp) */}
+              <h4 className="text-xs font-extrabold text-stone-900 leading-snug line-clamp-2 min-h-[32px]">
                 {pkg.name}
-              </h3>
-            </div>
+              </h4>
 
-            {/* Price & Date Row */}
-            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50/50 p-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-stone-400">Keberangkatan</p>
-                <p className="text-xs font-bold text-brand-cocoa">{pkg.departuresDate}</p>
-              </div>
-
-              <div className="sm:text-right">
-                <p className="text-[10px] font-bold uppercase text-stone-400">Harga All In</p>
-                <p className="text-lg sm:text-xl font-black text-brand-pink">{pkg.price}</p>
-              </div>
-            </div>
-
-            {/* Hotel & Airline Specs */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
-                  <Hotel className="h-3 w-3 text-brand-pink" strokeWidth={1.5} /> Hotel Makkah
-                </p>
-                <p className="font-bold text-brand-cocoa truncate">{pkg.makkahHotel}</p>
-              </div>
-
-              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
-                  <Hotel className="h-3 w-3 text-emerald-600" strokeWidth={1.5} /> Hotel Madinah
-                </p>
-                <p className="font-bold text-stone-800 truncate">{pkg.madinahHotel}</p>
-              </div>
-
-              <div className="col-span-2 rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
-                  <Plane className="h-3 w-3 text-sky-600" strokeWidth={1.5} /> Maskapai & Flight
-                </p>
-                <p className="font-bold text-sky-900 truncate">{pkg.airline}</p>
-              </div>
-            </div>
-
-            {/* Bonus Highlights */}
-            <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-3 space-y-1.5">
-              <p className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
-                <Gift className="h-3.5 w-3.5 text-amber-700" strokeWidth={1.5} /> Bonus Spesial Paket:
+              {/* Spec Badges */}
+              <p className="text-[9px] font-bold text-stone-500 truncate flex items-center gap-1">
+                <Clock className="h-2.5 w-2.5 text-stone-400 shrink-0" />
+                <span className="truncate">{pkg.departuresDate}</span>
               </p>
-              <ul className="space-y-1 text-[11px] font-medium text-amber-950">
-                {pkg.bonusHighlights.map((bonus, bIdx) => (
-                  <li key={bIdx} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3 w-3 text-amber-600 shrink-0" />
-                    <span>{bonus}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedPkg(pkg)}
-                className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
-              >
-                Lihat Detail & Brosur
-              </button>
+              {/* Price & DP */}
+              <div className="pt-1 border-t border-stone-100 space-y-0.5">
+                <span className="text-[8px] font-extrabold uppercase text-stone-400 block">Harga All In</span>
+                <p className="text-xs sm:text-sm font-black text-brand-pink leading-none">{pkg.price}</p>
+                <p className="text-[8.5px] font-extrabold text-emerald-700">DP {pkg.dpMinimum}</p>
+              </div>
 
-              <Link
-                href="/booking/form"
-                className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1"
-              >
-                <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
-                <span>Daftar / Booking</span>
-              </Link>
-            </div>
-          </article>
-        ))}
-      </section>
+              {/* Full-Width Touch Action Button */}
+              <div className="pt-1 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPkg(pkg)}
+                  className="flex-1 h-7 rounded-lg border border-stone-200 bg-stone-50 text-[10px] font-bold text-stone-700 active:bg-stone-100 transition"
+                >
+                  Detail
+                </button>
+
+                <Link
+                  href="/booking/form"
+                  className="flex-1 h-7 rounded-lg bg-stone-900 text-[10px] font-bold text-white shadow-2xs active:bg-stone-800 transition flex items-center justify-center"
+                >
+                  Booking
+                </Link>
+              </div>
+            </article>
+          ))}
+        </section>
+
+      </div>
 
       {/* 📝 INTERACTIVE DETAIL & BROCHURE MODAL */}
       {selectedPkg && (

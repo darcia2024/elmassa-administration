@@ -411,28 +411,29 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main Content Viewport */}
       <section className="min-w-0 flex-1 bg-[#fafafa]">
         {/* Sleek Light Top Header */}
-        <header className="sticky top-0 z-10 border-b border-stone-200/60 bg-white/90 backdrop-blur-md px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 border-b border-stone-200/60 bg-white/95 backdrop-blur-md px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 font-sans">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
-              className="grid h-9 w-9 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 lg:hidden"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 lg:hidden active:scale-95 transition"
               type="button"
               onClick={() => setIsMobileNavOpen(true)}
+              aria-label="Buka menu sidebar"
             >
               <Menu className="h-4 w-4" strokeWidth={1.5} />
             </button>
 
-            <div>
-              <h2 className="text-base font-bold tracking-tight text-stone-900">
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-base font-bold tracking-tight text-stone-900 truncate">
                 Selamat Datang, {activeUser.name.split(" ")[0]} 👋
               </h2>
-              <p className="text-[11px] font-normal text-stone-500">
+              <p className="text-[10px] sm:text-[11px] font-normal text-stone-500 truncate hidden xs:block sm:block">
                 Dashboard Operasional El Massa Tour & Travel
               </p>
             </div>
           </div>
 
           {/* Right Controls: 🔍 Global Search Engine & 🔔 Notifications */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             
             {/* 🔍 Global Live Search Input Container */}
             <div className="relative">
@@ -440,10 +441,10 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
-                className="grid h-9 w-9 place-items-center rounded-full border border-stone-200 bg-stone-50 text-stone-600 md:hidden hover:bg-stone-100 transition"
+                className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full border border-stone-200 bg-stone-50 text-stone-600 md:hidden hover:bg-stone-100 transition"
                 aria-label="Buka pencarian"
               >
-                <Search className="h-4 w-4" strokeWidth={1.5} />
+                <Search className="h-3.5 w-3.5" strokeWidth={1.5} />
               </button>
 
               {/* Desktop Search Bar Input */}
@@ -485,7 +486,7 @@ export function AppShell({ children }: AppShellProps) {
                     className="fixed inset-0 z-40 bg-transparent"
                     onClick={() => setIsSearchOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-stone-200/90 bg-white p-3 shadow-xl space-y-2 text-stone-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 z-50 w-72 sm:w-96 rounded-2xl border border-stone-200/90 bg-white p-3 shadow-xl space-y-2 text-stone-800 animate-in fade-in slide-in-from-top-2 duration-200">
                     
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-stone-100 pb-2 px-1">
@@ -569,12 +570,12 @@ export function AppShell({ children }: AppShellProps) {
             {/* 🔔 Interactive Notification Center Popover */}
             <div className="relative">
               <button
-                className="relative grid h-9 w-9 place-items-center rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 shadow-2xs shrink-0 transition"
+                className="relative grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 shadow-2xs shrink-0 transition"
                 aria-label="Notifikasi"
                 type="button"
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
               >
-                <Bell className="h-4 w-4" strokeWidth={1.5} />
+                <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.5} />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-brand-pink text-[9px] font-black text-white ring-2 ring-white animate-pulse">
                     {unreadCount}
@@ -590,7 +591,7 @@ export function AppShell({ children }: AppShellProps) {
                     className="fixed inset-0 z-40 bg-transparent"
                     onClick={() => setIsNotifOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-xl space-y-3 text-stone-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 z-50 w-72 sm:w-96 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-xl space-y-3 text-stone-800 animate-in fade-in slide-in-from-top-2 duration-200">
                     
                     {/* Header Notification Popover */}
                     <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
@@ -679,8 +680,8 @@ export function AppShell({ children }: AppShellProps) {
               )}
             </div>
 
-            <div className="flex h-9 items-center gap-2 rounded-full border border-stone-200 bg-white px-2.5 shadow-2xs shrink-0">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-rose-50 text-[10px] font-bold text-brand-pink border border-brand-pink/20">
+            <div className="flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-full border border-stone-200 bg-white px-2 sm:px-2.5 shadow-2xs shrink-0">
+              <span className="grid h-5 w-5 sm:h-6 sm:w-6 shrink-0 place-items-center rounded-full bg-rose-50 text-[10px] font-bold text-brand-pink border border-brand-pink/20">
                 {getInitials(activeUser.name)}
               </span>
               <div className="hidden sm:flex flex-col">
@@ -691,21 +692,21 @@ export function AppShell({ children }: AppShellProps) {
                   {activeUser.role || "Admin Master"}
                 </span>
               </div>
-              <button type="button" onClick={handleLogout} aria-label="Logout" className="ml-1">
+              <button type="button" onClick={handleLogout} aria-label="Logout" className="ml-0.5 sm:ml-1">
                 <LogOut className="h-3.5 w-3.5 text-stone-400 hover:text-rose-600 transition" strokeWidth={1.5} />
               </button>
             </div>
           </div>
         </header>
 
-        {/* Dashboard Main Content Area (Native App Touch Padding) */}
+        {/* Dashboard Main Content Area (With bottom padding for fixed mobile navbar) */}
         <div key={pathname} className="p-3 sm:p-6 pb-28 lg:pb-6 animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out max-w-7xl mx-auto">
           {children}
         </div>
       </section>
 
-      {/* 📱 ULTRA-POLISHED NATIVE MOBILE BOTTOM NAVBAR (HANYA UNTUK MOBILE - DESKTOP 100% UNTOUCHED) */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-2xl lg:hidden font-sans">
+      {/* 📱 100% FIXED ALWAYS-VISIBLE MOBILE BOTTOM NAVBAR */}
+      <nav className="fixed bottom-0 inset-x-0 z-[100] flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-2xl lg:hidden font-sans">
         {[
           { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
           { label: "Paket", icon: Plane, href: "/paket" },
