@@ -1,35 +1,35 @@
 "use client";
 
-import { Building2, FileText, ImageUp, RotateCcw, Save, Upload } from "lucide-react";
+import { Building2, ExternalLink, FileText, ImageUp, MapPin, RotateCcw, Save, Sparkles, Upload } from "lucide-react";
 import { ChangeEvent, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
 const initialIdentity = {
-  address: "Jl. Kemang Pratama, Bekasi",
-  documentFooter: "Terima kasih telah mempercayakan perjalanan Anda kepada El Massa Tour & Travel.",
-  email: "admin@elmassa.test",
-  legalName: "PT El Massa Tour & Travel",
+  address: "Komplek Ruko Best Cinema, Jln. Gabek Raya, Selindung Baru, Kec. Gabek, Kota Pangkal Pinang, Bangka Belitung",
+  documentFooter: "Terima kasih telah mempercayakan perjalanan ibadah Anda kepada PT. AL MASSA AZKA WISATA (El Massa Tour). SK Kemenkumham: AHU-0112355.AH.01.01. • No. Izin PPIU: 10032300465890002.",
+  email: "elmassatour@gmail.com",
+  legalName: "PT. AL MASSA AZKA WISATA",
   name: "El Massa Tour & Travel",
-  phone: "021-8899-7788",
-  website: "www.elmassa.test",
+  kemenkumham: "AHU-0112355.AH.01.01.",
+  ppiu: "10032300465890002",
+  phone: "081249476778",
+  website: "www.elmassatour.com",
+  gmapsUrl: "https://maps.google.com/?q=Komplek+Ruko+Best+Cinema+Jln+Gabek+Raya+Selindung+Baru+Pangkalpinang",
 };
 
 export default function IdentitySettingsPage() {
   const [identity, setIdentity] = useState(initialIdentity);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoName, setLogoName] = useState("Logo EM dummy");
+  const [logoName, setLogoName] = useState("Logo EM Official");
 
   const contactLine = useMemo(
-    () => [identity.phone, identity.email, identity.website].filter(Boolean).join(" | "),
+    () => [identity.phone, identity.email, identity.website].filter(Boolean).join(" • "),
     [identity.email, identity.phone, identity.website],
   );
 
   const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     setLogoName(file.name);
     const reader = new FileReader();
@@ -40,142 +40,264 @@ export default function IdentitySettingsPage() {
   };
 
   return (
-    <AppShell eyebrow="Pengaturan Master" title="Identitas Dokumen">
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Profil Dokumen</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">Aktif</p>
-          <p className="mt-2 text-sm text-stone-500">{identity.name}</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Logo</p>
-          <p className="mt-3 truncate text-2xl font-bold text-brand-cocoa">{logoName}</p>
-          <p className="mt-2 text-sm text-stone-500">Preview lokal di browser</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Footer</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">1 template</p>
-          <p className="mt-2 text-sm text-stone-500">Dipakai invoice dan kuitansi</p>
-        </article>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[380px_1fr]">
-        <form className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-lg bg-brand-rose text-brand-pink">
-              <Building2 className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="font-bold text-brand-cocoa">Data Kop Dokumen</h3>
-              <p className="text-sm text-stone-500">Perubahan langsung terlihat di pratinjau.</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Nama brand
-              <input className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={identity.name} onChange={(event) => setIdentity({ ...identity, name: event.target.value })} />
-            </label>
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Nama legal
-              <input className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={identity.legalName} onChange={(event) => setIdentity({ ...identity, legalName: event.target.value })} />
-            </label>
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Alamat
-              <textarea className="mt-2 min-h-20 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm outline-none" value={identity.address} onChange={(event) => setIdentity({ ...identity, address: event.target.value })} />
-            </label>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Telepon
-                <input className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={identity.phone} onChange={(event) => setIdentity({ ...identity, phone: event.target.value })} />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Website
-                <input className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={identity.website} onChange={(event) => setIdentity({ ...identity, website: event.target.value })} />
-              </label>
-            </div>
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Email
-              <input className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={identity.email} onChange={(event) => setIdentity({ ...identity, email: event.target.value })} />
-            </label>
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Footer dokumen
-              <textarea className="mt-2 min-h-24 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm outline-none" value={identity.documentFooter} onChange={(event) => setIdentity({ ...identity, documentFooter: event.target.value })} />
-            </label>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa">
-              <Upload className="h-4 w-4" aria-hidden="true" />
-              Unggah logo
-              <input className="sr-only" type="file" accept="image/*" onChange={handleLogoChange} />
-            </label>
-            <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" type="button" onClick={() => { setIdentity(initialIdentity); setLogoPreview(null); setLogoName("Logo EM dummy"); }}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Reset
-            </button>
-          </div>
-        </form>
-
-        <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-brand-cocoa">Pratinjau Dokumen</h3>
-              <p className="mt-1 text-sm text-stone-500">Simulasi kop invoice dan kuitansi dengan data identitas dummy.</p>
-            </div>
-            <button className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" type="button">
-              <Save className="h-4 w-4" aria-hidden="true" />
-              Simpan dummy
-            </button>
-          </div>
-
-          <div className="rounded-lg border border-stone-200 bg-brand-cream p-4">
-            <div className="rounded-lg bg-white p-6 shadow-soft">
-              <div className="flex flex-col gap-5 border-b border-stone-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand-rose text-brand-pink ring-1 ring-brand-pink/20">
-                    {logoPreview ? (
-                      <img className="h-full w-full object-cover" src={logoPreview} alt="Preview logo" />
-                    ) : (
-                      <ImageUp className="h-7 w-7" aria-hidden="true" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold uppercase text-brand-brown">{identity.legalName}</p>
-                    <h3 className="mt-1 text-2xl font-bold text-brand-cocoa">{identity.name}</h3>
-                    <p className="mt-2 text-sm leading-6 text-stone-600">{identity.address}</p>
-                    <p className="mt-1 text-sm font-semibold text-brand-cocoa">{contactLine}</p>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-stone-200 bg-brand-cream p-4 text-sm">
-                  <p className="text-xs font-bold uppercase text-stone-500">Dokumen</p>
-                  <p className="mt-1 font-bold text-brand-cocoa">INV-2407-018</p>
-                  <p className="mt-3 text-xs font-bold uppercase text-stone-500">Status</p>
-                  <p className="mt-1 font-bold text-brand-cocoa">Sebagian</p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {[
-                  ["Ditagihkan kepada", "Siti Rahma"],
-                  ["Booking", "BK-2407-018"],
-                  ["Nominal", "Rp 32.500.000"],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-lg border border-stone-200 bg-white p-4">
-                    <p className="text-xs font-bold uppercase text-stone-500">{label}</p>
-                    <p className="mt-2 font-bold text-brand-cocoa">{value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 flex items-start gap-3 rounded-lg border border-brand-rose bg-brand-cream p-4 text-sm text-stone-700">
-                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand-pink" aria-hidden="true" />
-                <p>{identity.documentFooter}</p>
-              </div>
-            </div>
+    <AppShell eyebrow="Pengaturan Master" title="Identitas Dokumen & Kop">
+      <div className="space-y-5">
+        
+        {/* 🏢 OFFICIAL LEGAL ENTITY BANNER CARD (PERSIS REFERENSI GAMBAR) */}
+        <section className="relative overflow-hidden rounded-2xl border border-stone-800 bg-gradient-to-r from-[#2c1d17] via-[#473024] to-[#2c1d17] p-6 text-white shadow-md">
+          <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-2 py-2">
+            <span className="rounded-full bg-rose-500/20 backdrop-blur-xs px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-rose-300 border border-rose-400/30">
+              Legalitas Resmi PPIU Kemenag RI
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
+              {identity.legalName}
+            </h2>
+            <p className="text-sm sm:text-base font-medium text-stone-200 tracking-wide">
+              SK Kemenkumham ( <span className="font-extrabold text-amber-300">{identity.kemenkumham}</span> )
+            </p>
+            <p className="text-sm sm:text-base font-extrabold text-white tracking-wide">
+              No Izin PPIU : <span className="font-black text-rose-300">{identity.ppiu}</span>
+            </p>
           </div>
         </section>
-      </section>
+
+        {/* Metric Cards Row */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Status Profil Dokumen</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">Aktif & Terverifikasi</p>
+            <p className="mt-1 text-[11px] text-stone-400">{identity.name}</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Logo Perusahaan</p>
+            <p className="mt-1 truncate text-2xl font-bold text-brand-cocoa">{logoName}</p>
+            <p className="mt-1 text-[11px] text-stone-400">Digunakan pada Invoice & Kuitansi</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Template Footer</p>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">Default Template</p>
+            <p className="mt-1 text-[11px] text-stone-400">Catatan kaki resmi dokumen</p>
+          </article>
+        </section>
+
+        {/* Form & Live Preview Grid */}
+        <section className="grid gap-5 xl:grid-cols-[400px_1fr]">
+          
+          {/* Form Settings Card */}
+          <form className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-brand-pink border border-brand-pink/20">
+                <Building2 className="h-4.5 w-4.5" strokeWidth={1.5} />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-brand-cocoa">Data Kop Dokumen</h3>
+                <p className="text-xs text-stone-500">Perubahan langsung terlihat di pratinjau.</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-stone-700">Nama Brand</span>
+                <input
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                  value={identity.name}
+                  onChange={(e) => setIdentity({ ...identity, name: e.target.value })}
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-stone-700">Nama Legal PT / Perusahaan</span>
+                <input
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                  value={identity.legalName}
+                  onChange={(e) => setIdentity({ ...identity, legalName: e.target.value })}
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-stone-700">Alamat Lengkap</span>
+                <textarea
+                  className="w-full min-h-[70px] rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 py-2 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                  value={identity.address}
+                  onChange={(e) => setIdentity({ ...identity, address: e.target.value })}
+                />
+              </label>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-stone-700">No. Telepon / WA</span>
+                  <input
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                    value={identity.phone}
+                    onChange={(e) => setIdentity({ ...identity, phone: e.target.value })}
+                  />
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-stone-700">Website</span>
+                  <input
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                    value={identity.website}
+                    onChange={(e) => setIdentity({ ...identity, website: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-stone-700">Email Resmi</span>
+                <input
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                  value={identity.email}
+                  onChange={(e) => setIdentity({ ...identity, email: e.target.value })}
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-stone-700">Footer Teks Dokumen</span>
+                <textarea
+                  className="w-full min-h-[70px] rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 py-2 text-xs text-brand-cocoa font-medium outline-none focus:border-brand-pink focus:bg-white transition"
+                  value={identity.documentFooter}
+                  onChange={(e) => setIdentity({ ...identity, documentFooter: e.target.value })}
+                />
+              </label>
+            </div>
+
+            <div className="pt-2 grid gap-2 sm:grid-cols-2">
+              <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition">
+                <Upload className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                <span>Unggah Logo</span>
+                <input className="sr-only" type="file" accept="image/*" onChange={handleLogoChange} />
+              </label>
+              
+              <button
+                type="button"
+                onClick={() => { setIdentity(initialIdentity); setLogoPreview(null); setLogoName("Logo EM Official"); }}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
+              >
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span>Reset Default</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Live Preview Card */}
+          <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-base font-bold text-brand-cocoa">Pratinjau Kop Dokumen Resmi</h3>
+                <p className="text-xs text-stone-500">Simulasi tampilan kop invoice & kuitansi yang dicetak jamaah.</p>
+              </div>
+
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+              >
+                <Save className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span>Simpan Perubahan</span>
+              </button>
+            </div>
+
+            {/* Document Preview Box */}
+            <div className="rounded-xl border border-stone-200/60 bg-stone-50/40 p-5 sm:p-6 space-y-6">
+              
+              {/* Header Kop Surat Image Preview */}
+              <div className="border-b border-stone-200/60 pb-4 space-y-2">
+                <p className="text-[10px] font-extrabold uppercase text-stone-400">Pratinjau Kop Surat Resmi (Gambar HD):</p>
+                <div className="rounded-xl border border-stone-200 bg-white p-3 shadow-2xs">
+                  <img
+                    className="w-full h-auto object-contain max-h-32 mx-auto"
+                    src="/kop-surat-el-massa.png"
+                    alt="Preview Kop Surat El Massa"
+                  />
+                </div>
+              </div>
+
+              {/* Sample Data Grid */}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-stone-200/60 bg-white p-3">
+                  <p className="text-[10px] font-bold uppercase text-stone-400">Ditagihkan Kepada</p>
+                  <p className="mt-0.5 text-xs font-bold text-brand-cocoa">Siti Rahma</p>
+                </div>
+
+                <div className="rounded-xl border border-stone-200/60 bg-white p-3">
+                  <p className="text-[10px] font-bold uppercase text-stone-400">Kode Booking</p>
+                  <p className="mt-0.5 text-xs font-mono font-bold text-brand-cocoa">BK-2407-018</p>
+                </div>
+
+                <div className="rounded-xl border border-stone-200/60 bg-white p-3">
+                  <p className="text-[10px] font-bold uppercase text-stone-400">Nominal Tagihan</p>
+                  <p className="mt-0.5 text-xs font-bold text-brand-pink">Rp 32.500.000</p>
+                </div>
+              </div>
+
+              {/* Footer Preview */}
+              <div className="rounded-xl border border-brand-pink/20 bg-rose-50/50 p-3.5 text-xs text-stone-600 italic font-medium">
+                {identity.documentFooter}
+              </div>
+
+            </div>
+
+            {/* 📍 GOOGLE MAPS LOCATION & NAVIGATOR WIDGET */}
+            <div className="rounded-xl border border-stone-200/70 bg-white p-5 space-y-4 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-stone-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-50 text-brand-pink border border-brand-pink/20">
+                    <MapPin className="h-4 w-4" strokeWidth={1.5} />
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-brand-cocoa">Lokasi Kantor & Ruko Resmi</h4>
+                    <p className="text-[11px] font-medium text-stone-500">Komplek Ruko Best Cinema, Pangkalpinang</p>
+                  </div>
+                </div>
+
+                <a
+                  href={identity.gmapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-brand-pink px-3 text-[11px] font-bold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+                >
+                  <span>Buka di Google Maps</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+
+              {/* Address details card */}
+              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-3.5 text-xs space-y-2">
+                <p className="font-extrabold text-brand-cocoa flex items-center gap-1">
+                  🏢 {identity.address}
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-600">
+                  <p>• Komplek: <span className="font-semibold text-stone-800">Ruko Best Cinema</span></p>
+                  <p>• Jalan: <span className="font-semibold text-stone-800">Jl. Gabek Raya</span></p>
+                  <p>• Kelurahan: <span className="font-semibold text-stone-800">Selindung Baru</span></p>
+                  <p>• Kecamatan: <span className="font-semibold text-stone-800">Kec. Gabek</span></p>
+                  <p>• Kota: <span className="font-semibold text-stone-800">Pangkalpinang</span></p>
+                  <p>• Provinsi: <span className="font-semibold text-stone-800">Bangka Belitung</span></p>
+                </div>
+              </div>
+
+              {/* Embedded Google Maps Preview Frame */}
+              <div className="overflow-hidden rounded-xl border border-stone-200 shadow-2xs h-48 w-full relative bg-stone-100">
+                <iframe
+                  title="Google Maps Lokasi El Massa Tour Best Cinema Pangkalpinang"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15945.74836691456!2d106.1085!3d-2.105!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e22c156f17d7b05%3A0x6b1076b177894a8c!2sSelindung%20Baru%2C%20Gabek%2C%20Pangkal%20Pinang%20City%2C%20Bangka%20Belitung!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={false}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </section>
+
+        </section>
+
+      </div>
     </AppShell>
   );
 }

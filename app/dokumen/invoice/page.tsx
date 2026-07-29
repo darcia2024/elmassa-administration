@@ -1,119 +1,443 @@
-import { FileText, Plus, ReceiptText, Search } from "lucide-react";
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Download,
+  FileText,
+  MessageSquare,
+  Plus,
+  Printer,
+  ReceiptText,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
-const invoices = [
+type InvoiceItem = {
+  number: string;
+  bookingCode: string;
+  customer: string;
+  phone: string;
+  packageName: string;
+  issueDate: string;
+  dueDate: string;
+  totalDisplay: string;
+  paidDisplay: string;
+  remainingDisplay: string;
+  remainingAmount: number;
+  status: "Lunas" | "Sebagian" | "Belum Bayar";
+};
+
+const initialInvoices: InvoiceItem[] = [
+  {
+    number: "INV-2407-001",
+    bookingCode: "BK-2407-001",
+    customer: "Siti Rahma",
+    phone: "0812-4455-7788",
+    packageName: "Umrah Reguler 12 Hari",
+    issueDate: "01 Jul 2026",
+    dueDate: "20 Jul 2026",
+    totalDisplay: "Rp 97.500.000",
+    paidDisplay: "Rp 97.500.000",
+    remainingDisplay: "Rp 0",
+    remainingAmount: 0,
+    status: "Lunas",
+  },
+  {
+    number: "INV-2407-002",
+    bookingCode: "BK-2407-002",
+    customer: "Ahmad Hidayat",
+    phone: "0813-8899-1122",
+    packageName: "Umrah Plus Thaif 12 Hari",
+    issueDate: "03 Jul 2026",
+    dueDate: "25 Jul 2026",
+    totalDisplay: "Rp 69.000.000",
+    paidDisplay: "Rp 34.500.000",
+    remainingDisplay: "Rp 34.500.000",
+    remainingAmount: 34500000,
+    status: "Sebagian",
+  },
+  {
+    number: "INV-2407-003",
+    bookingCode: "BK-2407-003",
+    customer: "Budi Santoso",
+    phone: "0819-2233-4455",
+    packageName: "Umrah VIP Turki 14 Hari",
+    issueDate: "05 Jul 2026",
+    dueDate: "30 Jul 2026",
+    totalDisplay: "Rp 180.000.000",
+    paidDisplay: "Rp 45.000.000",
+    remainingDisplay: "Rp 135.000.000",
+    remainingAmount: 135000000,
+    status: "Sebagian",
+  },
   {
     number: "INV-2407-018",
     bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    packageName: "Umrah Reguler 12 Hari",
+    customer: "Dewi Lestari",
+    phone: "0852-6677-8899",
+    packageName: "Umrah Awal Musim 9 Hari",
     issueDate: "10 Jul 2026",
     dueDate: "28 Jul 2026",
-    totalDisplay: "Rp 32.500.000",
-    paidDisplay: "Rp 12.500.000",
-    remainingDisplay: "Rp 20.000.000",
-    status: "Sebagian",
+    totalDisplay: "Rp 27.500.000",
+    paidDisplay: "Rp 0",
+    remainingDisplay: "Rp 27.500.000",
+    remainingAmount: 27500000,
+    status: "Belum Bayar",
   },
 ];
 
-const statusStyles: Record<string, string> = {
-  Lunas: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Sebagian: "bg-amber-50 text-amber-700 ring-amber-200",
-  "Belum Bayar": "bg-rose-50 text-rose-700 ring-rose-200",
-};
+const availableBookings = [
+  { code: "BK-2407-001", customer: "Siti Rahma", package: "Umrah Reguler 12 Hari", price: "Rp 97.500.000", phone: "0812-4455-7788" },
+  { code: "BK-2407-002", customer: "Ahmad Hidayat", package: "Umrah Plus Thaif 12 Hari", price: "Rp 69.000.000", phone: "0813-8899-1122" },
+  { code: "BK-2407-003", customer: "Budi Santoso", package: "Umrah VIP Turki 14 Hari", price: "Rp 180.000.000", phone: "0819-2233-4455" },
+];
 
-export default function InvoicePage() {
+export default function FastInvoicePage() {
+  const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoices);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("Semua");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [selectedBookingCode, setSelectedBookingCode] = useState("BK-2407-001");
+  const [customCustomer, setCustomCustomer] = useState("");
+  const [customPackage, setCustomPackage] = useState("");
+  const [customTotal, setCustomTotal] = useState("");
+  const [customDueDate, setCustomDueDate] = useState("28 Agustus 2026");
+
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((inv) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        inv.number.toLowerCase().includes(q) ||
+        inv.bookingCode.toLowerCase().includes(q) ||
+        inv.customer.toLowerCase().includes(q) ||
+        inv.packageName.toLowerCase().includes(q);
+
+      const matchesStatus =
+        selectedStatus === "Semua" ||
+        (selectedStatus === "Pending" && inv.status !== "Lunas") ||
+        inv.status === selectedStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [invoices, searchQuery, selectedStatus]);
+
+  const handleBookingSelect = (code: string) => {
+    setSelectedBookingCode(code);
+    const found = availableBookings.find((b) => b.code === code);
+    if (found) {
+      setCustomCustomer(found.customer);
+      setCustomPackage(found.package);
+      setCustomTotal(found.price);
+    }
+  };
+
+  const handleCreateFastInvoice = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newNumber = `INV-2407-${String(invoices.length + 1).padStart(3, "0")}`;
+    const b = availableBookings.find((item) => item.code === selectedBookingCode);
+
+    const newInv: InvoiceItem = {
+      number: newNumber,
+      bookingCode: selectedBookingCode,
+      customer: customCustomer || b?.customer || "Jamaah Umrah",
+      phone: b?.phone || "0812-3344-5566",
+      packageName: customPackage || b?.package || "Umrah Reguler 12 Hari",
+      issueDate: "29 Jul 2026",
+      dueDate: customDueDate,
+      totalDisplay: customTotal || b?.price || "Rp 32.500.000",
+      paidDisplay: "Rp 0",
+      remainingDisplay: customTotal || b?.price || "Rp 32.500.000",
+      remainingAmount: 32500000,
+      status: "Belum Bayar",
+    };
+
+    setInvoices([newInv, ...invoices]);
+    setIsModalOpen(false);
+  };
+
   return (
-    <AppShell eyebrow="Dokumen" title="Invoice & Kuitansi">
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Total Invoice</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{invoices.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Data invoice dummy</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Belum Lunas</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">2</p>
-          <p className="mt-2 text-sm text-stone-500">Perlu follow-up</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Total Tagihan</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">Rp 394.500.000</p>
-          <p className="mt-2 text-sm text-stone-500">Akumulasi invoice</p>
-        </article>
-      </section>
+    <AppShell eyebrow="Dokumen Keuangan" title="Generator Invoice Instan & Tagihan">
+      <div className="space-y-5">
+        
+        {/* Header Hero Section */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa">
+                  Generator Invoice Tagihan Ringan & Instan
+                </h1>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200/60">
+                  ⚡ 0 Jeda Latensi
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 mt-1 max-w-2xl">
+                Buat invoice tagihan jamaah secara otomatis hanya dengan memilih kode booking. Rincian biaya All In & nomor rekening bank terisi instan.
+              </p>
+            </div>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Daftar Invoice</h3>
-            <p className="mt-1 text-sm text-stone-500">Invoice booking dan status pembayaran dengan data dummy.</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleBookingSelect("BK-2407-001");
+                  setIsModalOpen(true);
+                }}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+              >
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                <span>+ Buat Invoice 1-Klik</span>
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm text-stone-500 sm:w-72">
-              <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <input className="min-w-0 flex-1 bg-transparent outline-none" placeholder="Cari invoice atau booking" />
-            </label>
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/dokumen/kuitansi">
-              <ReceiptText className="h-4 w-4" aria-hidden="true" />
-              Kuitansi
-            </Link>
-            <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" type="button">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Buat invoice
-            </button>
-          </div>
-        </div>
+        </section>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">Invoice</th>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Pelanggan</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Terbit</th>
-                <th className="px-4 py-3 font-bold">Tempo</th>
-                <th className="px-4 py-3 font-bold">Total</th>
-                <th className="px-4 py-3 font-bold">Terbayar</th>
-                <th className="px-4 py-3 font-bold">Sisa</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {invoices.map((invoice) => (
-                <tr key={invoice.number} className="text-stone-700 hover:bg-brand-cream">
-                  <td className="px-4 py-4">
-                    <Link className="inline-flex items-center gap-2 font-bold text-brand-cocoa hover:text-brand-pink" href={`/dokumen/invoice/${invoice.number}`}>
-                      <FileText className="h-4 w-4" aria-hidden="true" />
-                      {invoice.number}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">
-                    <Link className="font-bold text-brand-cocoa hover:text-brand-pink" href={`/booking/${invoice.bookingCode}`}>
-                      {invoice.bookingCode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">{invoice.customer}</td>
-                  <td className="px-4 py-4">{invoice.packageName}</td>
-                  <td className="px-4 py-4">{invoice.issueDate}</td>
-                  <td className="px-4 py-4">{invoice.dueDate}</td>
-                  <td className="px-4 py-4 font-semibold">{invoice.totalDisplay}</td>
-                  <td className="px-4 py-4">{invoice.paidDisplay}</td>
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{invoice.remainingDisplay}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[invoice.status]}`}>
-                      {invoice.status}
-                    </span>
-                  </td>
-                </tr>
+        {/* 📊 KPI Summary Row */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Total Invoice Terbit</p>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{invoices.length} Invoice</p>
+            <p className="mt-1 text-[11px] text-stone-400">Terdaftar di sistem</p>
+          </article>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Pending Pelunasan</p>
+            <p className="mt-1 text-2xl font-bold text-amber-700">
+              {invoices.filter((i) => i.status !== "Lunas").length} Tagihan
+            </p>
+            <p className="mt-1 text-[11px] text-stone-400">Dalam masa tenggat jatuh tempo</p>
+          </article>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Lunas Sempurna</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">
+              {invoices.filter((i) => i.status === "Lunas").length} Tagihan
+            </p>
+            <p className="mt-1 text-[11px] text-stone-400">Terverifikasi 100%</p>
+          </article>
+        </section>
+
+        {/* 🔎 Search Bar & Filter Tabs */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" strokeWidth={1.5} />
+              <input
+                type="text"
+                placeholder="Ketik No. INV-2407, nama jamaah, atau booking..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 pl-9 pr-3 text-xs text-brand-cocoa font-medium placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+              />
+            </div>
+
+            {/* Filter Pill Tabs */}
+            <div className="flex items-center gap-1.5 border-b border-stone-100 pb-2 md:border-none md:pb-0">
+              {(["Semua", "Lunas", "Pending"] as const).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setSelectedStatus(st)}
+                  className={`h-8 rounded-xl px-3.5 text-xs font-semibold transition ${
+                    selectedStatus === st
+                      ? "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold shadow-2xs"
+                      : "text-stone-600 hover:bg-stone-50"
+                  }`}
+                >
+                  {st === "Pending" ? "Pending / Belum Lunas" : st}
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+
+          {/* 📋 Fast Invoice Table */}
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[880px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">No. Invoice & Booking</th>
+                  <th className="py-2.5 pr-2">Pelanggan Jamaah</th>
+                  <th className="py-2.5 pr-2">Paket Wisata</th>
+                  <th className="py-2.5 pr-2">Jatuh Tempo</th>
+                  <th className="py-2.5 pr-2">Total Harga</th>
+                  <th className="py-2.5 pr-2">Terbayar</th>
+                  <th className="py-2.5 pr-2">Sisa Tagihan</th>
+                  <th className="py-2.5 pr-2">Status</th>
+                  <th className="py-2.5 pr-3 text-right">Aksi Instan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {filteredInvoices.map((inv) => {
+                  const waText = encodeURIComponent(
+                    `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${inv.customer},\n\nBerikut tagihan *Invoice ${inv.number}* untuk *${inv.packageName}*.\nSisa tagihan pelunasan: *${inv.remainingDisplay}* (Tenggat: ${inv.dueDate}).\n\nTerima kasih,\n*PT El Massa Tour & Travel*`,
+                  );
+
+                  return (
+                    <tr key={inv.number} className="transition hover:bg-stone-50/60">
+                      <td className="py-3 pl-3 pr-2">
+                        <Link href={`/dokumen/invoice/${inv.number}`} className="group">
+                          <p className="font-mono font-bold text-brand-cocoa group-hover:text-brand-pink transition">
+                            {inv.number}
+                          </p>
+                          <p className="font-mono text-[10px] text-stone-400">{inv.bookingCode}</p>
+                        </Link>
+                      </td>
+                      <td className="py-3 pr-2 font-semibold text-stone-800 whitespace-nowrap">
+                        {inv.customer}
+                      </td>
+                      <td className="py-3 pr-2 text-stone-600 font-medium whitespace-nowrap">{inv.packageName}</td>
+                      <td className="py-3 pr-2 text-stone-500 whitespace-nowrap">{inv.dueDate}</td>
+                      <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">{inv.totalDisplay}</td>
+                      <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{inv.paidDisplay}</td>
+                      <td className="py-3 pr-2 font-bold text-rose-600 whitespace-nowrap">{inv.remainingDisplay}</td>
+                      <td className="py-3 pr-2 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                            inv.status === "Lunas"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200/60"
+                              : "bg-amber-50 text-amber-800 border border-amber-200/60"
+                          }`}
+                        >
+                          {inv.status}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-3 text-right whitespace-nowrap space-x-1">
+                        <Link
+                          href={`/dokumen/invoice/${inv.number}`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-700 hover:bg-stone-50 transition"
+                        >
+                          <Printer className="h-3 w-3 text-stone-500" strokeWidth={1.5} />
+                          <span>Cetak</span>
+                        </Link>
+
+                        {inv.remainingAmount > 0 && (
+                          <a
+                            href={`https://wa.me/${inv.phone.replace(/[^0-9]/g, "")}?text=${waText}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                            title="Kirim Tagihan Invoice via WhatsApp"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+      {/* 📝 MODAL BUAT INVOICE INSTAN 1-KLIK */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <form onSubmit={handleCreateFastInvoice} className="relative w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-brand-pink" strokeWidth={1.5} />
+                <h3 className="text-base font-bold text-brand-cocoa">
+                  Buat Invoice Tagihan Instan (1-Klik)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-stone-200 bg-stone-50 text-stone-500 hover:bg-stone-100 transition"
+              >
+                <X className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <label className="block space-y-1">
+                <span className="font-semibold text-stone-700">Pilih Kode Booking Jamaah</span>
+                <select
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-brand-cocoa outline-none shadow-2xs"
+                  value={selectedBookingCode}
+                  onChange={(e) => handleBookingSelect(e.target.value)}
+                >
+                  {availableBookings.map((b) => (
+                    <option key={b.code} value={b.code}>
+                      {b.code} - {b.customer} ({b.package})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="font-semibold text-stone-700">Nama Jamaah Pemesan</span>
+                  <input
+                    required
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none"
+                    value={customCustomer}
+                    onChange={(e) => setCustomCustomer(e.target.value)}
+                  />
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="font-semibold text-stone-700">Paket Wisata</span>
+                  <input
+                    required
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-stone-800 outline-none"
+                    value={customPackage}
+                    onChange={(e) => setCustomPackage(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="font-semibold text-stone-700">Total Nominal Tagihan</span>
+                  <input
+                    required
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none"
+                    value={customTotal}
+                    onChange={(e) => setCustomTotal(e.target.value)}
+                  />
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="font-semibold text-stone-700">Tenggat Jatuh Tempo</span>
+                  <input
+                    required
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium outline-none"
+                    value={customDueDate}
+                    onChange={(e) => setCustomDueDate(e.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="h-9 rounded-xl border border-stone-200 bg-white px-4 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="h-9 rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover"
+              >
+                Terbitkan Invoice (Instan)
+              </button>
+            </div>
+          </form>
         </div>
-      </section>
+      )}
+
     </AppShell>
   );
 }

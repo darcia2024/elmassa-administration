@@ -59,9 +59,19 @@ export async function POST(request: NextRequest) {
     serviceType: String(body.serviceType),
     packageType: String(body.packageType ?? "Reguler"),
     itinerary: String(body.itinerary ?? ""),
-    basePrice: body.basePrice === null || body.basePrice === undefined ? null : Number(body.basePrice),
-    durationDays: body.durationDays === null || body.durationDays === undefined ? null : Number(body.durationDays),
-    status: String(body.status ?? "Draft"),
+    basePrice: Number(body.basePrice || 0),
+    durationDays: Number(body.durationDays || 11),
+    makkahHotel: String(body.makkahHotel ?? "Grand Al Massa"),
+    madinahHotel: String(body.madinahHotel ?? "Daar El Naeem"),
+    airline: String(body.airline ?? "Saudia / Garuda Indonesia"),
+    bonus: String(body.bonus ?? "Free City Tour Thaif & Pabrik Parfum"),
+    startPoint: String(body.startPoint ?? "Pangkal Pinang"),
+    departureDates: String(body.departureDates ?? "1 - 12 Oktober 2026"),
+    programUmrah: String(body.programUmrah ?? "Program Umrah 3 Kali"),
+    status: String(body.status ?? "Aktif"),
+    dpMinimum: String(body.dpMinimum ?? "Rp 5.000.000"),
+    includes: Array.isArray(body.includes) ? body.includes : [],
+    excludes: Array.isArray(body.excludes) ? body.excludes : [],
   });
 
   return NextResponse.json({ data }, { status: 201 });

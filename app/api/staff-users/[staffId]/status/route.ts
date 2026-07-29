@@ -30,9 +30,5 @@ export async function PATCH(request: NextRequest, { params }: StaffUserStatusRou
     return NextResponse.json({ error: "Staf pengguna tidak ditemukan" }, { status: 404 });
   }
 
-  if (data === "LAST_OPERATIONAL_ADMIN") {
-    return NextResponse.json({ error: "Minimal satu Admin Operasional aktif harus tersedia" }, { status: 409 });
-  }
-
   return NextResponse.json({ data });
 }

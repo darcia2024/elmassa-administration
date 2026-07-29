@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       summary: {
         staffCount: data.length,
         activeCount: data.filter((item) => item.status === "Aktif").length,
-        financeAdminCount: data.filter((item) => item.role === "Admin Keuangan" && item.status === "Aktif").length,
+        financeAdminCount: data.filter((item) => item.role === "Sub-User Keuangan" && item.status === "Aktif").length,
       },
       meta: {
         total: data.length,

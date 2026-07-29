@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const adminContacts = [
-  { label: "Admin Operasional", name: "Maya Safitri", value: "0812-3344-7788", icon: Phone },
+  { label: "CEO & Direksi", name: "Azriandri", value: "0812-3344-7788", icon: Phone },
   { label: "Email Bantuan", name: "Tim Admin", value: "admin@elmassa.test", icon: Mail },
 ];
 

@@ -34,7 +34,7 @@ const paymentRows: PaymentRow[] = [
     paymentFor: "Pembayaran cicilan paket Umrah Reguler 12 Hari",
     paymentMethod: "Transfer",
     account: "BCA El Massa",
-    staff: "Maya Safitri",
+    staff: "Azriandri",
     status: "Terverifikasi",
   },
 ];

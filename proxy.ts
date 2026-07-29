@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout"];
-const knownUserIds = new Set(["user-maya"]);
+const knownUserIds = new Set(["user-azri"]);
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;

@@ -6,10 +6,34 @@ import { useMemo, useState } from "react";
 
 const dummyUsers = [
   {
-    email: "maya@elmassa.test",
-    name: "Maya Safitri",
+    email: "azriandri@elmassa.test",
+    name: "Azriandri",
     password: "admin123",
-    role: "Admin Operasional",
+    role: "CEO / Admin Master",
+  },
+  {
+    email: "ruslan.ops@elmassa.test",
+    name: "H. Ruslan Efendi",
+    password: "admin123",
+    role: "Sub-User Operasional",
+  },
+  {
+    email: "zubaidah.fin@elmassa.test",
+    name: "Hj. Zubaidah",
+    password: "admin123",
+    role: "Sub-User Keuangan",
+  },
+  {
+    email: "ridwan.sales@elmassa.test",
+    name: "Ridwan Hasan",
+    password: "admin123",
+    role: "Sub-User Sales & CRM",
+  },
+  {
+    email: "ahmad.field@elmassa.test",
+    name: "Ust. Ahmad Syahputra",
+    password: "admin123",
+    role: "Sub-User Lapangan",
   },
 ];
 
@@ -49,99 +73,117 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-6 text-brand-cocoa sm:px-6 lg:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-48px)] max-w-6xl items-center gap-6 lg:grid-cols-[1fr_420px]">
+    <main className="min-h-screen bg-[#fafafa] px-4 py-8 text-stone-800 font-sans sm:px-6 lg:px-8 grid place-items-center">
+      <section className="w-full max-w-5xl grid gap-8 items-center lg:grid-cols-[1fr_400px]">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-lg bg-brand-pink text-lg font-black text-white">
-              EM
-            </div>
+            <img
+              src="/logo-el-massa.png"
+              alt="El Massa Tour & Travel Logo"
+              className="h-12 w-auto object-contain shrink-0"
+            />
             <div>
-              <p className="text-sm font-semibold uppercase text-brand-brown">El Massa</p>
-              <h1 className="text-2xl font-bold text-brand-cocoa">Travel Admin</h1>
+              <h1 className="text-base font-bold text-brand-cocoa leading-tight">El Massa Travel</h1>
+              <p className="text-[11px] font-normal text-stone-500 leading-tight">Sistem Operasional Staf</p>
             </div>
           </div>
 
-          <div className="max-w-2xl">
-            <p className="text-sm font-bold uppercase text-brand-brown">dummy autentikasi internal</p>
-            <h2 className="mt-3 text-4xl font-bold text-brand-cocoa sm:text-5xl">Masuk ke ruang kerja operasional</h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-stone-600">
-              Login dummy untuk memvalidasi alur masuk, role staf, dan penyimpanan session dummy sebelum autentikasi permanen disambungkan.
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-pink/20 bg-rose-50/70 px-3 py-0.5 text-xs font-semibold text-brand-pink">
+              <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
+              Portal Akses Staf Travel
+            </span>
+            <h2 className="mt-3 text-3xl font-extrabold text-brand-cocoa sm:text-4xl tracking-tight">
+              Masuk ke Ruang Kerja Operasional
+            </h2>
+            <p className="mt-2 text-xs text-stone-500 leading-relaxed">
+              Kelola jadwal keberangkatan umrah & tour, pemesanan jamaah, pelunasan tagihan, serta manifest peserta secara aman.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-stone-400">Pilih Akun Demo Staf</p>
             {dummyUsers.map((user) => {
               const isSelected = user.email === email;
 
               return (
                 <button
                   key={user.email}
-                  className={`rounded-lg border p-4 text-left transition ${
+                  className={`w-full max-w-md rounded-2xl border p-4 text-left transition flex items-center justify-between ${
                     isSelected
-                      ? "border-brand-pink bg-white text-brand-cocoa shadow-soft"
-                      : "border-stone-200 bg-white/70 text-stone-600 hover:bg-white"
+                      ? "border-brand-pink bg-rose-50/40 text-brand-cocoa shadow-2xs"
+                      : "border-stone-200/70 bg-white text-stone-600 hover:border-stone-300"
                   }`}
                   type="button"
                   onClick={() => handlePickUser(user)}
                 >
-                  <span className="block text-sm font-bold">{user.name}</span>
-                  <span className="mt-1 block text-xs">{user.role}</span>
+                  <div>
+                    <span className="block text-xs font-bold text-brand-cocoa">{user.name}</span>
+                    <span className="block text-[11px] text-stone-500">{user.role}</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-stone-400">{user.email}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <form className="rounded-lg border border-stone-200 bg-white p-6 shadow-soft" onSubmit={(event) => { event.preventDefault(); handleSubmit(); }}>
-          <div className="mb-6">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-lg bg-brand-rose text-brand-pink">
-              <LockKeyhole className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <h3 className="text-2xl font-bold text-brand-cocoa">Login</h3>
-            <p className="mt-2 text-sm leading-6 text-stone-500">Gunakan salah satu akun dummy yang tersedia.</p>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Email
-              <span className="mt-2 flex h-11 items-center gap-2 rounded-md border border-stone-200 bg-white px-3">
-                <UserRound className="h-4 w-4 text-brand-brown" aria-hidden="true" />
-                <input className="min-w-0 flex-1 bg-transparent text-sm outline-none" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
-              </span>
-            </label>
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Password
-              <span className="mt-2 flex h-11 items-center gap-2 rounded-md border border-stone-200 bg-white px-3">
-                <ShieldCheck className="h-4 w-4 text-brand-brown" aria-hidden="true" />
-                <input className="min-w-0 flex-1 bg-transparent text-sm outline-none" type={showPassword ? "text" : "password"} value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} />
-                <button className="grid h-8 w-8 place-items-center rounded-md text-brand-cocoa" type="button" aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"} onClick={() => setShowPassword((current) => !current)}>
-                  {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-                </button>
-              </span>
-            </label>
-          </div>
-
-          <div className="mt-4 text-right">
-            <a className="text-sm font-bold text-brand-pink hover:text-brand-cocoa" href="/lupa-password">
-              Lupa password?
-            </a>
+        {/* Login Box */}
+        <form className="rounded-2xl border border-stone-200/70 bg-white p-6 sm:p-7 shadow-2xs space-y-4" onSubmit={(event) => { event.preventDefault(); handleSubmit(); }}>
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-brand-cocoa">Login Staf</h3>
+            <p className="text-xs text-stone-500">Masukkan email & password akun staf Anda.</p>
           </div>
 
           {error ? (
-            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-700 font-medium">
               {error}
             </div>
           ) : null}
 
-          <div className="mt-5 rounded-lg border border-brand-rose bg-brand-cream p-4 text-sm">
-            <p className="font-bold text-brand-cocoa">{selectedUser?.name ?? "Akun dummy tidak dipilih"}</p>
-            <p className="mt-1 text-stone-600">{selectedUser?.role ?? "Masukkan email dummy untuk melihat role"}</p>
+          <div className="space-y-3">
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-stone-700">Email Staf</span>
+              <div className="flex h-10 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs">
+                <UserRound className="h-4 w-4 text-stone-400 shrink-0" strokeWidth={1.5} />
+                <input
+                  className="w-full bg-transparent outline-none font-normal text-brand-cocoa"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-xs font-semibold text-stone-700">Password</span>
+              <div className="flex h-10 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs">
+                <LockKeyhole className="h-4 w-4 text-stone-400 shrink-0" strokeWidth={1.5} />
+                <input
+                  className="w-full bg-transparent outline-none font-normal text-brand-cocoa"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-stone-400 hover:text-stone-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" strokeWidth={1.5} /> : <Eye className="h-4 w-4" strokeWidth={1.5} />}
+                </button>
+              </div>
+            </label>
           </div>
 
-          <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" type="submit">
-            Masuk dashboard
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          <button
+            type="submit"
+            className="w-full h-10 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-2"
+          >
+            <span>Masuk ke Dashboard</span>
+            <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </form>
       </section>

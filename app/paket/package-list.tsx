@@ -1,505 +1,463 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarPlus, Edit3, Filter, PackagePlus, Plane, Search } from "lucide-react";
+import {
+  Award,
+  Calculator,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Compass,
+  Download,
+  Gift,
+  Hotel,
+  MapPin,
+  MessageSquare,
+  PackageCheck,
+  Plane,
+  Plus,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Users,
+  X,
+} from "lucide-react";
+import Link from "next/link";
 
-type TravelPackage = {
+type PackageCardItem = {
   id: string;
   name: string;
-  type: string;
   category: string;
-  priceDisplay: string;
   duration: string;
-  departures: number;
-  activeBookings: number;
-  status: string;
-  itinerary: string;
+  departuresDate: string;
+  price: string;
+  numericPrice: number;
+  dpMinimum: string;
+  makkahHotel: string;
+  madinahHotel: string;
+  airline: string;
+  startPoint: string;
+  programUmrah: string;
+  bonusHighlights: string[];
+  posterImg?: string;
+  bannerImg?: string;
+  includes: string[];
+  excludes: string[];
+  featured?: boolean;
 };
 
-type Departure = {
-  id: string;
-  packageId: string;
-  date: string;
-  returnDate: string;
-  priceDisplay: string;
-  quota: number;
-  bookedSeats: number;
-  meetingPoint: string;
-  status: string;
-};
+const officialPackages: PackageCardItem[] = [
+  {
+    id: "pkg-umrah-oktober-12d",
+    name: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
+    category: "Umrah Spesial Oktober",
+    duration: "12 Hari",
+    departuresDate: "1 - 12 Oktober 2026",
+    price: "Rp 33.500.000",
+    numericPrice: 33500000,
+    dpMinimum: "Rp 5.000.000",
+    makkahHotel: "Grand Al Massa",
+    madinahHotel: "Daar El Naeem",
+    airline: "Saudia / Garuda Indonesia (Connecting PGK-CGK-JED)",
+    startPoint: "Start Pangkal Pinang",
+    programUmrah: "Program Umrah 3 Kali + 2x Jum'at di Tanah Suci",
+    bonusHighlights: [
+      "Free City Tour Thaif & Pabrik Parfum",
+      "Free City Tour Jabal Magnet",
+      "Free Ayam Albaik & Air Zam-zam 5 Liter",
+    ],
+    posterImg: "/poster-el-massa.png",
+    bannerImg: "/banner-el-massa.png",
+    featured: true,
+    includes: [
+      "Tiket pesawat PP PGK - CGK - PGK (Garuda Indonesia)",
+      "Tiket pesawat PP CGK - JED/MED - CGK (Saudia / Garuda)",
+      "Visa Umrah KSA",
+      "Bagasi 1x23kg + Koper Exclusive",
+      "Hotel Makkah (Grand Al Massa) & Madinah (Daar El Naeem)",
+      "Perlengkapan Umrah Lengkap + Koper Exclusif",
+      "Tour Leader & Muthawwif Berpengalaman",
+      "Handling Bandara Jakarta & Jeddah",
+      "Bus AC Modern Terbaru",
+      "Makan Sehari 3 Kali (Full Board Indonesian Food)",
+      "Air Zam-zam 5 Liter",
+      "Dokumentasi Perjalanan",
+      "City Tour Makkah 2x & Madinah 2x",
+      "City Tour Thaif + Nasi Arab Nampan & Pabrik Parfum",
+      "Free Ayam Albaik saat pulang",
+      "Bimbingan Manasik Sebelum Berangkat",
+      "Free Bingkisan Kenang-kenangan El Massa",
+    ],
+    excludes: [
+      "Biaya pembuatan paspor",
+      "Biaya suntik vaksin (jika diperlukan)",
+      "Kebutuhan pribadi & bagasi tambahan",
+    ],
+  },
+  {
+    id: "pkg-umrah-november-11d",
+    name: "Umrah Berkah Spesial November",
+    category: "Umrah Berkah Spesial",
+    duration: "11 Hari",
+    departuresDate: "8 - 18 November 2026",
+    price: "Rp 35.500.000",
+    numericPrice: 35500000,
+    dpMinimum: "Rp 5.000.000",
+    makkahHotel: "Grand Al Massa",
+    madinahHotel: "Daar El Naeem",
+    airline: "Saudia / Garuda Indonesia (Connecting PGK-CGK-JED)",
+    startPoint: "Start Pangkal Pinang",
+    programUmrah: "Program Umrah 2 Kali",
+    bonusHighlights: [
+      "Free City Tour Thaif & Pabrik Parfum",
+      "Free Ayam Albaik & Air Zam-zam 5 Liter",
+      "City Tour Thaif + Nasi Arab Nampan",
+    ],
+    posterImg: "/poster-el-massa.png",
+    bannerImg: "/banner-el-massa.png",
+    featured: false,
+    includes: [
+      "Tiket pesawat PP PGK - CGK - PGK (Garuda Indonesia)",
+      "Tiket pesawat PP CGK - JED/MED - CGK (Saudia / Garuda)",
+      "Visa Umrah KSA",
+      "Bagasi 1x23kg + Koper Exclusive",
+      "Hotel Makkah (Grand Al Massa) & Madinah (Daar El Naeem)",
+      "Perlengkapan Umrah Lengkap + Koper Exclusif",
+      "Tour Leader & Muthawwif Berpengalaman",
+      "Handling Bandara Jakarta & Jeddah",
+      "Bus AC Modern Terbaru",
+      "Makan Sehari 3 Kali (Full Board Indonesian Food)",
+      "Air Zam-zam 5 Liter",
+      "Dokumentasi Perjalanan",
+      "City Tour Makkah 2x & Madinah 2x",
+      "City Tour Thaif + Nasi Arab Nampan & Pabrik Parfum",
+      "Free Ayam Albaik saat pulang",
+      "Bimbingan Manasik Sebelum Berangkat",
+      "Free Bingkisan Kenang-kenangan El Massa",
+    ],
+    excludes: [
+      "Biaya pembuatan paspor",
+      "Biaya suntik vaksin (jika diperlukan)",
+      "Kebutuhan pribadi & bagasi tambahan",
+    ],
+  },
+];
 
-type PackageListProps = {
-  packages: TravelPackage[];
-  departures: Departure[];
-};
-
-const typeOptions = ["Semua", "Umrah", "Tour Mancanegara", "Tour Domestik", "Custom"];
-
-const statusStyles: Record<string, string> = {
-  Aktif: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Draft: "bg-stone-100 text-stone-700 ring-stone-200",
-  Menunggu: "bg-amber-50 text-amber-700 ring-amber-200",
-  Terjadwal: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Berangkat: "bg-sky-50 text-sky-700 ring-sky-200",
-  Selesai: "bg-brand-rose text-brand-cocoa ring-brand-pink/30",
-};
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
-}
-
-export function PackageList({ packages, departures }: PackageListProps) {
-  const [query, setQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("Semua");
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [selectedPackageId, setSelectedPackageId] = useState(packages[0]?.id ?? "");
-  const [departureMode, setDepartureMode] = useState<"create" | "edit">("create");
-  const [selectedDepartureId, setSelectedDepartureId] = useState(departures[0]?.id ?? "");
-
-  const selectedPackage = packages.find((item) => item.id === selectedPackageId) ?? packages[0];
-  const visibleDepartures = departures.filter((item) => item.packageId === selectedPackageId);
-  const selectedDeparture =
-    visibleDepartures.find((item) => item.id === selectedDepartureId) ?? visibleDepartures[0] ?? departures[0];
+export function PackageList() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [selectedPkg, setSelectedPkg] = useState<PackageCardItem | null>(null);
 
   const filteredPackages = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    return officialPackages.filter((pkg) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        pkg.name.toLowerCase().includes(q) ||
+        pkg.makkahHotel.toLowerCase().includes(q) ||
+        pkg.madinahHotel.toLowerCase().includes(q) ||
+        pkg.departuresDate.toLowerCase().includes(q);
 
-    return packages.filter((item) => {
-      const matchesType = selectedType === "Semua" || item.type === selectedType;
-      const searchable = `${item.name} ${item.type} ${item.category} ${item.itinerary}`.toLowerCase();
-      const matchesQuery = normalizedQuery.length === 0 || searchable.includes(normalizedQuery);
+      const matchesCat =
+        selectedCategory === "Semua" || pkg.category.includes(selectedCategory);
 
-      return matchesType && matchesQuery;
+      return matchesSearch && matchesCat;
     });
-  }, [packages, query, selectedType]);
-
-  const activePackageCount = packages.filter((item) => item.status === "Aktif").length;
+  }, [searchQuery, selectedCategory]);
 
   return (
-    <>
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Total Paket</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{packages.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Data dummy katalog El Massa</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Paket Aktif</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{activePackageCount}</p>
-          <p className="mt-2 text-sm text-stone-500">Siap dipilih untuk booking</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Booking Terkait</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">
-            {packages.reduce((total, item) => total + item.activeBookings, 0)}
-          </p>
-          <p className="mt-2 text-sm text-stone-500">Akumulasi dari paket dummy</p>
-        </article>
-      </section>
-
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <div className="space-y-6">
+      
+      {/* Hero Header Section */}
+      <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Daftar Paket Wisata</h3>
-            <p className="mt-1 text-sm text-stone-500">Kelola paket Umrah, tour, dan layanan custom.</p>
-          </div>
-          <button className="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-semibold text-white" type="button">
-            <PackagePlus className="h-4 w-4" aria-hidden="true" />
-            Tambah paket
-          </button>
-        </div>
-
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_260px]">
-          <label className="flex h-11 items-center gap-2 rounded-md border border-stone-200 bg-brand-cream px-3 text-sm text-stone-500">
-            <Search className="h-4 w-4 shrink-0 text-brand-brown" aria-hidden="true" />
-            <input
-              className="w-full bg-transparent text-brand-cocoa outline-none placeholder:text-stone-400"
-              placeholder="Cari nama paket, itinerary, atau kategori"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </label>
-
-          <label className="flex h-11 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm text-stone-600">
-            <Filter className="h-4 w-4 shrink-0 text-brand-brown" aria-hidden="true" />
-            <select
-              className="w-full bg-transparent font-semibold text-brand-cocoa outline-none"
-              value={selectedType}
-              onChange={(event) => setSelectedType(event.target.value)}
-            >
-              {typeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="mt-5 grid gap-4 xl:grid-cols-2">
-          {filteredPackages.map((item) => (
-            <article key={item.id} className="rounded-lg border border-stone-200 bg-white p-5 ring-1 ring-transparent transition hover:ring-brand-rose">
-              <div className="flex items-start gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-brand-rose text-brand-pink">
-                  <Plane className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-base font-bold text-brand-cocoa">{item.name}</h4>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[item.status]}`}>
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-stone-500">{item.itinerary}</p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase text-stone-400">Jenis</p>
-                  <p className="mt-1 text-sm font-bold text-brand-cocoa">{item.type}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase text-stone-400">Durasi</p>
-                  <p className="mt-1 text-sm font-bold text-brand-cocoa">{item.duration}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase text-stone-400">Jadwal</p>
-                  <p className="mt-1 text-sm font-bold text-brand-cocoa">{item.departures}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase text-stone-400">Harga</p>
-                  <p className="mt-1 text-sm font-bold text-brand-cocoa">{item.priceDisplay}</p>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {filteredPackages.length === 0 ? (
-          <div className="mt-5 rounded-lg border border-dashed border-stone-300 bg-brand-cream p-8 text-center">
-            <p className="font-bold text-brand-cocoa">Paket tidak ditemukan</p>
-            <p className="mt-2 text-sm text-stone-500">Coba ubah kata kunci atau filter jenis layanan.</p>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <h3 className="text-lg font-bold text-brand-cocoa">Mode Formulir</h3>
-          <p className="mt-1 text-sm leading-6 text-stone-500">
-            Form ini masih memakai data dummy untuk menggambarkan alur tambah dan edit paket.
-          </p>
-
-          <div className="mt-5 grid grid-cols-2 gap-2 rounded-md bg-brand-cream p-1">
-            <button
-              className={`flex h-10 items-center justify-center gap-2 rounded-md text-sm font-bold ${
-                formMode === "create" ? "bg-brand-pink text-white" : "text-brand-cocoa"
-              }`}
-              type="button"
-              onClick={() => setFormMode("create")}
-            >
-              <PackagePlus className="h-4 w-4" aria-hidden="true" />
-              Tambah
-            </button>
-            <button
-              className={`flex h-10 items-center justify-center gap-2 rounded-md text-sm font-bold ${
-                formMode === "edit" ? "bg-brand-pink text-white" : "text-brand-cocoa"
-              }`}
-              type="button"
-              onClick={() => setFormMode("edit")}
-            >
-              <Edit3 className="h-4 w-4" aria-hidden="true" />
-              Edit
-            </button>
-          </div>
-
-          <label className="mt-5 block text-sm font-semibold text-brand-cocoa">
-            Paket contoh
-            <select
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm text-brand-cocoa outline-none"
-              value={selectedPackageId}
-              onChange={(event) => {
-                setSelectedPackageId(event.target.value);
-                setFormMode("edit");
-              }}
-            >
-              {packages.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </article>
-
-        <form
-          key={`${formMode}-${selectedPackage?.id}`}
-          className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft"
-        >
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-brand-cocoa">
-                {formMode === "create" ? "Tambah Paket Wisata" : "Edit Paket Wisata"}
-              </h3>
-              <p className="mt-1 text-sm text-stone-500">
-                {formMode === "create"
-                  ? "Isi rancangan paket reguler atau custom baru."
-                  : `Mengubah data dummy untuk ${selectedPackage?.name}.`}
-              </p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                Katalog Resmi Paket Umrah PT El Massa
+              </h1>
+              <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
+                Resmi Izin PPIU
+              </span>
             </div>
-            <span className="w-fit rounded-md bg-brand-cream px-3 py-2 text-xs font-bold uppercase text-brand-brown ring-1 ring-brand-rose">
-              UI Only
-            </span>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Nama paket
-              <input
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.name : ""}
-                placeholder="Contoh: Umrah Reguler 12 Hari"
-              />
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Jenis layanan
-              <select
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.type : "Umrah"}
-              >
-                <option>Umrah</option>
-                <option>Tour Mancanegara</option>
-                <option>Tour Domestik</option>
-                <option>Custom</option>
-              </select>
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Kategori paket
-              <select
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.category : "Reguler"}
-              >
-                <option>Reguler</option>
-                <option>Custom</option>
-                <option>Musiman</option>
-              </select>
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Durasi
-              <input
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.duration : ""}
-                placeholder="Contoh: 12 hari"
-              />
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Harga dasar
-              <input
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.priceDisplay : ""}
-                placeholder="Contoh: Rp 32.500.000"
-              />
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa">
-              Status
-              <select
-                className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.status : "Draft"}
-              >
-                <option>Draft</option>
-                <option>Aktif</option>
-                <option>Menunggu</option>
-              </select>
-            </label>
-
-            <label className="block text-sm font-semibold text-brand-cocoa lg:col-span-2">
-              Itinerary ringkas
-              <textarea
-                className="mt-2 min-h-28 w-full rounded-md border border-stone-200 bg-brand-cream px-3 py-3 text-sm outline-none"
-                defaultValue={formMode === "edit" ? selectedPackage?.itinerary : ""}
-                placeholder="Tulis rute, kota tujuan, atau catatan layanan custom"
-              />
-            </label>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button className="h-10 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" type="button">
-              Reset
-            </button>
-            <button className="h-10 rounded-md bg-brand-cocoa px-4 text-sm font-bold text-white" type="button">
-              Simpan dummy
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Jadwal Keberangkatan per Paket</h3>
-            <p className="mt-1 text-sm text-stone-500">
-              Data dummy untuk mengatur tanggal berangkat, kuota, harga, dan meeting point.
+            <p className="text-xs text-stone-500 mt-1 max-w-2xl">
+              Paket Umrah Spesial Oktober (2x Jum'at) & November Start Pangkal Pinang dengan maskapai Saudia / Garuda Indonesia dan Hotel Grand Al Massa Makkah.
             </p>
           </div>
-          <label className="block min-w-72 text-sm font-semibold text-brand-cocoa">
-            Pilih paket
-            <select
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-              value={selectedPackageId}
-              onChange={(event) => {
-                const nextPackageId = event.target.value;
-                setSelectedPackageId(nextPackageId);
-                setSelectedDepartureId(departures.find((item) => item.packageId === nextPackageId)?.id ?? "");
-              }}
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/paket/kalkulator"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shrink-0"
             >
-              {packages.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_420px]">
-          <div className="overflow-x-auto rounded-lg border border-stone-200">
-            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-              <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-                <tr>
-                  <th className="px-4 py-3 font-bold">Berangkat</th>
-                  <th className="px-4 py-3 font-bold">Pulang</th>
-                  <th className="px-4 py-3 font-bold">Kuota</th>
-                  <th className="px-4 py-3 font-bold">Harga</th>
-                  <th className="px-4 py-3 font-bold">Meeting point</th>
-                  <th className="px-4 py-3 font-bold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 bg-white">
-                {visibleDepartures.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="cursor-pointer text-stone-700 hover:bg-brand-cream"
-                    onClick={() => {
-                      setSelectedDepartureId(item.id);
-                      setDepartureMode("edit");
-                    }}
-                  >
-                    <td className="px-4 py-4 font-bold text-brand-cocoa">{formatDate(item.date)}</td>
-                    <td className="px-4 py-4">{formatDate(item.returnDate)}</td>
-                    <td className="px-4 py-4">
-                      {item.bookedSeats}/{item.quota}
-                    </td>
-                    <td className="px-4 py-4 font-semibold">{item.priceDisplay}</td>
-                    <td className="px-4 py-4">{item.meetingPoint}</td>
-                    <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[item.status] ?? statusStyles.Draft}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {visibleDepartures.length === 0 ? (
-              <div className="p-6 text-center text-sm text-stone-500">Belum ada jadwal untuk paket ini.</div>
-            ) : null}
+              <Calculator className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+              <span>Hitung HPP & Costing</span>
+            </Link>
+            <Link
+              href="/booking/form"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+            >
+              <Plus className="h-4 w-4" strokeWidth={1.5} />
+              <span>Daftar Jamaah / Booking</span>
+            </Link>
           </div>
-
-          <form
-            key={`${departureMode}-${selectedDeparture?.id}-${selectedPackageId}`}
-            className="rounded-lg border border-stone-200 bg-brand-cream p-5"
-          >
-            <div className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <h4 className="font-bold text-brand-cocoa">
-                  {departureMode === "create" ? "Tambah Jadwal" : "Edit Jadwal"}
-                </h4>
-                <p className="mt-1 text-sm text-stone-500">Form jadwal masih UI dummy.</p>
-              </div>
-              <button
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-brand-pink px-3 text-sm font-bold text-white"
-                type="button"
-                onClick={() => setDepartureMode("create")}
-              >
-                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                Baru
-              </button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Tanggal berangkat
-                <input
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.date : ""}
-                  type="date"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Tanggal pulang
-                <input
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.returnDate : ""}
-                  type="date"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Kuota
-                <input
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.quota : ""}
-                  placeholder="45"
-                  type="number"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa">
-                Harga
-                <input
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.priceDisplay : ""}
-                  placeholder="Rp 32.500.000"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa sm:col-span-2">
-                Meeting point
-                <input
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.meetingPoint : ""}
-                  placeholder="Bandara / kantor / menyesuaikan rombongan"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-brand-cocoa sm:col-span-2">
-                Status
-                <select
-                  className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-                  defaultValue={departureMode === "edit" ? selectedDeparture?.status : "Terjadwal"}
-                >
-                  <option>Draft</option>
-                  <option>Terjadwal</option>
-                  <option>Berangkat</option>
-                  <option>Selesai</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button className="h-10 rounded-md bg-brand-cocoa px-4 text-sm font-bold text-white" type="button">
-                Simpan jadwal dummy
-              </button>
-            </div>
-          </form>
         </div>
       </section>
-    </>
+
+      {/* 🔎 Search Toolbar & Filters */}
+      <section className="rounded-2xl border border-stone-200/70 bg-white p-4 sm:p-5 shadow-2xs space-y-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" strokeWidth={1.5} />
+            <input
+              type="text"
+              placeholder="Cari paket Oktober, November, hotel, atau maskapai..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 pl-9 pr-3 text-xs text-brand-cocoa font-medium placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {(["Semua", "Oktober", "November"] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`h-8 rounded-xl px-3.5 text-xs font-semibold transition ${
+                  selectedCategory === cat
+                    ? "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold shadow-2xs"
+                    : "text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                {cat === "Semua" ? "Semua Paket" : `Bulan ${cat}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 📦 Paket Grid Cards - Clean Modern Minimalist */}
+      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+        {filteredPackages.map((pkg) => (
+          <article
+            key={pkg.id}
+            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs hover:shadow-md hover:border-brand-pink/40 transition-all duration-300 space-y-4"
+          >
+            {/* Top Pill Badges Row */}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
+                  {pkg.category}
+                </span>
+                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
+                  {pkg.duration}
+                </span>
+                {pkg.featured && (
+                  <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/60 flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Recommended 2x Jum'at
+                  </span>
+                )}
+              </div>
+
+              <span className="text-[11px] font-extrabold text-brand-cocoa bg-stone-50 border border-stone-200/60 rounded-full px-2.5 py-0.5">
+                DP Mulai {pkg.dpMinimum}
+              </span>
+            </div>
+
+            {/* Title & Start Point */}
+            <div>
+              <p className="text-[11px] font-semibold text-stone-500 flex items-center gap-1 mb-1">
+                <MapPin className="h-3.5 w-3.5 text-brand-pink shrink-0" strokeWidth={1.5} />
+                <span>{pkg.startPoint}</span>
+                <span className="text-stone-300">•</span>
+                <span>{pkg.programUmrah}</span>
+              </p>
+              <h3 className="text-lg font-extrabold leading-snug text-brand-cocoa group-hover:text-brand-pink transition">
+                {pkg.name}
+              </h3>
+            </div>
+
+            {/* Price & Date Row */}
+            <div className="flex items-baseline justify-between rounded-xl border border-stone-100 bg-stone-50/50 p-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-stone-400">Keberangkatan</p>
+                <p className="text-xs font-bold text-brand-cocoa">{pkg.departuresDate}</p>
+              </div>
+
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase text-stone-400">Harga All In</p>
+                <p className="text-xl font-black text-brand-pink">{pkg.price}</p>
+              </div>
+            </div>
+
+            {/* Hotel & Airline Specs */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                  <Hotel className="h-3 w-3 text-brand-pink" strokeWidth={1.5} /> Hotel Makkah
+                </p>
+                <p className="font-bold text-brand-cocoa truncate">{pkg.makkahHotel}</p>
+              </div>
+
+              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                  <Hotel className="h-3 w-3 text-emerald-600" strokeWidth={1.5} /> Hotel Madinah
+                </p>
+                <p className="font-bold text-stone-800 truncate">{pkg.madinahHotel}</p>
+              </div>
+
+              <div className="col-span-2 rounded-xl border border-stone-200/60 bg-stone-50/60 p-2.5 space-y-0.5">
+                <p className="text-[10px] font-semibold text-stone-400 uppercase flex items-center gap-1">
+                  <Plane className="h-3 w-3 text-sky-600" strokeWidth={1.5} /> Maskapai & Flight
+                </p>
+                <p className="font-bold text-sky-900 truncate">{pkg.airline}</p>
+              </div>
+            </div>
+
+            {/* Bonus Highlights */}
+            <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-3 space-y-1.5">
+              <p className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+                <Gift className="h-3.5 w-3.5 text-amber-700" strokeWidth={1.5} /> Bonus Spesial Paket:
+              </p>
+              <ul className="space-y-1 text-[11px] font-medium text-amber-950">
+                {pkg.bonusHighlights.map((bonus, bIdx) => (
+                  <li key={bIdx} className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3 w-3 text-amber-600 shrink-0" />
+                    <span>{bonus}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedPkg(pkg)}
+                className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
+              >
+                Lihat Detail & Brosur
+              </button>
+
+              <Link
+                href="/booking/form"
+                className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1"
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span>Daftar / Booking</span>
+              </Link>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {/* 📝 INTERACTIVE DETAIL & BROCHURE MODAL */}
+      {selectedPkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="relative w-full max-w-3xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-stone-100 pb-4">
+              <div>
+                <span className="rounded-full bg-rose-50 px-3 py-0.5 text-xs font-bold text-brand-pink border border-brand-pink/20">
+                  {selectedPkg.category}
+                </span>
+                <h2 className="text-xl font-extrabold text-brand-cocoa mt-2">{selectedPkg.name}</h2>
+                <p className="text-xs text-stone-500 mt-1">
+                  Keberangkatan: <span className="font-bold text-brand-cocoa">{selectedPkg.departuresDate}</span> • Duration: <span className="font-bold text-brand-cocoa">{selectedPkg.duration}</span> • Start: <span className="font-bold text-brand-cocoa">{selectedPkg.startPoint}</span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedPkg(null)}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-stone-200 bg-stone-50 text-stone-500 hover:bg-stone-100 transition shrink-0"
+              >
+                <X className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Poster Images (Displayed ONLY inside Detail Modal) */}
+            {selectedPkg.bannerImg && selectedPkg.posterImg && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="overflow-hidden rounded-xl border border-stone-200 bg-stone-50 shadow-2xs">
+                  <img src={selectedPkg.posterImg} alt="Poster Brosur Resmi" loading="lazy" decoding="async" className="w-full h-auto object-cover" />
+                </div>
+                <div className="overflow-hidden rounded-xl border border-stone-200 bg-stone-50 shadow-2xs">
+                  <img src={selectedPkg.bannerImg} alt="Banner Brosur Resmi" loading="lazy" decoding="async" className="w-full h-auto object-cover" />
+                </div>
+              </div>
+            )}
+
+            {/* Price & DP Summary */}
+            <div className="rounded-xl border border-brand-pink/20 bg-rose-50/50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-stone-500">Harga Paket All In</p>
+                <p className="text-2xl font-black text-brand-pink">{selectedPkg.price}</p>
+              </div>
+              <div className="sm:text-right">
+                <p className="text-xs font-semibold text-stone-500">Uang Muka (DP Minimum)</p>
+                <p className="text-lg font-bold text-brand-cocoa">{selectedPkg.dpMinimum}</p>
+              </div>
+            </div>
+
+            {/* Fasilitas Include & Exclude */}
+            <div className="grid gap-4 md:grid-cols-2 text-xs">
+              {/* Include */}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 space-y-2">
+                <h4 className="font-extrabold text-emerald-900 text-sm flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Fasilitas Sudah Termasuk (Include):
+                </h4>
+                <ul className="space-y-1.5 text-stone-700">
+                  {selectedPkg.includes.map((inc, iIdx) => (
+                    <li key={iIdx} className="flex items-start gap-1.5">
+                      <span className="text-emerald-600 font-bold">•</span>
+                      <span>{inc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Exclude */}
+              <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-2">
+                <h4 className="font-extrabold text-stone-800 text-sm flex items-center gap-1.5">
+                  <ShieldAlert className="h-4 w-4 text-stone-500" /> Belum Termasuk (Exclude):
+                </h4>
+                <ul className="space-y-1.5 text-stone-600">
+                  {selectedPkg.excludes.map((exc, eIdx) => (
+                    <li key={eIdx} className="flex items-start gap-1.5">
+                      <span className="text-stone-400 font-bold">•</span>
+                      <span>{exc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setSelectedPkg(null)}
+                className="h-9 rounded-xl border border-stone-200 bg-white px-4 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+              >
+                Tutup
+              </button>
+              <Link
+                href="/booking/form"
+                className="h-9 rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover flex items-center gap-1"
+              >
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                <span>Booking Paket Ini Sekarang</span>
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 }

@@ -26,8 +26,8 @@ export async function PATCH(request: NextRequest, { params }: PackageDetailRoute
     serviceType: body.serviceType === undefined ? undefined : String(body.serviceType),
     packageType: body.packageType === undefined ? undefined : String(body.packageType),
     itinerary: body.itinerary === undefined ? undefined : String(body.itinerary),
-    basePrice: body.basePrice === undefined ? undefined : body.basePrice === null ? null : Number(body.basePrice),
-    durationDays: body.durationDays === undefined ? undefined : body.durationDays === null ? null : Number(body.durationDays),
+    basePrice: body.basePrice === undefined ? undefined : Number(body.basePrice),
+    durationDays: body.durationDays === undefined ? undefined : Number(body.durationDays),
     status: body.status === undefined ? undefined : String(body.status),
   });
 

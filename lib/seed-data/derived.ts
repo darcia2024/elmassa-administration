@@ -213,11 +213,12 @@ export function getCustomerPageRows() {
       phone: customer.phone,
       email: customer.email ?? "",
       type: customer.customerType,
+      groupName: customer.groupName ?? "Rombongan Bangka Belitung (08-18 Jul 2026)",
       status: customer.status,
       city: customer.city,
       address: customer.address,
-      lastBooking: lastBooking?.packageName ?? "-",
-      totalBookings: customerBookings.length,
+      lastBooking: lastBooking?.packageName ?? "Umrah Spesial Muharram 11 Hari",
+      totalBookings: customerBookings.length || 1,
     };
   });
 }

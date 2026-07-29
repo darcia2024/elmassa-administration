@@ -40,10 +40,6 @@ export async function PATCH(request: NextRequest, { params }: StaffUserDetailRou
     return NextResponse.json({ error: "Staf pengguna tidak ditemukan" }, { status: 404 });
   }
 
-  if (data === "LAST_OPERATIONAL_ADMIN") {
-    return NextResponse.json({ error: "Minimal satu Admin Operasional aktif harus tersedia" }, { status: 409 });
-  }
-
   return NextResponse.json({ data });
 }
 
@@ -54,10 +50,6 @@ export async function DELETE(_: NextRequest, { params }: StaffUserDetailRoutePro
 
   if (!deleted) {
     return NextResponse.json({ error: "Staf pengguna tidak ditemukan" }, { status: 404 });
-  }
-
-  if (deleted === "LAST_OPERATIONAL_ADMIN") {
-    return NextResponse.json({ error: "Minimal satu Admin Operasional aktif harus tersedia" }, { status: 409 });
   }
 
   return NextResponse.json({ data: { id: decodedId, deleted: true } });

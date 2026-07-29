@@ -1,4 +1,4 @@
-import { CircleDollarSign, CreditCard, FileText, Plus, ReceiptText, Search, WalletCards } from "lucide-react";
+import { ArrowUpRight, CircleDollarSign, CreditCard, FileText, Plus, ReceiptText, Search, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
@@ -14,131 +14,116 @@ const payments = [
     account: "BCA El Massa",
     status: "Terverifikasi",
   },
+  {
+    receipt: "KW-2407-045",
+    bookingCode: "BK-2407-019",
+    customer: "Ahmad Fauzi",
+    packageName: "Umrah Reguler 12 Hari",
+    date: "26 Jul 2026",
+    amountDisplay: "Rp 10.000.000",
+    method: "Transfer",
+    account: "Mandiri El Massa",
+    status: "Menunggu Cek",
+  },
 ];
 
 const paymentSummary = [
-  { label: "Pembayaran Masuk", value: "Rp 151.500.000", note: "6 transaksi dummy", icon: CircleDollarSign },
-  { label: "Menunggu Cek", value: "Rp 25.000.000", note: "1 pembayaran perlu validasi", icon: WalletCards },
-  { label: "Rekening Aktif", value: "3", note: "BCA, Mandiri, Kas Kantor", icon: CreditCard },
-  { label: "Kuitansi", value: "6", note: "Siap dicetak dari detail", icon: ReceiptText },
+  { label: "Pembayaran Masuk", value: "Rp 151.500.000", note: "Total dana diterima", icon: CircleDollarSign },
+  { label: "Menunggu Cek", value: "Rp 25.000.000", note: "Perlu validasi staf", icon: WalletCards },
+  { label: "Rekening Bank", value: "3 Rekening", note: "BCA, Mandiri, Kas", icon: CreditCard },
+  { label: "Kuitansi Diterbitkan", value: "6 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
 ];
-
-const statusStyles: Record<string, string> = {
-  Terverifikasi: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Menunggu Cek": "bg-amber-50 text-amber-700 ring-amber-200",
-};
-
-const tabs = ["Semua", "Terverifikasi", "Menunggu Cek"];
 
 export default function PaymentsPage() {
   return (
     <AppShell eyebrow="Keuangan" title="Pembayaran & Cicilan">
-      <section className="grid gap-4 md:grid-cols-4">
-        {paymentSummary.map((item) => (
-          <article key={item.label} className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-stone-500">{item.label}</p>
-              <item.icon className="h-5 w-5 text-brand-brown" aria-hidden="true" />
+      <div className="space-y-5">
+        {/* Metric Cards Row */}
+        <section className="grid gap-4 md:grid-cols-4">
+          {paymentSummary.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.label} className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-stone-500">{item.label}</p>
+                  <Icon className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-brand-cocoa">{item.value}</p>
+                <p className="mt-1 text-[11px] text-stone-400">{item.note}</p>
+              </article>
+            );
+          })}
+        </section>
+
+        {/* Payments Table Card */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-base font-bold text-brand-cocoa">Daftar Transaksi Pembayaran</h3>
+              <p className="text-xs text-stone-500">Navigasi pembayaran masuk, cicilan, rekening tujuan, dan kuitansi operasional.</p>
             </div>
-            <p className="mt-3 text-2xl font-bold text-brand-cocoa">{item.value}</p>
-            <p className="mt-2 text-sm text-stone-500">{item.note}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Daftar Pembayaran</h3>
-            <p className="mt-1 text-sm text-stone-500">Navigasi pembayaran masuk, cicilan, rekening tujuan, dan kuitansi operasional.</p>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <Link className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition" href="/dokumen/invoice">
+                <FileText className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Invoice
+              </Link>
+              <Link className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition" href="/dokumen/kuitansi">
+                <ReceiptText className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Kuitansi
+              </Link>
+              <Link className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition" href="/pembayaran/form">
+                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                Catat Pembayaran
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/dokumen/invoice">
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              Invoice
-            </Link>
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/dokumen/kuitansi">
-              <ReceiptText className="h-4 w-4" aria-hidden="true" />
-              Kuitansi
-            </Link>
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/pembayaran/cicilan">
-              <WalletCards className="h-4 w-4" aria-hidden="true" />
-              Cicilan
-            </Link>
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/pengaturan/rekening">
-              <CreditCard className="h-4 w-4" aria-hidden="true" />
-              Rekening
-            </Link>
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" href="/pembayaran/form">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Catat pembayaran
-            </Link>
-          </div>
-        </div>
 
-        <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex gap-2 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                className={`h-10 shrink-0 rounded-md px-4 text-sm font-bold ${
-                  tab === "Semua"
-                    ? "bg-brand-cocoa text-white"
-                    : "border border-stone-200 bg-white text-brand-cocoa"
-                }`}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm text-stone-500 lg:w-80">
-            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <input className="min-w-0 flex-1 bg-transparent outline-none" placeholder="Cari kuitansi, booking, pelanggan" />
-          </label>
-        </div>
-
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">Kuitansi</th>
-                <th className="px-4 py-3 font-bold">Tanggal</th>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Pelanggan</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Nominal</th>
-                <th className="px-4 py-3 font-bold">Metode</th>
-                <th className="px-4 py-3 font-bold">Rekening</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {payments.map((payment) => (
-                <tr key={payment.receipt} className="text-stone-700 hover:bg-brand-cream">
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{payment.receipt}</td>
-                  <td className="px-4 py-4">{payment.date}</td>
-                  <td className="px-4 py-4">
-                    <Link className="font-bold text-brand-cocoa hover:text-brand-pink" href={`/booking/${payment.bookingCode}`}>
-                      {payment.bookingCode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">{payment.customer}</td>
-                  <td className="px-4 py-4">{payment.packageName}</td>
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{payment.amountDisplay}</td>
-                  <td className="px-4 py-4">{payment.method}</td>
-                  <td className="px-4 py-4">{payment.account}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[payment.status]}`}>
-                      {payment.status}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[800px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">Kuitansi & Booking</th>
+                  <th className="py-2.5 pr-2">Pelanggan</th>
+                  <th className="py-2.5 pr-2">Paket Wisata</th>
+                  <th className="py-2.5 pr-2">Tanggal Bayar</th>
+                  <th className="py-2.5 pr-2">Nominal</th>
+                  <th className="py-2.5 pr-2">Metode & Rekening</th>
+                  <th className="py-2.5 pr-3 text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {payments.map((item) => (
+                  <tr key={item.receipt} className="transition hover:bg-stone-50/60">
+                    <td className="py-3 pl-3 pr-2">
+                      <p className="font-semibold text-brand-cocoa">{item.receipt}</p>
+                      <p className="font-mono text-[10px] text-stone-400">{item.bookingCode}</p>
+                    </td>
+                    <td className="py-3 pr-2 font-medium text-stone-700">{item.customer}</td>
+                    <td className="py-3 pr-2 text-stone-500">{item.packageName}</td>
+                    <td className="py-3 pr-2 text-stone-600">{item.date}</td>
+                    <td className="py-3 pr-2 font-semibold text-emerald-700">{item.amountDisplay}</td>
+                    <td className="py-3 pr-2 font-medium text-stone-700">
+                      <p>{item.method}</p>
+                      <p className="text-[10px] text-stone-400">{item.account}</p>
+                    </td>
+                    <td className="py-3 pr-3 text-right">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                        item.status === "Terverifikasi"
+                          ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
+                          : "bg-amber-50/80 text-amber-800 border-amber-200/60"
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Terverifikasi" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </AppShell>
   );
 }

@@ -1,6 +1,21 @@
 "use client";
 
-import { AlertTriangle, BarChart3, CalendarClock, Download, FileText, Printer, Search, WalletCards } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  CalendarClock,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  MessageSquare,
+  Phone,
+  Printer,
+  Search,
+  Users,
+  WalletCards,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
@@ -8,343 +23,282 @@ import { ReportNav } from "@/components/report-nav";
 
 const receivables = [
   {
-    bookingCode: "BK-2407-016",
-    customer: "Rombongan Al Ikhlas",
-    packageName: "Umrah Plus Thaif",
-    departureDate: "20 Agu 2026",
-    totalDisplay: "Rp 266.000.000",
+    bookingCode: "BK-2407-018",
+    customer: "H. Rusli Suparman & Rombongan (40 Pax)",
+    packageName: "Umrah Spesial Muharram 11 Hari",
+    departureDate: "08 Juli 2026",
+    totalDisplay: "Rp 1.188.000.000",
+    paidDisplay: "Rp 500.000.000",
+    remainingDisplay: "Rp 688.000.000",
+    remainingAmount: 688000000,
+    dueDate: "01 Juli 2026",
+    dueDateValue: "2026-07-01",
+    age: "7 hari",
+    status: "DP",
+    priority: "Tinggi",
+    phone: "081271991001",
+  },
+  {
+    bookingCode: "BK-2407-019",
+    customer: "H. Ruslan Efendi (Belitung)",
+    packageName: "Umrah Spesial Muharram 11 Hari",
+    departureDate: "08 Juli 2026",
+    totalDisplay: "Rp 59.400.000",
+    paidDisplay: "Rp 30.000.000",
+    remainingDisplay: "Rp 29.400.000",
+    remainingAmount: 29400000,
+    dueDate: "02 Juli 2026",
+    dueDateValue: "2026-07-02",
+    age: "5 hari",
+    status: "DP",
+    priority: "Normal",
+    phone: "081271991003",
+  },
+  {
+    bookingCode: "BK-2407-020",
+    customer: "Iskandar Harun (Sungailiat)",
+    packageName: "Umrah Spesial Muharram 11 Hari",
+    departureDate: "08 Juli 2026",
+    totalDisplay: "Rp 29.700.000",
+    paidDisplay: "Rp 29.700.000",
+    remainingDisplay: "Rp 0",
+    remainingAmount: 0,
+    dueDate: "25 Juni 2026",
+    dueDateValue: "2026-06-25",
+    age: "0 hari",
+    status: "Lunas",
+    priority: "Normal",
+    phone: "081271991005",
+  },
+  {
+    bookingCode: "BK-2407-021",
+    customer: "Romlan Effendi (Belinyu)",
+    packageName: "Umrah Reguler 12 Hari",
+    departureDate: "12 Agustus 2026",
+    totalDisplay: "Rp 65.000.000",
     paidDisplay: "Rp 0",
-    remainingDisplay: "Rp 266.000.000",
-    remainingAmount: 266_000_000,
-    dueDate: "31 Jul 2026",
-    dueDateValue: "2026-07-31",
-    age: "14 hari",
+    remainingDisplay: "Rp 65.000.000",
+    remainingAmount: 65000000,
+    dueDate: "15 Juli 2026",
+    dueDateValue: "2026-07-15",
+    age: "14 hari lagi",
     status: "Belum Bayar",
     priority: "Tinggi",
+    phone: "081271991021",
   },
 ];
 
-const reportSummary = [
-  { label: "Total Sisa Tagihan", value: "Rp 424.600.000", note: "4 booking belum lunas", icon: WalletCards },
-  { label: "Lewat Tempo", value: "Rp 388.600.000", note: "3 booking prioritas tinggi", icon: AlertTriangle },
-  { label: "Jatuh Tempo Terdekat", value: "28 Jul 2026", note: "BK-2407-018", icon: CalendarClock },
-  { label: "Booking Lunas", value: "1", note: "Tidak masuk tabel piutang", icon: BarChart3 },
-];
-
 const priorityStyles: Record<string, string> = {
-  Tinggi: "bg-rose-50 text-rose-700 ring-rose-200",
-  Normal: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  Tinggi: "bg-rose-50/80 text-rose-700 border border-rose-200/60",
+  Normal: "bg-emerald-50/80 text-emerald-700 border border-emerald-200/60",
 };
 
 const statusStyles: Record<string, string> = {
-  DP: "bg-amber-50 text-amber-700 ring-amber-200",
-  "Belum Bayar": "bg-rose-50 text-rose-700 ring-rose-200",
+  Lunas: "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
+  DP: "bg-amber-50/80 text-amber-800 border border-amber-200/60",
+  "Belum Bayar": "bg-rose-50/80 text-rose-700 border border-rose-200/60",
 };
 
-const tabs = ["Semua", "Lewat tempo", "Belum jatuh tempo"];
-const customers = ["Semua pelanggan", ...Array.from(new Set(receivables.map((row) => row.customer)))];
-const packages = ["Semua paket", ...Array.from(new Set(receivables.map((row) => row.packageName)))];
-
-function formatRupiah(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    currency: "IDR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(value);
-}
-
 export default function ReportsPage() {
-  const [startDate, setStartDate] = useState("2026-07-01");
+  const [startDate, setStartDate] = useState("2026-06-01");
   const [endDate, setEndDate] = useState("2026-08-31");
-  const [selectedCustomer, setSelectedCustomer] = useState("Semua pelanggan");
-  const [selectedPackage, setSelectedPackage] = useState("Semua paket");
+  const [selectedStatus, setSelectedStatus] = useState("Semua Status");
   const [query, setQuery] = useState("");
 
   const filteredReceivables = useMemo(
     () =>
       receivables.filter((row) => {
         const matchesDate = row.dueDateValue >= startDate && row.dueDateValue <= endDate;
-        const matchesCustomer = selectedCustomer === "Semua pelanggan" || row.customer === selectedCustomer;
-        const matchesPackage = selectedPackage === "Semua paket" || row.packageName === selectedPackage;
+        const matchesStatus = selectedStatus === "Semua Status" || row.status === selectedStatus;
         const searchable = `${row.bookingCode} ${row.customer} ${row.packageName}`.toLowerCase();
         const matchesQuery = query.trim().length === 0 || searchable.includes(query.trim().toLowerCase());
 
-        return matchesDate && matchesCustomer && matchesPackage && matchesQuery;
+        return matchesDate && matchesStatus && matchesQuery;
       }),
-    [endDate, query, selectedCustomer, selectedPackage, startDate],
+    [startDate, endDate, selectedStatus, query],
   );
-  const filteredTotal = filteredReceivables.reduce((total, row) => total + row.remainingAmount, 0);
-  const filteredHighPriority = filteredReceivables.filter((row) => row.priority === "Tinggi").length;
-  const displaySummary = reportSummary.map((item) => {
-    if (item.label === "Total Sisa Tagihan") {
-      return {
-        ...item,
-        note: `${filteredReceivables.length} booking sesuai filter`,
-        value: formatRupiah(filteredTotal),
-      };
-    }
 
-    if (item.label === "Lewat Tempo") {
-      return {
-        ...item,
-        note: `${filteredHighPriority} booking prioritas tinggi`,
-      };
-    }
-
-    return item;
-  });
-  const handlePrintPdf = () => window.print();
-  const handleDownloadExcel = () => {
-    const header = [
-      "Booking",
-      "Pelanggan",
-      "Paket",
-      "Berangkat",
-      "Total",
-      "Terbayar",
-      "Sisa",
-      "Tempo",
-      "Umur",
-      "Status",
-      "Prioritas",
-    ];
-    const bodyRows = filteredReceivables.map((row) => [
-      row.bookingCode,
-      row.customer,
-      row.packageName,
-      row.departureDate,
-      row.totalDisplay,
-      row.paidDisplay,
-      row.remainingDisplay,
-      row.dueDate,
-      row.age,
-      row.status,
-      row.priority,
-    ]);
-    const html = `
-      <table>
-        <thead><tr>${header.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead>
-        <tbody>${bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
-        <tfoot><tr><td colspan="6">Total Sisa Tagihan</td><td>${formatRupiah(filteredTotal)}</td></tr></tfoot>
-      </table>
-    `;
-    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "laporan-sisa-tagihan-el-massa.xls";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
+  const totalPiutang = useMemo(() => filteredReceivables.reduce((acc, r) => acc + r.remainingAmount, 0), [filteredReceivables]);
+  const countTinggi = useMemo(() => filteredReceivables.filter((r) => r.priority === "Tinggi").length, [filteredReceivables]);
 
   return (
-    <AppShell eyebrow="Laporan" title="Laporan Sisa Tagihan">
-      <ReportNav />
+    <AppShell eyebrow="Laporan & Analytics" title="Laporan Piutang & Sisa Tagihan Jamaah">
+      <div className="space-y-5">
+        
+        {/* Navigation Tabs */}
+        <ReportNav />
 
-      <section className="print-hidden overflow-hidden rounded-lg border border-brand-rose bg-brand-cocoa shadow-soft">
-        <div className="grid gap-5 p-5 text-white lg:grid-cols-[1fr_auto] lg:items-center">
-          <div>
-            <p className="text-xs font-bold uppercase text-brand-rose">Kontrol Piutang</p>
-            <h3 className="mt-2 text-xl font-bold">Pantau sisa tagihan booking aktif</h3>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-cream">
-              Filter laporan berdasarkan periode tempo, pelanggan, dan paket untuk follow-up cicilan yang paling dekat.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:min-w-80">
-            <div className="rounded-lg bg-white/10 p-4 ring-1 ring-white/15">
-              <p className="text-xs font-bold uppercase text-brand-rose">Sesuai filter</p>
-              <p className="mt-2 text-2xl font-bold">{filteredReceivables.length}</p>
+        {/* Header Hero Banner */}
+        <section className="print-hidden rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                Pantau Sisa Tagihan & Piutang Jamaah
+              </h1>
+              <p className="text-xs text-stone-500 mt-1 sm:text-sm">
+                Rekapitulasi sisa pembayaran jamaah berdasarkan tanggal jatuh tempo dan prioritas penagihan WhatsApp.
+              </p>
             </div>
-            <div className="rounded-lg bg-brand-pink p-4">
-              <p className="text-xs font-bold uppercase text-white/80">Prioritas tinggi</p>
-              <p className="mt-2 text-2xl font-bold">{filteredHighPriority}</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section className="print-hidden grid gap-4 md:grid-cols-4">
-        {displaySummary.map((item) => (
-          <article key={item.label} className="rounded-lg border border-brand-rose bg-white p-5 shadow-soft">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-stone-500">{item.label}</p>
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-brand-rose text-brand-pink">
-                <item.icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-            </div>
-            <p className="mt-3 text-2xl font-bold text-brand-cocoa">{item.value}</p>
-            <p className="mt-2 text-sm text-stone-500">{item.note}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="report-print-area rounded-lg border border-brand-rose bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 rounded-lg bg-brand-cream p-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Daftar Sisa Tagihan</h3>
-            <p className="mt-1 text-sm text-stone-500">Data dummy piutang booking berdasarkan total tagihan dan pembayaran masuk.</p>
-          </div>
-          <div className="print-hidden flex flex-col gap-3 sm:flex-row">
-            <Link className="inline-flex h-10 w-fit items-center gap-2 rounded-md border border-brand-rose bg-white px-4 text-sm font-bold text-brand-cocoa" href="/laporan/transaksi">
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              Transaksi
-            </Link>
-            <button className="inline-flex h-10 w-fit items-center gap-2 rounded-md border border-brand-rose bg-white px-4 text-sm font-bold text-brand-cocoa" type="button" onClick={handlePrintPdf}>
-              <Printer className="h-4 w-4" aria-hidden="true" />
-              Cetak PDF
-            </button>
-            <button className="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" type="button" onClick={handleDownloadExcel}>
-              <Download className="h-4 w-4" aria-hidden="true" />
-              Unduh Excel
-            </button>
-          </div>
-        </div>
-
-        <div className="print-only mb-4 hidden">
-          <p className="text-xs font-bold uppercase text-stone-500">El Massa Tour & Travel</p>
-          <h1 className="mt-1 text-xl font-bold text-brand-cocoa">Laporan Sisa Tagihan</h1>
-          <p className="mt-1 text-sm text-stone-600">
-            Periode {startDate} sampai {endDate}
-          </p>
-        </div>
-
-        <div className="print-hidden mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex gap-2 overflow-x-auto">
-            {tabs.map((tab) => (
+            <div className="flex items-center gap-2 shrink-0">
               <button
-                key={tab}
-                className={`h-10 shrink-0 rounded-md px-4 text-sm font-bold ${
-                  tab === "Semua"
-                    ? "bg-brand-pink text-white"
-                    : "border border-brand-rose bg-white text-brand-cocoa"
-                }`}
                 type="button"
+                onClick={() => window.print()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
               >
-                {tab}
+                <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Cetak Laporan
               </button>
-            ))}
+
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+              >
+                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                Export Excel CSV
+              </button>
+            </div>
           </div>
-          <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm text-stone-500 lg:w-80">
-            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <input
-              className="min-w-0 flex-1 bg-transparent outline-none"
-              placeholder="Cari booking atau pelanggan"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </label>
-        </div>
+        </section>
 
-        <div className="mb-5 grid gap-3 lg:grid-cols-4">
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Dari tempo
-            <input
-              className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-              type="date"
-              value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Sampai tempo
-            <input
-              className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-              type="date"
-              value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Pelanggan
-            <select
-              className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-              value={selectedCustomer}
-              onChange={(event) => setSelectedCustomer(event.target.value)}
-            >
-              {customers.map((customer) => (
-                <option key={customer}>{customer}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Paket
-            <select
-              className="mt-2 h-10 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none"
-              value={selectedPackage}
-              onChange={(event) => setSelectedPackage(event.target.value)}
-            >
-              {packages.map((packageName) => (
-                <option key={packageName}>{packageName}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {/* 📊 KPI Metric Cards Grid */}
+        <section className="grid gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Total Sisa Piutang</p>
+              <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-xl font-extrabold text-brand-pink">Rp {totalPiutang.toLocaleString("id-ID")}</p>
+            <p className="mt-1 text-[11px] text-stone-400">Total tagihan belum terbayar</p>
+          </article>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Pelanggan</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Berangkat</th>
-                <th className="px-4 py-3 font-bold">Total</th>
-                <th className="px-4 py-3 font-bold">Terbayar</th>
-                <th className="px-4 py-3 font-bold">Sisa</th>
-                <th className="px-4 py-3 font-bold">Tempo</th>
-                <th className="px-4 py-3 font-bold">Umur</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-                <th className="px-4 py-3 font-bold">Prioritas</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {filteredReceivables.map((row) => (
-                <tr key={row.bookingCode} className="text-stone-700 hover:bg-brand-cream">
-                  <td className="px-4 py-4">
-                    <Link className="font-bold text-brand-cocoa hover:text-brand-pink" href={`/booking/${row.bookingCode}`}>
-                      {row.bookingCode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">{row.customer}</td>
-                  <td className="px-4 py-4">{row.packageName}</td>
-                  <td className="px-4 py-4 font-semibold">{row.departureDate}</td>
-                  <td className="px-4 py-4">{row.totalDisplay}</td>
-                  <td className="px-4 py-4">{row.paidDisplay}</td>
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{row.remainingDisplay}</td>
-                  <td className="px-4 py-4">{row.dueDate}</td>
-                  <td className="px-4 py-4">{row.age}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[row.status]}`}>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${priorityStyles[row.priority]}`}>
-                      {row.priority}
-                    </span>
-                  </td>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Jumlah Transaksi Piutang</p>
+              <FileText className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{filteredReceivables.length} Booking</p>
+            <p className="mt-1 text-[11px] text-stone-400">Sesuai filter tanggal</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Prioritas Penagihan Tinggi</p>
+              <AlertTriangle className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-rose-600">{countTinggi} Transaksi</p>
+            <p className="mt-1 text-[11px] text-stone-400">Perlu follow-up WhatsApp</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Status Pelunasan</p>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">42.1% Terbayar</p>
+            <p className="mt-1 text-[11px] text-stone-400">Rata-rata pelunasan rombongan</p>
+          </article>
+        </section>
+
+        {/* Comprehensive Table Card & Filter Toolbar */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-brand-cocoa">Filter & Tabel Rincian Piutang Jamaah</h3>
+              <p className="text-xs text-stone-500">Saring berdasarkan periode tanggal jatuh tempo dan status pelunasan.</p>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                className="h-9 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <span className="text-xs text-stone-400">s/d</span>
+              <input
+                type="date"
+                className="h-9 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+
+              <select
+                className="h-9 rounded-xl border border-stone-200 bg-rose-50/60 px-3 text-xs font-bold text-brand-pink outline-none"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="Semua Status">Semua Status</option>
+                <option value="DP">Status DP</option>
+                <option value="Belum Bayar">Belum Bayar</option>
+                <option value="Lunas">Lunas</option>
+              </select>
+
+              <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500">
+                <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+                <input
+                  className="w-full bg-transparent outline-none text-xs placeholder:text-stone-400"
+                  placeholder="Cari kode booking / nama..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[960px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">Kode Booking</th>
+                  <th className="py-2.5 pr-2">Nama Jamaah / Rombongan</th>
+                  <th className="py-2.5 pr-2">Paket Wisata</th>
+                  <th className="py-2.5 pr-2">Keberangkatan</th>
+                  <th className="py-2.5 pr-2">Total Harga</th>
+                  <th className="py-2.5 pr-2">Terbayar</th>
+                  <th className="py-2.5 pr-2">Sisa Piutang</th>
+                  <th className="py-2.5 pr-2">Jatuh Tempo</th>
+                  <th className="py-2.5 pr-2">Status</th>
+                  <th className="py-2.5 pr-3 text-right">Follow-up WA</th>
                 </tr>
-              ))}
-              {filteredReceivables.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-8 text-center text-sm font-semibold text-stone-500" colSpan={11}>
-                    Tidak ada tagihan yang cocok dengan filter.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-            <tfoot className="border-t border-stone-200 bg-brand-cream text-sm font-bold text-brand-cocoa">
-              <tr>
-                <td className="px-4 py-4" colSpan={4}>Total sisa tagihan</td>
-                <td className="px-4 py-4" colSpan={2}>
-                  {filteredReceivables.length} booking
-                </td>
-                <td className="px-4 py-4" colSpan={5}>{formatRupiah(filteredTotal)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {filteredReceivables.map((r) => (
+                  <tr key={r.bookingCode} className="transition hover:bg-stone-50/60">
+                    <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa whitespace-nowrap">{r.bookingCode}</td>
+                    <td className="py-3 pr-2 font-semibold text-brand-cocoa whitespace-nowrap">{r.customer}</td>
+                    <td className="py-3 pr-2 text-stone-700 whitespace-nowrap">{r.packageName}</td>
+                    <td className="py-3 pr-2 text-stone-500 whitespace-nowrap">{r.departureDate}</td>
+                    <td className="py-3 pr-2 font-semibold text-stone-800 whitespace-nowrap">{r.totalDisplay}</td>
+                    <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{r.paidDisplay}</td>
+                    <td className="py-3 pr-2 font-bold text-rose-600 whitespace-nowrap">{r.remainingDisplay}</td>
+                    <td className="py-3 pr-2 font-mono text-stone-600 whitespace-nowrap">{r.dueDate}</td>
+                    <td className="py-3 pr-2 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusStyles[r.status] || "bg-stone-50 text-stone-700"}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-3 text-right whitespace-nowrap">
+                      <a
+                        href={`https://wa.me/${r.phone}?text=Halo%20${encodeURIComponent(r.customer)},%20kami%20dari%20El%20Massa%20Tour%20mengingatkan%20sisa%20tagihan%20booking%20${r.bookingCode}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-xl border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-600 hover:text-white transition"
+                      >
+                        <MessageSquare className="h-3 w-3" strokeWidth={1.5} />
+                        <span>Kirim WA</span>
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
     </AppShell>
   );
 }

@@ -1,127 +1,230 @@
-import { CalendarDays, Plane, Users, WalletCards } from "lucide-react";
+"use client";
+
+import {
+  CalendarDays,
+  Download,
+  FileSpreadsheet,
+  Plane,
+  Printer,
+  Search,
+  Users,
+  WalletCards,
+} from "lucide-react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
 const departureReports = [
   {
-    scheduleId: "dep-umr-20260812",
+    scheduleId: "SCH-JUL-08",
+    packageName: "Umrah Spesial Muharram 11 Hari",
+    departureDate: "08 Juli 2026",
+    airline: "Garuda GA-980",
+    quota: 40,
+    booked: 40,
+    paidBookings: 40,
+    receivableDisplay: "Rp 688.000.000",
+    status: "Terjadwal (Full)",
+  },
+  {
+    scheduleId: "SCH-AGU-12",
     packageName: "Umrah Reguler 12 Hari",
-    departureDate: "12 Agu 2026",
+    departureDate: "12 Agustus 2026",
+    airline: "Saudia SV-815",
     quota: 45,
     booked: 18,
     paidBookings: 9,
     receivableDisplay: "Rp 122.500.000",
     status: "Terjadwal",
   },
+  {
+    scheduleId: "SCH-SEP-05",
+    packageName: "Umrah VIP Executive 9 Hari",
+    departureDate: "05 September 2026",
+    airline: "Emirates EK-357",
+    quota: 20,
+    booked: 8,
+    paidBookings: 8,
+    receivableDisplay: "Rp 0",
+    status: "Terjadwal",
+  },
 ];
 
 const statusStyles: Record<string, string> = {
-  Terjadwal: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Draft: "bg-stone-100 text-stone-600 ring-stone-200",
+  "Terjadwal (Full)": "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
+  Terjadwal: "bg-sky-50/80 text-sky-800 border border-sky-200/60",
+  Draft: "bg-stone-50 text-stone-700 border border-stone-200",
 };
 
 export default function BookingDepartureReportPage() {
-  const totalBooked = departureReports.reduce((total, row) => total + row.booked, 0);
-  const totalQuota = departureReports.reduce((total, row) => total + row.quota, 0);
-  const totalPaidBookings = departureReports.reduce((total, row) => total + row.paidBookings, 0);
+  const [query, setQuery] = useState("");
+
+  const filteredReports = useMemo(() => {
+    return departureReports.filter((r) => {
+      const q = query.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        r.packageName.toLowerCase().includes(q) ||
+        r.airline.toLowerCase().includes(q) ||
+        r.scheduleId.toLowerCase().includes(q)
+      );
+    });
+  }, [query]);
+
+  const totalBooked = useMemo(() => filteredReports.reduce((total, row) => total + row.booked, 0), [filteredReports]);
+  const totalQuota = useMemo(() => filteredReports.reduce((total, row) => total + row.quota, 0), [filteredReports]);
+  const totalPaidBookings = useMemo(() => filteredReports.reduce((total, row) => total + row.paidBookings, 0), [filteredReports]);
+  const avgOccupancy = totalQuota > 0 ? Math.round((totalBooked / totalQuota) * 100) : 0;
 
   return (
-    <AppShell eyebrow="Laporan" title="Booking & Keberangkatan">
-      <ReportNav />
+    <AppShell eyebrow="Laporan & Analytics" title="Laporan Penjualan Booking & Okupansi Seat">
+      <div className="space-y-5">
+        <ReportNav />
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Jadwal</p>
-            <CalendarDays className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{departureReports.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Keberangkatan aktif</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Booking Seat</p>
-            <Users className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{totalBooked}</p>
-          <p className="mt-2 text-sm text-stone-500">Dari {totalQuota} kuota</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Booking Lunas</p>
-            <WalletCards className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{totalPaidBookings}</p>
-          <p className="mt-2 text-sm text-stone-500">Siap manifest final</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Okupansi</p>
-            <Plane className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">57%</p>
-          <p className="mt-2 text-sm text-stone-500">Rata-rata jadwal</p>
-        </article>
-      </section>
+        {/* Header Hero Banner */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                Rekapitulasi Penjualan Seat & Okupansi Keberangkatan
+              </h1>
+              <p className="text-xs text-stone-500 mt-1 sm:text-sm">
+                Pantau keterisian seat per jadwal pesawat, jumlah jamaah lunas, dan status okupansi penerbangan.
+              </p>
+            </div>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Keberangkatan per Paket</h3>
-            <p className="mt-1 text-sm text-stone-500">Data dummy booking seat, kuota, dan sisa tagihan per jadwal.</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
+              >
+                <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Cetak PDF
+              </button>
+
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+              >
+                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                Export Excel CSV
+              </button>
+            </div>
           </div>
-          <Link className="inline-flex h-10 w-fit items-center justify-center rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/laporan/transaksi">
-            Transaksi
-          </Link>
-        </div>
+        </section>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">Jadwal</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Berangkat</th>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Kuota</th>
-                <th className="px-4 py-3 font-bold">Okupansi</th>
-                <th className="px-4 py-3 font-bold">Lunas</th>
-                <th className="px-4 py-3 font-bold">Sisa Tagihan</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {departureReports.map((row) => {
-                const occupancy = Math.round((row.booked / row.quota) * 100);
+        {/* 📊 KPI Metric Cards Grid */}
+        <section className="grid gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Grup Keberangkatan</p>
+              <CalendarDays className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{departureReports.length} Jadwal</p>
+            <p className="mt-1 text-[11px] text-stone-400">Penerbangan aktif</p>
+          </article>
 
-                return (
-                  <tr key={row.scheduleId} className="text-stone-700 hover:bg-brand-cream">
-                    <td className="px-4 py-4 font-bold text-brand-cocoa">{row.scheduleId}</td>
-                    <td className="px-4 py-4">{row.packageName}</td>
-                    <td className="px-4 py-4 font-semibold">{row.departureDate}</td>
-                    <td className="px-4 py-4">{row.booked}</td>
-                    <td className="px-4 py-4">{row.quota}</td>
-                    <td className="px-4 py-4">
-                      <div className="h-2 w-28 rounded-full bg-brand-rose">
-                        <div className="h-2 rounded-full bg-brand-pink" style={{ width: `${occupancy}%` }} />
-                      </div>
-                      <span className="mt-1 block text-xs font-bold text-brand-cocoa">{occupancy}%</span>
-                    </td>
-                    <td className="px-4 py-4">{row.paidBookings}</td>
-                    <td className="px-4 py-4 font-bold text-brand-cocoa">{row.receivableDisplay}</td>
-                    <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[row.status]}`}>
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Booking Seat Terisi</p>
+              <Users className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-brand-pink">{totalBooked} Seat</p>
+            <p className="mt-1 text-[11px] text-stone-400">Dari total {totalQuota} kuota</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Seat Lunas Ready Manifest</p>
+              <WalletCards className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">{totalPaidBookings} Seat</p>
+            <p className="mt-1 text-[11px] text-stone-400">Berkas verified 100%</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Rata-rata Okupansi</p>
+              <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-sky-800">{avgOccupancy}%</p>
+            <p className="mt-1 text-[11px] text-stone-400">Target keterisian tercapai</p>
+          </article>
+        </section>
+
+        {/* Table Card */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-brand-cocoa">Rincian Penjualan Seat & Okupansi Per Jadwal</h3>
+              <p className="text-xs text-stone-500">Laporan realtime jumlah booking seat, kuota, persentase okupansi, dan penerbangan.</p>
+            </div>
+
+            <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500 w-full sm:w-64">
+              <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+              <input
+                className="w-full bg-transparent outline-none text-xs placeholder:text-stone-400"
+                placeholder="Cari jadwal / maskapai..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">ID Jadwal</th>
+                  <th className="py-2.5 pr-2">Paket Wisata</th>
+                  <th className="py-2.5 pr-2">Keberangkatan Flight</th>
+                  <th className="py-2.5 pr-2">Terisi / Kuota</th>
+                  <th className="py-2.5 pr-2">Okupansi %</th>
+                  <th className="py-2.5 pr-2">Booking Lunas</th>
+                  <th className="py-2.5 pr-2">Sisa Tagihan Piutang</th>
+                  <th className="py-2.5 pr-3 text-right">Status Flight</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {filteredReports.map((row) => {
+                  const occupancy = Math.round((row.booked / row.quota) * 100);
+
+                  return (
+                    <tr key={row.scheduleId} className="transition hover:bg-stone-50/60">
+                      <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa whitespace-nowrap">{row.scheduleId}</td>
+                      <td className="py-3 pr-2 font-semibold text-brand-cocoa whitespace-nowrap">{row.packageName}</td>
+                      <td className="py-3 pr-2 text-stone-600 whitespace-nowrap">
+                        {row.departureDate} ({row.airline})
+                      </td>
+                      <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">
+                        {row.booked} / {row.quota} Pax
+                      </td>
+                      <td className="py-3 pr-2 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-2 rounded-full bg-stone-100 overflow-hidden border border-stone-200/60">
+                            <div className="h-full bg-brand-pink transition-all" style={{ width: `${occupancy}%` }} />
+                          </div>
+                          <span className="font-bold text-brand-pink text-[11px]">{occupancy}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{row.paidBookings} Seat</td>
+                      <td className="py-3 pr-2 font-bold text-rose-600 whitespace-nowrap">{row.receivableDisplay}</td>
+                      <td className="py-3 pr-3 text-right whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusStyles[row.status]}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
     </AppShell>
   );
 }

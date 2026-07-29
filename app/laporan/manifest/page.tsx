@@ -1,107 +1,187 @@
-import { CheckCircle2, FileText, Users } from "lucide-react";
+"use client";
+
+import {
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Plane,
+  Printer,
+  QrCode,
+  Search,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
-
-const manifestRows = [
-  { participant: "Siti Rahma", bookingCode: "BK-2407-018", packageName: "Umrah Reguler 12 Hari", departure: "12 Agu 2026", passport: "C1234567", documentStatus: "Lengkap", paymentStatus: "DP" },
-];
+import { listParticipantsForBooking } from "@/lib/seed-data/bookings";
 
 const statusStyles: Record<string, string> = {
-  Lengkap: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Belum Lengkap": "bg-amber-50 text-amber-700 ring-amber-200",
-  Lunas: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  DP: "bg-amber-50 text-amber-700 ring-amber-200",
-  "Belum Bayar": "bg-rose-50 text-rose-700 ring-rose-200",
+  Lengkap: "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
+  "Belum Lengkap": "bg-amber-50/80 text-amber-800 border border-amber-200/60",
+  Issued: "bg-sky-50/80 text-sky-800 border border-sky-200/60",
 };
 
 export default function ManifestReportPage() {
-  const completeDocuments = manifestRows.filter((row) => row.documentStatus === "Lengkap").length;
-  const pendingDocuments = manifestRows.length - completeDocuments;
+  const [query, setQuery] = useState("");
+  const participants = useMemo(() => listParticipantsForBooking("book-001"), []);
+
+  const filteredParticipants = useMemo(() => {
+    return participants.filter((p) => {
+      const q = query.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.passportNumber.toLowerCase().includes(q) ||
+        (p.ticketNumber?.toLowerCase().includes(q) ?? false) ||
+        (p.visaNumber?.toLowerCase().includes(q) ?? false)
+      );
+    });
+  }, [participants, query]);
 
   return (
-    <AppShell eyebrow="Laporan" title="Laporan Manifest Peserta">
-      <ReportNav />
+    <AppShell eyebrow="Laporan & Analytics" title="Laporan Manifest Keberangkatan & Verifikasi Imigrasi">
+      <div className="space-y-5">
+        <ReportNav />
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Peserta</p>
-            <Users className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{manifestRows.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Manifest laporan dummy</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Dokumen Lengkap</p>
-            <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{completeDocuments}</p>
-          <p className="mt-2 text-sm text-stone-500">Siap berangkat</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Belum Lengkap</p>
-            <FileText className="h-5 w-5 text-amber-600" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{pendingDocuments}</p>
-          <p className="mt-2 text-sm text-stone-500">Perlu follow-up dokumen</p>
-        </article>
-      </section>
+        {/* Header Hero Banner */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                Rekapitulasi Manifest Paspor RI & E-Visa Umrah
+              </h1>
+              <p className="text-xs text-stone-500 mt-1 sm:text-sm">
+                Laporan kesiapan penerbangan Garuda GA-980, verifikasi masa berlaku paspor, e-visa Umrah, dan e-boarding pass.
+              </p>
+            </div>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Manifest Peserta per Booking</h3>
-            <p className="mt-1 text-sm text-stone-500">Data dummy untuk kebutuhan laporan transaksi dan operasional keberangkatan.</p>
-          </div>
-          <Link className="inline-flex h-10 w-fit items-center justify-center rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/manifest">
-            Buka manifest operasional
-          </Link>
-        </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
+              >
+                <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Cetak PDF
+              </button>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[840px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">Peserta</th>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Berangkat</th>
-                <th className="px-4 py-3 font-bold">Paspor</th>
-                <th className="px-4 py-3 font-bold">Dokumen</th>
-                <th className="px-4 py-3 font-bold">Pembayaran</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {manifestRows.map((row) => (
-                <tr key={`${row.bookingCode}-${row.participant}`} className="text-stone-700 hover:bg-brand-cream">
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{row.participant}</td>
-                  <td className="px-4 py-4">
-                    <Link className="font-bold text-brand-cocoa hover:text-brand-pink" href={`/booking/${row.bookingCode}`}>
-                      {row.bookingCode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">{row.packageName}</td>
-                  <td className="px-4 py-4 font-semibold">{row.departure}</td>
-                  <td className="px-4 py-4">{row.passport}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[row.documentStatus]}`}>
-                      {row.documentStatus}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[row.paymentStatus]}`}>
-                      {row.paymentStatus}
-                    </span>
-                  </td>
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+              >
+                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                Export Manifest CSV
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* 📊 KPI Metric Cards Grid */}
+        <section className="grid gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Total Manifest Jamaah</p>
+              <Users className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{participants.length} Jamaah</p>
+            <p className="mt-1 text-[11px] text-stone-400">Rombongan Bangka Belitung</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Paspor RI Valid</p>
+              <ShieldCheck className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">{participants.length} Paspor</p>
+            <p className="mt-1 text-[11px] text-stone-400">100% Terverifikasi Kanim</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">E-Visa Umrah Issued</p>
+              <QrCode className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-sky-800">{participants.length} Visa</p>
+            <p className="mt-1 text-[11px] text-stone-400">Issued Ministry KSA</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Penerbangan Garuda</p>
+              <Plane className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">GA-980 Direct</p>
+            <p className="mt-1 text-[11px] text-stone-400">Start 08 Juli 2026</p>
+          </article>
+        </section>
+
+        {/* Table Card */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-brand-cocoa">Rincian Dokumen Verifikasi Imigrasi Jamaah</h3>
+              <p className="text-xs text-stone-500">Daftar nama paspor, nomor e-tiket Garuda GA-980, dan status e-visa Umrah.</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500 w-full sm:w-64">
+                <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+                <input
+                  className="w-full bg-transparent outline-none text-xs placeholder:text-stone-400"
+                  placeholder="Cari paspor, visa, nama..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </label>
+
+              <Link
+                href="/manifest"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-brand-pink/20 bg-rose-50 px-3 text-xs font-semibold text-brand-pink hover:bg-brand-pink hover:text-white transition shrink-0"
+              >
+                <span>Buka Operasional</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">No #</th>
+                  <th className="py-2.5 pr-2">Nama Jamaah Paspor</th>
+                  <th className="py-2.5 pr-2">No. Paspor RI</th>
+                  <th className="py-2.5 pr-2">E-Tiket Garuda GA-980</th>
+                  <th className="py-2.5 pr-2">E-Visa Umrah KSA</th>
+                  <th className="py-2.5 pr-2">Domisili Kota</th>
+                  <th className="py-2.5 pr-3 text-right">Status Verifikasi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {filteredParticipants.map((p, index) => (
+                  <tr key={p.id} className="transition hover:bg-stone-50/60">
+                    <td className="py-3 pl-3 pr-2 font-mono text-stone-400 text-[11px]">#{String(index + 1).padStart(2, "0")}</td>
+                    <td className="py-3 pr-2 font-semibold text-brand-cocoa whitespace-nowrap">{p.name}</td>
+                    <td className="py-3 pr-2 font-mono font-bold text-stone-800 whitespace-nowrap">{p.passportNumber}</td>
+                    <td className="py-3 pr-2 font-mono text-sky-800 font-medium whitespace-nowrap">{p.ticketNumber}</td>
+                    <td className="py-3 pr-2 font-mono text-emerald-800 font-medium whitespace-nowrap">{p.visaNumber}</td>
+                    <td className="py-3 pr-2 font-medium text-stone-600 whitespace-nowrap">{p.city}</td>
+                    <td className="py-3 pr-3 text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600" strokeWidth={1.5} />
+                        Verified Complete
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
     </AppShell>
   );
 }

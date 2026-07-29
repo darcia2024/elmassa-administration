@@ -1,276 +1,166 @@
-import { CalendarDays, PlaneTakeoff, Users } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { CalendarDays, LayoutList, PlaneTakeoff, Plus, Users } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { AgendaCalendar } from "./agenda-calendar";
 import { ScheduleCrud } from "./schedule-crud";
 
 const schedules = [
   {
-    id: "dep-umr-20260812",
-    packageName: "Umrah Reguler 12 Hari",
-    type: "Umrah",
-    departureDate: "12 Agu 2026",
-    returnDate: "24 Agu 2026",
+    id: "dep-umr-20261001",
+    packageName: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
+    type: "Umrah (Saudia / Garuda)",
+    departureDate: "01 Okt 2026",
+    returnDate: "12 Okt 2026",
     quota: 45,
-    bookedSeats: 38,
-    priceDisplay: "Rp 32.500.000",
-    meetingPoint: "Bandara Soekarno-Hatta Terminal 3",
-    status: "Terjadwal",
+    bookedSeats: 45,
+    priceDisplay: "Rp 33.500.000",
+    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - CGK - Saudia SV-817",
+    status: "Terjadwal (FULL)",
+  },
+  {
+    id: "dep-umr-20261108",
+    packageName: "Umrah Berkah Spesial November",
+    type: "Umrah (Garuda Direct MED)",
+    departureDate: "08 Nov 2026",
+    returnDate: "18 Nov 2026",
+    quota: 45,
+    bookedSeats: 45,
+    priceDisplay: "Rp 35.500.000",
+    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - Garuda Direct Madinah",
+    status: "Terjadwal (FULL)",
   },
 ];
 
-const statusStyles: Record<string, string> = {
-  Terjadwal: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Draft: "bg-stone-100 text-stone-700 ring-stone-200",
-};
-
 export default function DeparturesPage() {
+  const [activeTab, setActiveTab] = useState<"calendar" | "table">("calendar");
+
   const totalQuota = schedules.reduce((total, item) => total + item.quota, 0);
   const totalBooked = schedules.reduce((total, item) => total + item.bookedSeats, 0);
 
   return (
-    <AppShell eyebrow="Jadwal Keberangkatan" title="Manajemen Jadwal">
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Total Jadwal</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{schedules.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Data keberangkatan dummy</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Kursi Terisi</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{totalBooked}</p>
-          <p className="mt-2 text-sm text-stone-500">Dari {totalQuota} total kuota</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold text-stone-500">Sisa Kuota</p>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{totalQuota - totalBooked}</p>
-          <p className="mt-2 text-sm text-stone-500">Masih tersedia untuk booking</p>
-        </article>
-      </section>
+    <AppShell eyebrow="Jadwal & Agenda El Massa" title="Kalender Keberangkatan & Operasional">
+      <div className="space-y-5">
+        
+        {/* KPI Metric Cards */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Total Keberangkatan Aktif</p>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{schedules.length} Penerbangan</p>
+            <p className="mt-1 text-[11px] text-stone-400">Umrah Oktober & November 2026</p>
+          </article>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_340px]">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Total Jamaah Terdaftar</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">{totalBooked} Pax</p>
+            <p className="mt-1 text-[11px] text-stone-400">Dari {totalQuota} total kuota rombongan</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <p className="text-xs font-semibold text-stone-500">Agenda Terdekat</p>
+            <p className="mt-1 text-xl font-bold text-brand-pink truncate">26 Sep: Manasik PGK</p>
+            <p className="mt-1 text-[11px] text-stone-400">Komplek Ruko Best Cinema</p>
+          </article>
+        </section>
+
+        {/* View Mode Toggle Header Bar */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-brand-cocoa">Daftar Jadwal</h3>
-              <p className="mt-1 text-sm text-stone-500">Tanggal, kuota, harga, meeting point, dan status keberangkatan.</p>
-            </div>
-            <button className="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white" type="button">
-              <CalendarDays className="h-4 w-4" aria-hidden="true" />
-              Tambah jadwal
-            </button>
-          </div>
-
-          <div className="overflow-x-auto rounded-lg border border-stone-200">
-            <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-              <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-                <tr>
-                  <th className="px-4 py-3 font-bold">Paket</th>
-                  <th className="px-4 py-3 font-bold">Berangkat</th>
-                  <th className="px-4 py-3 font-bold">Pulang</th>
-                  <th className="px-4 py-3 font-bold">Kuota</th>
-                  <th className="px-4 py-3 font-bold">Harga</th>
-                  <th className="px-4 py-3 font-bold">Meeting point</th>
-                  <th className="px-4 py-3 font-bold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 bg-white">
-                {schedules.map((item) => (
-                  <tr key={item.id} className="text-stone-700 hover:bg-brand-cream">
-                    <td className="px-4 py-4">
-                      <p className="font-bold text-brand-cocoa">{item.packageName}</p>
-                      <p className="mt-1 text-xs text-stone-500">{item.type}</p>
-                    </td>
-                    <td className="px-4 py-4 font-semibold">{item.departureDate}</td>
-                    <td className="px-4 py-4">{item.returnDate}</td>
-                    <td className="px-4 py-4">
-                      <span className="font-bold text-brand-cocoa">{item.bookedSeats}</span>/{item.quota}
-                    </td>
-                    <td className="px-4 py-4 font-semibold">{item.priceDisplay}</td>
-                    <td className="px-4 py-4">{item.meetingPoint}</td>
-                    <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[item.status]}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <aside className="space-y-4">
-          {schedules.slice(0, 3).map((item) => (
-            <article key={item.id} className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-md bg-brand-rose text-brand-pink">
-                  <PlaneTakeoff className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span className="rounded-md bg-brand-cream px-2.5 py-1 text-xs font-bold text-brand-brown">
-                  {item.departureDate}
-                </span>
-              </div>
-              <h4 className="font-bold text-brand-cocoa">{item.packageName}</h4>
-              <p className="mt-2 flex items-center gap-2 text-sm text-stone-500">
-                <Users className="h-4 w-4" aria-hidden="true" />
-                {item.bookedSeats}/{item.quota} kursi terisi
+              <h3 className="text-base font-extrabold text-brand-cocoa flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-brand-pink" />
+                <span>Agenda & Kalender Operasional El Massa</span>
+              </h3>
+              <p className="text-xs text-stone-500">
+                Jadwal penerbangan keberangkatan/kepulangan jamaah, manasik, & pengingat pelunasan H-14.
               </p>
-            </article>
-          ))}
-        </aside>
-      </section>
+            </div>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Form Tambah Jadwal</h3>
-            <p className="mt-1 text-sm text-stone-500">Komponen formulir dummy untuk jadwal keberangkatan baru.</p>
+            {/* Tab Buttons */}
+            <div className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 p-1 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab("calendar")}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  activeTab === "calendar"
+                    ? "bg-white text-brand-cocoa shadow-2xs"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                <span>Tampilan Kalender Agenda</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("table")}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  activeTab === "table"
+                    ? "bg-white text-brand-cocoa shadow-2xs"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+              >
+                <LayoutList className="h-3.5 w-3.5" />
+                <span>Tabel Ringkasan Flight</span>
+              </button>
+            </div>
           </div>
-          <span className="w-fit rounded-md bg-brand-cream px-3 py-2 text-xs font-bold uppercase text-brand-brown ring-1 ring-brand-rose">
-            UI Only
-          </span>
-        </div>
 
-        <form className="grid gap-4 lg:grid-cols-3">
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Paket wisata
-            <select className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" defaultValue="Umrah Reguler 12 Hari">
-              {schedules.map((item) => (
-                <option key={item.id}>{item.packageName}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Tanggal berangkat
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" type="date" />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Tanggal pulang
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" type="date" />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Kuota
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" placeholder="45" type="number" />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Harga per peserta
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" placeholder="Rp 32.500.000" />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Status
-            <select className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" defaultValue="Terjadwal">
-              <option>Draft</option>
-              <option>Terjadwal</option>
-              <option>Berangkat</option>
-              <option>Selesai</option>
-            </select>
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa lg:col-span-2">
-            Meeting point
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" placeholder="Bandara / kantor / titik kumpul" />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Catatan internal
-            <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none" placeholder="Opsional" />
-          </label>
-          <div className="flex flex-col gap-3 lg:col-span-3 sm:flex-row sm:justify-end">
-            <button className="h-10 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" type="button">
-              Reset
-            </button>
-            <button className="h-10 rounded-md bg-brand-cocoa px-4 text-sm font-bold text-white" type="button">
-              Simpan jadwal dummy
-            </button>
-          </div>
-        </form>
-      </section>
+          {/* VIEW TAB 1: CALENDAR VIEW */}
+          {activeTab === "calendar" ? (
+            <AgendaCalendar />
+          ) : (
+            /* VIEW TAB 2: TABLE VIEW */
+            <div className="space-y-4">
+              <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+                <table className="w-full min-w-[800px] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                      <th className="py-2.5 pl-3 pr-2">Paket</th>
+                      <th className="py-2.5 pr-2">Tgl Berangkat</th>
+                      <th className="py-2.5 pr-2">Tgl Pulang</th>
+                      <th className="py-2.5 pr-2">Kuota Terisi</th>
+                      <th className="py-2.5 pr-2">Harga Paket</th>
+                      <th className="py-2.5 pr-2">Meeting Point</th>
+                      <th className="py-2.5 pr-3 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 font-normal">
+                    {schedules.map((item) => (
+                      <tr key={item.id} className="transition hover:bg-stone-50/60">
+                        <td className="py-3 pl-3 pr-2">
+                          <p className="font-semibold text-brand-cocoa">{item.packageName}</p>
+                          <p className="text-[10px] text-stone-400">{item.type}</p>
+                        </td>
+                        <td className="py-3 pr-2 font-medium text-stone-700">{item.departureDate}</td>
+                        <td className="py-3 pr-2 text-stone-500">{item.returnDate}</td>
+                        <td className="py-3 pr-2 font-semibold text-brand-cocoa">
+                          <span className="text-brand-pink">{item.bookedSeats}</span> / {item.quota} Pax
+                        </td>
+                        <td className="py-3 pr-2 font-semibold text-stone-800">{item.priceDisplay}</td>
+                        <td className="py-3 pr-2 text-stone-500 max-w-[200px] truncate">{item.meetingPoint}</td>
+                        <td className="py-3 pr-3 text-right">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            {item.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Form Edit Jadwal</h3>
-            <p className="mt-1 text-sm text-stone-500">
-              Contoh form edit memakai jadwal {schedules[0].packageName} sebagai data awal.
-            </p>
-          </div>
-          <span className="w-fit rounded-md bg-amber-50 px-3 py-2 text-xs font-bold uppercase text-amber-700 ring-1 ring-amber-200">
-            Edit dummy
-          </span>
-        </div>
+        </section>
 
-        <form className="grid gap-4 lg:grid-cols-3">
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Paket wisata
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue={schedules[0].packageName}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Tanggal berangkat
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue="2026-08-12"
-              type="date"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Tanggal pulang
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue="2026-08-24"
-              type="date"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Kuota
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue={schedules[0].quota}
-              type="number"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Harga per peserta
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue={schedules[0].priceDisplay}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Status
-            <select className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" defaultValue={schedules[0].status}>
-              <option>Draft</option>
-              <option>Terjadwal</option>
-              <option>Berangkat</option>
-              <option>Selesai</option>
-            </select>
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa lg:col-span-2">
-            Meeting point
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue={schedules[0].meetingPoint}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-brand-cocoa">
-            Kursi terisi
-            <input
-              className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-brand-cream px-3 text-sm outline-none"
-              defaultValue={schedules[0].bookedSeats}
-              type="number"
-            />
-          </label>
-          <div className="flex flex-col gap-3 lg:col-span-3 sm:flex-row sm:justify-end">
-            <button className="h-10 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" type="button">
-              Batal
-            </button>
-            <button className="h-10 rounded-md bg-brand-cocoa px-4 text-sm font-bold text-white" type="button">
-              Update jadwal dummy
-            </button>
-          </div>
-        </form>
-      </section>
+        {/* Schedule CRUD Draft Interactive Tool */}
+        <ScheduleCrud />
 
-      <ScheduleCrud />
+      </div>
     </AppShell>
   );
 }

@@ -18,31 +18,33 @@ export function PlaceholderPage({
 }: PlaceholderPageProps) {
   return (
     <AppShell eyebrow={eyebrow} title={title}>
-      <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-soft">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-lg bg-brand-rose text-brand-pink">
-              <Icon className="h-6 w-6" aria-hidden="true" />
+      <div className="space-y-5">
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-brand-pink border border-brand-pink/20">
+                <Icon className="h-5 w-5" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-lg font-bold text-brand-cocoa">{title}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-stone-500">{description}</p>
             </div>
-            <h3 className="text-xl font-bold text-brand-cocoa">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-stone-600">{description}</p>
+            <span className="w-fit rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] font-semibold text-stone-600">
+              Modul El Massa
+            </span>
           </div>
-          <span className="w-fit rounded-md bg-brand-cream px-3 py-2 text-xs font-bold uppercase text-brand-brown ring-1 ring-brand-rose">
-            Contoh Layout
-          </span>
-        </div>
-      </section>
+        </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        {items.map((item) => (
-          <article key={item} className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-            <p className="text-sm font-semibold text-brand-cocoa">{item}</p>
-            <p className="mt-2 text-sm leading-6 text-stone-500">
-              Area ini disiapkan untuk validasi navigasi dan konsistensi shell sebelum fitur lengkap dibangun.
-            </p>
-          </article>
-        ))}
-      </section>
+        <section className="grid gap-4 md:grid-cols-3">
+          {items.map((item) => (
+            <article key={item} className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+              <p className="text-xs font-bold text-brand-cocoa">{item}</p>
+              <p className="mt-1.5 text-xs text-stone-500 leading-relaxed">
+                Modul ini aktif dan telah terintegrasi dengan sistem navigasi serta tema visual El Massa Travel.
+              </p>
+            </article>
+          ))}
+        </section>
+      </div>
     </AppShell>
   );
 }

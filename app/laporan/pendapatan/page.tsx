@@ -1,132 +1,237 @@
-import { BarChart3, Download, Plane, TrendingUp, WalletCards } from "lucide-react";
+"use client";
+
+import {
+  BarChart3,
+  Calendar,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  Plane,
+  Printer,
+  Search,
+  TrendingUp,
+  WalletCards,
+} from "lucide-react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
 const incomeRows = [
   {
     id: "INC-001",
-    serviceType: "Umrah",
-    packageName: "Umrah Reguler 12 Hari",
+    serviceType: "Umrah Spesial Muharram",
+    packageName: "Umrah Spesial Muharram 11 Hari",
     bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    date: "25 Jul 2026",
-    amountDisplay: "Rp 12.500.000",
-    marginDisplay: "Rp 2.100.000",
-    status: "Parsial",
+    customer: "H. Rusli Suparman & Rombongan (40 Pax)",
+    date: "08 Jul 2026",
+    grossDisplay: "Rp 1.188.000.000",
+    paidDisplay: "Rp 500.000.000",
+    marginDisplay: "Rp 195.000.000",
+    status: "DP / Parsial",
+  },
+  {
+    id: "INC-002",
+    serviceType: "Umrah Reguler",
+    packageName: "Umrah Reguler 12 Hari",
+    bookingCode: "BK-2407-021",
+    customer: "Romlan Effendi",
+    date: "12 Agu 2026",
+    grossDisplay: "Rp 65.000.000",
+    paidDisplay: "Rp 0",
+    marginDisplay: "Rp 9.500.000",
+    status: "Belum Bayar",
+  },
+  {
+    id: "INC-003",
+    serviceType: "Umrah VIP",
+    packageName: "Umrah VIP Executive 9 Hari",
+    bookingCode: "BK-2407-025",
+    customer: "Zainal Abidin",
+    date: "05 Sep 2026",
+    grossDisplay: "Rp 180.000.000",
+    paidDisplay: "Rp 180.000.000",
+    marginDisplay: "Rp 32.000.000",
+    status: "Final / Lunas",
   },
 ];
 
 const serviceSummary = [
-  { label: "Umrah", value: "Rp 12.500.000", count: "1 booking" },
+  { label: "Umrah Spesial Muharram", totalOmzet: "Rp 1.188.000.000", count: "40 Pax Jamaah", share: "82%" },
+  { label: "Umrah Reguler 12 Hari", totalOmzet: "Rp 65.000.000", count: "2 Pax Jamaah", share: "5%" },
+  { label: "Umrah VIP Executive", totalOmzet: "Rp 180.000.000", count: "4 Pax Jamaah", share: "13%" },
 ];
 
 const statusStyles: Record<string, string> = {
-  Final: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Parsial: "bg-amber-50 text-amber-700 ring-amber-200",
+  "Final / Lunas": "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
+  "DP / Parsial": "bg-amber-50/80 text-amber-800 border border-amber-200/60",
+  "Belum Bayar": "bg-rose-50/80 text-rose-700 border border-rose-200/60",
 };
 
 export default function IncomeReportPage() {
+  const [query, setQuery] = useState("");
+
+  const filteredRows = useMemo(() => {
+    return incomeRows.filter((r) => {
+      const q = query.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        r.customer.toLowerCase().includes(q) ||
+        r.bookingCode.toLowerCase().includes(q) ||
+        r.packageName.toLowerCase().includes(q)
+      );
+    });
+  }, [query]);
+
   return (
-    <AppShell eyebrow="Laporan" title="Laporan Pendapatan">
-      <ReportNav />
+    <AppShell eyebrow="Laporan & Analytics" title="Laporan Pendapatan & Gross Profit Omzet">
+      <div className="space-y-5">
+        <ReportNav />
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Pendapatan Tercatat</p>
-            <WalletCards className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">Rp 151.500.000</p>
-          <p className="mt-2 text-sm text-stone-500">Transaksi masuk dummy</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Estimasi Margin</p>
-            <TrendingUp className="h-5 w-5 text-emerald-600" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">Rp 24.300.000</p>
-          <p className="mt-2 text-sm text-stone-500">Ringkasan simulasi</p>
-        </article>
-        <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-stone-500">Layanan Aktif</p>
-            <Plane className="h-5 w-5 text-brand-brown" aria-hidden="true" />
-          </div>
-          <p className="mt-3 text-2xl font-bold text-brand-cocoa">{serviceSummary.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Kategori layanan</p>
-        </article>
-      </section>
+        {/* Header Hero Banner */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
+                Rekapitulasi Pendapatan Omzet & Estimasi Margin Profit
+              </h1>
+              <p className="text-xs text-stone-500 mt-1 sm:text-sm">
+                Analisa omzet kotor penjualan paket wisata, realisasi dana masuk, serta proyeksi keuntungan bersih travel.
+              </p>
+            </div>
 
-      <section className="grid gap-4 lg:grid-cols-4">
-        {serviceSummary.map((item) => (
-          <article key={item.label} className="rounded-lg border border-brand-rose bg-white p-5 shadow-soft">
-            <p className="text-sm font-semibold text-stone-500">{item.label}</p>
-            <p className="mt-3 text-xl font-bold text-brand-cocoa">{item.value}</p>
-            <p className="mt-2 text-sm text-stone-500">{item.count}</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
+              >
+                <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
+                Cetak PDF
+              </button>
+
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+              >
+                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                Export Excel CSV
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* 📊 KPI Metric Cards Grid */}
+        <section className="grid gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Total Project Omzet</p>
+              <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">Rp 1.433.000.000</p>
+            <p className="mt-1 text-[11px] text-stone-400">Total nilai kontrak paket</p>
           </article>
-        ))}
-      </section>
 
-      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-cocoa">Pendapatan per Booking</h3>
-            <p className="mt-1 text-sm text-stone-500">Data dummy pendapatan masuk, kategori layanan, dan estimasi margin.</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-bold text-brand-cocoa" href="/laporan/transaksi">
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
-              Transaksi
-            </Link>
-            <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand-cocoa px-4 text-sm font-bold text-white" type="button">
-              <Download className="h-4 w-4" aria-hidden="true" />
-              Export
-            </button>
-          </div>
-        </div>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Kas Masuk (Realisasi)</p>
+              <BarChart3 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-xl font-extrabold text-emerald-700">Rp 680.000.000</p>
+            <p className="mt-1 text-[11px] text-stone-400">Pemasukan kas terverifikasi</p>
+          </article>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
-          <table className="w-full min-w-[940px] border-collapse text-left text-sm">
-            <thead className="bg-brand-cream text-xs uppercase text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-bold">ID</th>
-                <th className="px-4 py-3 font-bold">Tanggal</th>
-                <th className="px-4 py-3 font-bold">Layanan</th>
-                <th className="px-4 py-3 font-bold">Paket</th>
-                <th className="px-4 py-3 font-bold">Booking</th>
-                <th className="px-4 py-3 font-bold">Pelanggan</th>
-                <th className="px-4 py-3 font-bold">Pendapatan</th>
-                <th className="px-4 py-3 font-bold">Margin</th>
-                <th className="px-4 py-3 font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {incomeRows.map((row) => (
-                <tr key={row.id} className="text-stone-700 hover:bg-brand-cream">
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{row.id}</td>
-                  <td className="px-4 py-4">{row.date}</td>
-                  <td className="px-4 py-4">{row.serviceType}</td>
-                  <td className="px-4 py-4">{row.packageName}</td>
-                  <td className="px-4 py-4">
-                    <Link className="font-bold text-brand-cocoa hover:text-brand-pink" href={`/booking/${row.bookingCode}`}>
-                      {row.bookingCode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-4">{row.customer}</td>
-                  <td className="px-4 py-4 font-bold text-brand-cocoa">{row.amountDisplay}</td>
-                  <td className="px-4 py-4 font-semibold text-brand-cocoa">{row.marginDisplay}</td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${statusStyles[row.status]}`}>
-                      {row.status}
-                    </span>
-                  </td>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Estimasi Gross Margin</p>
+              <TrendingUp className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-xl font-extrabold text-brand-pink">Rp 236.500.000</p>
+            <p className="mt-1 text-[11px] text-stone-400">Margin kotor travel (~16.5%)</p>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-500">Total Jamaah</p>
+              <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-sky-800">46 Jamaah</p>
+            <p className="mt-1 text-[11px] text-stone-400">Periode Juli - September 2026</p>
+          </article>
+        </section>
+
+        {/* Category Breakdown Grid */}
+        <section className="grid gap-4 md:grid-cols-3">
+          {serviceSummary.map((item) => (
+            <article key={item.label} className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-brand-cocoa">{item.label}</span>
+                <span className="rounded-full bg-rose-50 text-brand-pink border border-brand-pink/20 px-2 py-0.5 text-[10px] font-bold">
+                  {item.share} Market Share
+                </span>
+              </div>
+              <p className="text-lg font-extrabold text-brand-pink">{item.totalOmzet}</p>
+              <p className="text-[11px] text-stone-500">{item.count}</p>
+            </article>
+          ))}
+        </section>
+
+        {/* Table Card */}
+        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-brand-cocoa">Rincian Pendapatan Per Booking</h3>
+              <p className="text-xs text-stone-500">Data omzet, realisasi kas terbayar, dan estimasi margin kotor per transaksi.</p>
+            </div>
+
+            <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500 w-full sm:w-64">
+              <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+              <input
+                className="w-full bg-transparent outline-none text-xs placeholder:text-stone-400"
+                placeholder="Cari kode booking / nama..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                  <th className="py-2.5 pl-3 pr-2">ID & Kode</th>
+                  <th className="py-2.5 pr-2">Nama Jamaah / Rombongan</th>
+                  <th className="py-2.5 pr-2">Kategori Paket</th>
+                  <th className="py-2.5 pr-2">Tgl Berangkat</th>
+                  <th className="py-2.5 pr-2">Total Omzet Gross</th>
+                  <th className="py-2.5 pr-2">Kas Terbayar</th>
+                  <th className="py-2.5 pr-2">Estimasi Margin</th>
+                  <th className="py-2.5 pr-3 text-right">Status Bayar</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody className="divide-y divide-stone-100 font-normal">
+                {filteredRows.map((r) => (
+                  <tr key={r.id} className="transition hover:bg-stone-50/60">
+                    <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa whitespace-nowrap">{r.bookingCode}</td>
+                    <td className="py-3 pr-2 font-semibold text-brand-cocoa whitespace-nowrap">{r.customer}</td>
+                    <td className="py-3 pr-2 text-stone-700 whitespace-nowrap">{r.serviceType}</td>
+                    <td className="py-3 pr-2 text-stone-500 whitespace-nowrap">{r.date}</td>
+                    <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">{r.grossDisplay}</td>
+                    <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{r.paidDisplay}</td>
+                    <td className="py-3 pr-2 font-bold text-brand-pink whitespace-nowrap">{r.marginDisplay}</td>
+                    <td className="py-3 pr-3 text-right whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusStyles[r.status]}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
     </AppShell>
   );
 }

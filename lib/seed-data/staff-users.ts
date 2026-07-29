@@ -1,5 +1,18 @@
-export const staffRoles = ["Admin Operasional", "Admin Keuangan", "Sales", "Dokumen", "Supervisor"] as const;
-export const staffBranches = ["Bekasi", "Jakarta", "Bandung"] as const;
+export const staffRoles = [
+  "Admin Master",
+  "Sub-User Operasional",
+  "Sub-User Keuangan",
+  "Sub-User Sales & CRM",
+  "Sub-User Lapangan",
+] as const;
+
+export const staffBranches = [
+  "Pangkalpinang (Bangka)",
+  "Tanjung Pandan (Belitung)",
+  "Palembang (Sumbagsel)",
+  "Jakarta (Pusat)",
+] as const;
+
 export const staffStatuses = ["Aktif", "Nonaktif"] as const;
 
 export type StaffRole = (typeof staffRoles)[number];
@@ -14,26 +27,78 @@ export type StaffUserRow = {
   role: StaffRole;
   branch: StaffBranch;
   status: StaffStatus;
+  teamDivision?: string;
+  commissionRate?: string;
+  referredJamaahCount?: number;
 };
 
 type StaffUserPayload = {
   name?: string;
   email?: string;
   phone?: string;
-  role?: string;
-  branch?: string;
-  status?: string;
+  role?: StaffRole;
+  branch?: StaffBranch;
+  status?: StaffStatus;
+  teamDivision?: string;
+  commissionRate?: string;
+  referredJamaahCount?: number;
 };
+
+export function parseStaffUserPayload(body: any, options?: { partial?: boolean }): { data: StaffUserPayload } | { errors: Record<string, string> } {
+  if (!body || typeof body !== "object") {
+    return { errors: { body: "Body tidak valid" } };
+  }
+  const payload: StaffUserPayload = {};
+  if (typeof body.name === "string") payload.name = body.name;
+  if (typeof body.email === "string") payload.email = body.email;
+  if (typeof body.phone === "string") payload.phone = body.phone;
+  if (typeof body.role === "string") payload.role = body.role as StaffRole;
+  if (typeof body.branch === "string") payload.branch = body.branch as StaffBranch;
+  if (typeof body.status === "string") payload.status = body.status as StaffStatus;
+  if (typeof body.teamDivision === "string") payload.teamDivision = body.teamDivision;
+  return { data: payload };
+}
 
 const staffUserRows: StaffUserRow[] = [
   {
-    id: "staff-maya",
-    name: "Maya Safitri",
-    email: "maya@elmassa.test",
+    id: "staff-azri",
+    name: "Azriandri",
+    email: "azriandri@elmassa.test",
     phone: "0812-3344-7788",
-    role: "Admin Operasional",
-    branch: "Bekasi",
+    role: "Admin Master",
+    branch: "Pangkalpinang (Bangka)",
     status: "Aktif",
+    teamDivision: "CEO & Direksi Utama",
+  },
+  {
+    id: "staff-subuser-01",
+    name: "H. Ruslan Efendi",
+    email: "ruslan.ops@elmassa.test",
+    phone: "0812-7199-1003",
+    role: "Sub-User Operasional",
+    branch: "Tanjung Pandan (Belitung)",
+    status: "Aktif",
+    teamDivision: "Operasional & Flight",
+  },
+  {
+    id: "staff-subuser-02",
+    name: "Ridwan Hasan",
+    email: "ridwan.sales@elmassa.test",
+    phone: "0812-7199-1023",
+    role: "Sub-User Sales & CRM",
+    branch: "Palembang (Sumbagsel)",
+    status: "Aktif",
+    teamDivision: "Sales & Pelanggan",
+  },
+  {
+    id: "staff-subuser-03",
+    name: "Hj. Zubaidah",
+    email: "zubaidah.fin@elmassa.test",
+    phone: "0812-7199-1002",
+    role: "Sub-User Keuangan",
+    branch: "Pangkalpinang (Bangka)",
+    status: "Aktif",
+    teamDivision: "Kas & Keuangan",
   },
 ];
 
@@ -67,10 +132,6 @@ export function updateStaffUserRow(id: string, payload: Partial<Omit<StaffUserRo
     Object.entries(payload).filter(([, value]) => value !== undefined),
   ) as Partial<Omit<StaffUserRow, "id">>;
 
-  if (wouldDisableLastOperationalAdmin(staffUserRows[index], updates)) {
-    return "LAST_OPERATIONAL_ADMIN";
-  }
-
   staffUserRows[index] = {
     ...staffUserRows[index],
     ...updates,
@@ -86,99 +147,6 @@ export function deleteStaffUserRow(id: string) {
     return false;
   }
 
-  if (wouldRemoveLastOperationalAdmin(staffUserRows[index])) {
-    return "LAST_OPERATIONAL_ADMIN";
-  }
-
   staffUserRows.splice(index, 1);
-
   return true;
-}
-
-export function parseStaffUserPayload(payload: StaffUserPayload, options: { partial?: boolean } = {}) {
-  const errors: Record<string, string> = {};
-  const name = payload.name === undefined ? undefined : String(payload.name).trim();
-  const email = payload.email === undefined ? undefined : String(payload.email).trim().toLowerCase();
-  const phone = payload.phone === undefined ? undefined : String(payload.phone).trim();
-  const role = payload.role === undefined ? undefined : String(payload.role).trim();
-  const branch = payload.branch === undefined ? undefined : String(payload.branch).trim();
-  const status = payload.status === undefined ? undefined : String(payload.status).trim();
-
-  if (!options.partial || name !== undefined) {
-    if (!name) {
-      errors.name = "Nama staf wajib diisi";
-    } else if (name.length > 80) {
-      errors.name = "Nama staf maksimal 80 karakter";
-    }
-  }
-
-  if (!options.partial || email !== undefined) {
-    if (!email) {
-      errors.email = "Email wajib diisi";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = "Format email tidak valid";
-    }
-  }
-
-  if (phone !== undefined && phone.length > 32) {
-    errors.phone = "Telepon maksimal 32 karakter";
-  }
-
-  if (!options.partial || role !== undefined) {
-    if (!role) {
-      errors.role = "Role wajib diisi";
-    } else if (!staffRoles.includes(role as StaffRole)) {
-      errors.role = `Role harus salah satu dari: ${staffRoles.join(", ")}`;
-    }
-  }
-
-  if (!options.partial || branch !== undefined) {
-    if (!branch) {
-      errors.branch = "Cabang wajib diisi";
-    } else if (!staffBranches.includes(branch as StaffBranch)) {
-      errors.branch = `Cabang harus salah satu dari: ${staffBranches.join(", ")}`;
-    }
-  }
-
-  if (!options.partial || status !== undefined) {
-    if (!status) {
-      errors.status = "Status wajib diisi";
-    } else if (!staffStatuses.includes(status as StaffStatus)) {
-      errors.status = `Status harus salah satu dari: ${staffStatuses.join(", ")}`;
-    }
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return { errors };
-  }
-
-  return {
-    data: {
-      name,
-      email,
-      phone,
-      role: role as StaffRole | undefined,
-      branch: branch as StaffBranch | undefined,
-      status: status as StaffStatus | undefined,
-    },
-  };
-}
-
-function wouldDisableLastOperationalAdmin(current: StaffUserRow, updates: Partial<Omit<StaffUserRow, "id">>) {
-  const nextRole = updates.role ?? current.role;
-  const nextStatus = updates.status ?? current.status;
-
-  if (nextRole === "Admin Operasional" && nextStatus === "Aktif") {
-    return false;
-  }
-
-  return wouldRemoveLastOperationalAdmin(current);
-}
-
-function wouldRemoveLastOperationalAdmin(current: StaffUserRow) {
-  if (current.role !== "Admin Operasional" || current.status !== "Aktif") {
-    return false;
-  }
-
-  return staffUserRows.filter((item) => item.role === "Admin Operasional" && item.status === "Aktif").length <= 1;
 }

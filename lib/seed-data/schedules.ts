@@ -11,13 +11,23 @@ export type ScheduleRow = {
 
 const scheduleRows: ScheduleRow[] = [
   {
-    id: "dep-umr-20260812",
-    packageId: "pkg-umr-reg-12",
-    departureDate: "2026-08-12",
-    returnDate: "2026-08-24",
-    price: 32_500_000,
+    id: "dep-umr-20261001",
+    packageId: "pkg-umrah-oktober-12d",
+    departureDate: "2026-10-01",
+    returnDate: "2026-10-12",
+    price: 33500000,
     quota: 45,
-    meetingPoint: "Bandara Soekarno-Hatta Terminal 3",
+    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - Connecting CGK Flight Garuda & Saudia",
+    status: "Terjadwal",
+  },
+  {
+    id: "dep-umr-20261108",
+    packageId: "pkg-umrah-november-11d",
+    departureDate: "2026-11-08",
+    returnDate: "2026-11-18",
+    price: 35500000,
+    quota: 45,
+    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - Connecting CGK Flight Garuda & Saudia",
     status: "Terjadwal",
   },
 ];
