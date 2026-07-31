@@ -60,9 +60,9 @@ export default function PackageCalculatorPage() {
   // Visa & Saudi Mandatory Insurance
   const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(450); // 450 SAR per pax
 
-  // Handling & Airport
-  const [handlingBandaraIdr, setHandlingBandaraIdr] = useState(450000); // Handling JED & CGK
-  const [handlingJakartaSaudiIdr, setHandlingJakartaSaudiIdr] = useState(750000); // Handling Terpadu Jakarta (CGK) & Arab Saudi (JED/MED) per pax
+  // Handling Bandara Jakarta (CGK) & Arab Saudi (JED/MED)
+  const [handlingJakartaCgkIdr, setHandlingJakartaCgkIdr] = useState(350000); // Handling CGK Jakarta per pax (Rp)
+  const [handlingSaudiBandaraSar, setHandlingSaudiBandaraSar] = useState(150); // Handling JED/MED Saudi per pax (SAR)
 
   // Transit & Lounge
   const [hotelTransitLoungeIdr, setHotelTransitLoungeIdr] = useState(650000); // Hotel Transit Jakarta / Lounge Executive Bandara CGK
@@ -76,8 +76,30 @@ export default function PackageCalculatorPage() {
   const [nasiBoxSaudiQty, setNasiBoxSaudiQty] = useState(2); // 2x Makan Nasi Box Transit Bandara Saudi (JED/MED)
   const [nasiBoxSaudiPriceSar, setNasiBoxSaudiPriceSar] = useState(25); // 25 SAR / box
 
-  // Equipment Package (Rincian 10 Item Pa & 11 Item Pi)
-  const [equipmentIdr, setEquipmentIdr] = useState(1350000); // Standar Paket Perlengkapan Lengkap (Pa / Pi) per Pax
+  // Equipment Itemized Prices - Men (10 Items)
+  const [equipMenIhram, setEquipMenIhram] = useState(250000);
+  const [equipMenKainBaju, setEquipMenKainBaju] = useState(180000);
+  const [equipMenRansel, setEquipMenRansel] = useState(150000);
+  const [equipMenTasSerut, setEquipMenTasSerut] = useState(40000);
+  const [equipMenSarungKoper, setEquipMenSarungKoper] = useState(80000);
+  const [equipMenTagBagasi, setEquipMenTagBagasi] = useState(30000);
+  const [equipMenBukuDoa, setEquipMenBukuDoa] = useState(50000);
+  const [equipMenSajadahSyal, setEquipMenSajadahSyal] = useState(75000);
+  const [equipMenBantalLeher, setEquipMenBantalLeher] = useState(65000);
+  const [equipMenLanyard, setEquipMenLanyard] = useState(25000);
+
+  // Equipment Itemized Prices - Women (11 Items)
+  const [equipWomenKainBaju, setEquipWomenKainBaju] = useState(180000);
+  const [equipWomenKerudung, setEquipWomenKerudung] = useState(120000);
+  const [equipWomenRansel, setEquipWomenRansel] = useState(150000);
+  const [equipWomenTasSerut, setEquipWomenTasSerut] = useState(40000);
+  const [equipWomenSarungKoper, setEquipWomenSarungKoper] = useState(80000);
+  const [equipWomenTagBagasi, setEquipWomenTagBagasi] = useState(30000);
+  const [equipWomenBukuDoa, setEquipWomenBukuDoa] = useState(50000);
+  const [equipWomenSyalSajadah, setEquipWomenSyalSajadah] = useState(75000);
+  const [equipWomenMukenaTravel, setEquipWomenMukenaTravel] = useState(180000);
+  const [equipWomenBantalLeher, setEquipWomenBantalLeher] = useState(65000);
+  const [equipWomenLanyard, setEquipWomenLanyard] = useState(25000);
 
   // Muthawwif & Tour Leader Shared Cost
   const [muthawwifFeeIdrTotal, setMuthawwifFeeIdrTotal] = useState(18000000); // Shared among group pax
@@ -119,8 +141,10 @@ export default function PackageCalculatorPage() {
     // 3. Visa & Insurance
     const visaInsuranceIdr = sarToIdr(visaAndInsuranceSar);
 
-    // 4. Handling Bandara
-    const totalTransportHandling = handlingBandaraIdr + handlingJakartaSaudiIdr;
+    // 4. Handling Bandara Dipisah (Jakarta CGK & Saudi JED/MED)
+    const handlingJakartaIdr = handlingJakartaCgkIdr;
+    const handlingSaudiIdr = sarToIdr(handlingSaudiBandaraSar);
+    const totalTransportHandling = handlingJakartaIdr + handlingSaudiIdr;
 
     // 5. Transit & Lounge
     const totalTransitLounge = hotelTransitLoungeIdr;
@@ -137,8 +161,33 @@ export default function PackageCalculatorPage() {
     // 8. Marketing Fee & Agency
     const totalFeeMarketing = feeMarketingIdr;
 
-    // 9. Equipment Rincian Total per Pax
-    const equipmentTotalIdr = equipmentIdr;
+    // 9. Equipment Rincian Total per Pax (Itemized Sum per Gender)
+    const menEquipTotal =
+      equipMenIhram +
+      equipMenKainBaju +
+      equipMenRansel +
+      equipMenTasSerut +
+      equipMenSarungKoper +
+      equipMenTagBagasi +
+      equipMenBukuDoa +
+      equipMenSajadahSyal +
+      equipMenBantalLeher +
+      equipMenLanyard;
+
+    const womenEquipTotal =
+      equipWomenKainBaju +
+      equipWomenKerudung +
+      equipWomenRansel +
+      equipWomenTasSerut +
+      equipWomenSarungKoper +
+      equipWomenTagBagasi +
+      equipWomenBukuDoa +
+      equipWomenSyalSajadah +
+      equipWomenMukenaTravel +
+      equipWomenBantalLeher +
+      equipWomenLanyard;
+
+    const equipmentTotalIdr = Math.round((menEquipTotal + womenEquipTotal) / 2);
 
     // 10. Bonus & Misc
     const totalBonusAndMisc = bonusCityTourThaifIdr + miscEmergencyIdr;
@@ -187,6 +236,8 @@ export default function PackageCalculatorPage() {
       madinahHotelPerPaxIdr,
       totalHotelIdr,
       visaInsuranceIdr,
+      handlingJakartaIdr,
+      handlingSaudiIdr,
       totalTransportHandling,
       totalTransitLounge,
       nasiBoxJakartaTotalIdr,
@@ -194,6 +245,8 @@ export default function PackageCalculatorPage() {
       totalNasiBoxTransitIdr,
       sharedStaffCostPerPax,
       totalFeeMarketing,
+      menEquipTotal,
+      womenEquipTotal,
       equipmentTotalIdr,
       totalBonusAndMisc,
       hppQuadPerPax,
@@ -216,8 +269,8 @@ export default function PackageCalculatorPage() {
     madinahRoomSarPerNight,
     madinahNights,
     visaAndInsuranceSar,
-    handlingBandaraIdr,
-    handlingJakartaSaudiIdr,
+    handlingJakartaCgkIdr,
+    handlingSaudiBandaraSar,
     hotelTransitLoungeIdr,
     feeMarketingIdr,
     nasiBoxJakartaQty,
@@ -226,7 +279,27 @@ export default function PackageCalculatorPage() {
     nasiBoxSaudiPriceSar,
     muthawwifFeeIdrTotal,
     targetPax,
-    equipmentIdr,
+    equipMenIhram,
+    equipMenKainBaju,
+    equipMenRansel,
+    equipMenTasSerut,
+    equipMenSarungKoper,
+    equipMenTagBagasi,
+    equipMenBukuDoa,
+    equipMenSajadahSyal,
+    equipMenBantalLeher,
+    equipMenLanyard,
+    equipWomenKainBaju,
+    equipWomenKerudung,
+    equipWomenRansel,
+    equipWomenTasSerut,
+    equipWomenSarungKoper,
+    equipWomenTagBagasi,
+    equipWomenBukuDoa,
+    equipWomenSyalSajadah,
+    equipWomenMukenaTravel,
+    equipWomenBantalLeher,
+    equipWomenLanyard,
     bonusCityTourThaifIdr,
     miscEmergencyIdr,
     sarExchangeRate,
@@ -557,14 +630,25 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Handling Jakarta (CGK) & Arab Saudi (Rp/Pax)</label>
+                  <label className="font-semibold text-stone-700">Handling Bandara Jakarta (CGK) (Rp/Pax)</label>
                   <input
                     type="number"
-                    value={handlingJakartaSaudiIdr}
-                    onChange={(e) => setHandlingJakartaSaudiIdr(Number(e.target.value))}
+                    value={handlingJakartaCgkIdr}
+                    onChange={(e) => setHandlingJakartaCgkIdr(Number(e.target.value))}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
-                  <p className="text-[10px] text-stone-400">Tim Handling Bandara CGK, JED & MED</p>
+                  <p className="text-[10px] text-stone-400">Tim Handling Soekarno-Hatta Jakarta</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Handling Bandara Arab Saudi (SAR/Pax)</label>
+                  <input
+                    type="number"
+                    value={handlingSaudiBandaraSar}
+                    onChange={(e) => setHandlingSaudiBandaraSar(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Tim Handling Bandara JED & MED (~{formatRupiah(calculations.handlingSaudiIdr)})</p>
                 </div>
 
                 <div className="space-y-1">
@@ -644,128 +728,263 @@ export default function PackageCalculatorPage() {
               </div>
             </div>
 
-            {/* 5. Rincian Paket Perlengkapan Jamaah (Laki-Laki & Perempuan) */}
+            {/* 5. Rincian Paket Perlengkapan Jamaah (Editable per Item Pa & Pi) */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-3 gap-2">
                 <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2">
                   <Gift className="h-4 w-4 text-rose-500" strokeWidth={1.5} />
-                  <span>5. Paket Perlengkapan Jamaah (Laki-Laki & Perempuan)</span>
+                  <span>5. Paket Perlengkapan Jamaah (Harga Per Item)</span>
                 </h3>
-                <span className="text-xs font-black text-brand-pink">
-                  Total {formatRupiah(calculations.equipmentTotalIdr)} / Pax
-                </span>
+                <div className="text-right">
+                  <span className="text-xs font-black text-brand-pink block">
+                    Rata-Rata {formatRupiah(calculations.equipmentTotalIdr)} / Pax
+                  </span>
+                  <span className="text-[10px] font-semibold text-stone-400">
+                    Pa: {formatRupiah(calculations.menEquipTotal)} | Pi: {formatRupiah(calculations.womenEquipTotal)}
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-4 text-xs">
-                {/* Input Nominal Paket Perlengkapan */}
-                <div className="space-y-1 max-w-sm">
-                  <label className="font-bold text-stone-700">Biaya Paket Perlengkapan Lengkap (Rp/Pax)</label>
-                  <input
-                    type="number"
-                    value={equipmentIdr}
-                    onChange={(e) => setEquipmentIdr(Number(e.target.value))}
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
-                  />
-                  <p className="text-[10px] text-stone-400">Standar rincian perlengkapan resmi El Massa</p>
-                </div>
-
-                {/* Side-by-side Rincian Paket Laki-Laki & Perempuan */}
-                <div className="grid gap-3 sm:grid-cols-2 pt-1">
-                  
-                  {/* PAKET LAKI-LAKI (10 ITEM) */}
-                  <div className="rounded-xl border border-sky-200/80 bg-sky-50/30 p-3.5 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-sky-100 pb-2">
-                      <span className="font-extrabold text-sky-950 flex items-center gap-1.5">
-                        <span>👨 Paket Laki-Laki</span>
-                      </span>
-                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[9px] font-extrabold text-sky-800">
-                        10 Item Complete
-                      </span>
-                    </div>
-
-                    <ul className="space-y-1.5 text-[11px] font-medium text-stone-700">
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">1.</span> Ihram Kualitas Premium
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">2.</span> Kain Baju Halus 2,5m
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">3.</span> Ransel Travel
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">4.</span> Tas Serut
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">5.</span> Sarung Koper 26 inch
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">6.</span> Tag Bagasi (2 buah)
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">7.</span> Buku Doa & Manasik
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">8.</span> Sajadah Syal
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">9.</span> Bantal Leher Ergonomis
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-sky-600 font-bold">10.</span> Lanyard ID Card
-                      </li>
-                    </ul>
+              <div className="grid gap-4 md:grid-cols-2 text-xs">
+                
+                {/* PAKET LAKI-LAKI (10 ITEM EDITABLE) */}
+                <div className="rounded-xl border border-sky-200/80 bg-sky-50/20 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-sky-100 pb-2">
+                    <span className="font-extrabold text-sky-950 flex items-center gap-1.5 text-xs">
+                      <span>👨 Paket Laki-Laki (10 Item)</span>
+                    </span>
+                    <span className="rounded-md bg-sky-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
+                      Total {formatRupiah(calculations.menEquipTotal)}
+                    </span>
                   </div>
 
-                  {/* PAKET PEREMPUAN (11 ITEM) */}
-                  <div className="rounded-xl border border-rose-200/80 bg-rose-50/30 p-3.5 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-rose-100 pb-2">
-                      <span className="font-extrabold text-rose-950 flex items-center gap-1.5">
-                        <span>👩 Paket Perempuan</span>
-                      </span>
-                      <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-extrabold text-rose-800">
-                        11 Item Complete
-                      </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">1. Ihram Kualitas Premium</label>
+                      <input
+                        type="number"
+                        value={equipMenIhram}
+                        onChange={(e) => setEquipMenIhram(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
                     </div>
 
-                    <ul className="space-y-1.5 text-[11px] font-medium text-stone-700">
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">1.</span> Kain Baju Halus 2,5m
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">2.</span> Kerudung Syar'i Resmi
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">3.</span> Ransel Kecil Travel
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">4.</span> Tas Serut
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">5.</span> Sarung Koper 26 inch
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">6.</span> Tag Bagasi (2 buah)
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">7.</span> Buku Doa & Manasik
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">8.</span> Syal Sajadah
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">9.</span> Mukena Travel Ringkas
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">10.</span> Bantal Leher Ergonomis
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-rose-600 font-bold">11.</span> Lanyard ID Card
-                      </li>
-                    </ul>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Kain Baju Halus 2,5m</label>
+                      <input
+                        type="number"
+                        value={equipMenKainBaju}
+                        onChange={(e) => setEquipMenKainBaju(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Ransel Travel</label>
+                      <input
+                        type="number"
+                        value={equipMenRansel}
+                        onChange={(e) => setEquipMenRansel(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Tas Serut</label>
+                      <input
+                        type="number"
+                        value={equipMenTasSerut}
+                        onChange={(e) => setEquipMenTasSerut(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Sarung Koper 26 inc</label>
+                      <input
+                        type="number"
+                        value={equipMenSarungKoper}
+                        onChange={(e) => setEquipMenSarungKoper(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Tag Bagasi (2 buah)</label>
+                      <input
+                        type="number"
+                        value={equipMenTagBagasi}
+                        onChange={(e) => setEquipMenTagBagasi(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Buku Doa & Manasik</label>
+                      <input
+                        type="number"
+                        value={equipMenBukuDoa}
+                        onChange={(e) => setEquipMenBukuDoa(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Sajadah Syal</label>
+                      <input
+                        type="number"
+                        value={equipMenSajadahSyal}
+                        onChange={(e) => setEquipMenSajadahSyal(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Bantal Leher Ergonomis</label>
+                      <input
+                        type="number"
+                        value={equipMenBantalLeher}
+                        onChange={(e) => setEquipMenBantalLeher(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Lanyard ID Card Tag</label>
+                      <input
+                        type="number"
+                        value={equipMenLanyard}
+                        onChange={(e) => setEquipMenLanyard(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* PAKET PEREMPUAN (11 ITEM EDITABLE) */}
+                <div className="rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-rose-100 pb-2">
+                    <span className="font-extrabold text-rose-950 flex items-center gap-1.5 text-xs">
+                      <span>👩 Paket Perempuan (11 Item)</span>
+                    </span>
+                    <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
+                      Total {formatRupiah(calculations.womenEquipTotal)}
+                    </span>
                   </div>
 
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">1. Kain Baju Halus 2,5m</label>
+                      <input
+                        type="number"
+                        value={equipWomenKainBaju}
+                        onChange={(e) => setEquipWomenKainBaju(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Kerudung Syar'i Resmi</label>
+                      <input
+                        type="number"
+                        value={equipWomenKerudung}
+                        onChange={(e) => setEquipWomenKerudung(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Ransel Kecil Travel</label>
+                      <input
+                        type="number"
+                        value={equipWomenRansel}
+                        onChange={(e) => setEquipWomenRansel(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Tas Serut</label>
+                      <input
+                        type="number"
+                        value={equipWomenTasSerut}
+                        onChange={(e) => setEquipWomenTasSerut(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Sarung Koper 26 inc</label>
+                      <input
+                        type="number"
+                        value={equipWomenSarungKoper}
+                        onChange={(e) => setEquipWomenSarungKoper(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Tag Bagasi (2 buah)</label>
+                      <input
+                        type="number"
+                        value={equipWomenTagBagasi}
+                        onChange={(e) => setEquipWomenTagBagasi(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Buku Doa & Manasik</label>
+                      <input
+                        type="number"
+                        value={equipWomenBukuDoa}
+                        onChange={(e) => setEquipWomenBukuDoa(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Syal Sajadah</label>
+                      <input
+                        type="number"
+                        value={equipWomenSyalSajadah}
+                        onChange={(e) => setEquipWomenSyalSajadah(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Mukena Travel Ringkas</label>
+                      <input
+                        type="number"
+                        value={equipWomenMukenaTravel}
+                        onChange={(e) => setEquipWomenMukenaTravel(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Bantal Leher Ergonomis</label>
+                      <input
+                        type="number"
+                        value={equipWomenBantalLeher}
+                        onChange={(e) => setEquipWomenBantalLeher(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">11. Lanyard ID Card Tag</label>
+                      <input
+                        type="number"
+                        value={equipWomenLanyard}
+                        onChange={(e) => setEquipWomenLanyard(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-stone-200 bg-white px-2 text-xs font-bold text-stone-800 text-right"
+                      />
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </div>
 
@@ -937,9 +1156,16 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Truck className="h-3.5 w-3.5 text-amber-600" /> Handling Bandara (CGK, JED & MED)
+                    <Truck className="h-3.5 w-3.5 text-amber-600" /> Handling Bandara Jakarta (CGK)
                   </span>
-                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalTransportHandling)}</span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.handlingJakartaIdr)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <Truck className="h-3.5 w-3.5 text-emerald-600" /> Handling Bandara Saudi (JED & MED)
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.handlingSaudiIdr)}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
