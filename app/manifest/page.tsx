@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Download,
   Eye,
+  FileSpreadsheet,
   FileText,
   Hotel,
   Layers,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { exportToCSV } from "@/lib/export-excel";
 import { listParticipantsForBooking, type ParticipantRow } from "@/lib/seed-data/bookings";
 
 const groupScheduleOptions = [
@@ -80,10 +82,22 @@ export default function ManifestPage() {
               
               <button
                 type="button"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+                onClick={() => {
+                  const headers = ["No Paspor", "Nama Jamaah", "No Kontak", "Kota/Kab", "Status Dokumen", "Status E-Visa"];
+                  const rows = filteredParticipants.map((p) => [
+                    p.passportNumber || "-",
+                    p.name,
+                    p.contact || "-",
+                    p.city || "-",
+                    p.documentStatus || "Lengkap",
+                    p.visaStatus || "Terbit",
+                  ]);
+                  exportToCSV("Manifest_Flight_Rooming_List_El_Massa", headers, rows);
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 transition cursor-pointer"
               >
-                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
-                Export Rooming List
+                <FileSpreadsheet className="h-3.5 w-3.5" strokeWidth={1.5} />
+                Export Excel Manifest
               </button>
             </div>
           </div>

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
+import { exportToCSV } from "@/lib/export-excel";
 
 type IncomeRowItem = {
   id: string;
@@ -84,9 +85,25 @@ export default function IncomeReportPage() {
 
               <button
                 type="button"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+                onClick={() => {
+                  const headers = ["ID", "Jenis Layanan", "Paket Umrah", "Kode Booking", "Jamaah", "Tgl Transaksi", "Total Omzet", "Realisasi Kas", "Margin Profit", "Status"];
+                  const rows = filteredRows.map((r) => [
+                    r.id,
+                    r.serviceType,
+                    r.packageName,
+                    r.bookingCode,
+                    r.customer,
+                    r.date,
+                    r.grossDisplay,
+                    r.paidDisplay,
+                    r.marginDisplay,
+                    r.status,
+                  ]);
+                  exportToCSV("Laporan_Pendapatan_Omset_El_Massa", headers, rows);
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 transition cursor-pointer"
               >
-                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <FileSpreadsheet className="h-3.5 w-3.5" strokeWidth={1.5} />
                 Export Excel CSV
               </button>
             </div>

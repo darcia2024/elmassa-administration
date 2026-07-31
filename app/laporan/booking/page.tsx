@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
+import { exportToCSV } from "@/lib/export-excel";
 
 type DepartureReportItem = {
   scheduleId: string;
@@ -84,9 +85,24 @@ export default function BookingDepartureReportPage() {
 
               <button
                 type="button"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+                onClick={() => {
+                  const headers = ["ID Schedule", "Paket Umrah", "Tgl Keberangkatan", "Maskapai Flight", "Kuota Total", "Jamaah Booked", "Jamaah Lunas", "Sisa Piutang Rombongan", "Status"];
+                  const rows = filteredReports.map((d) => [
+                    d.scheduleId,
+                    d.packageName,
+                    d.departureDate,
+                    d.airline,
+                    d.quota,
+                    d.booked,
+                    d.paidBookings,
+                    d.receivableDisplay,
+                    d.status,
+                  ]);
+                  exportToCSV("Laporan_Keberangkatan_Booking_El_Massa", headers, rows);
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 transition cursor-pointer"
               >
-                <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <FileSpreadsheet className="h-3.5 w-3.5" strokeWidth={1.5} />
                 Export Excel CSV
               </button>
             </div>

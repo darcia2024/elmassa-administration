@@ -1,7 +1,10 @@
-import { ArrowDownCircle, ArrowUpCircle, BarChart3, Download, Search } from "lucide-react";
+"use client";
+
+import { ArrowDownCircle, ArrowUpCircle, BarChart3, Download, FileSpreadsheet, Search } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
+import { exportToCSV } from "@/lib/export-excel";
 
 type TransactionItem = {
   id: string;
@@ -60,9 +63,27 @@ export default function TransactionReportPage() {
               <h3 className="text-base font-bold text-brand-cocoa">Daftar Transaksi Arus Kas</h3>
               <p className="text-xs text-stone-500">Rincian arus kas masuk dan keluar terkait booking & invoice.</p>
             </div>
-            <button className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition" type="button">
-              <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
-              Export Laporan
+            <button
+              onClick={() => {
+                const headers = ["ID Transaksi", "Tanggal", "Tipe", "Kategori", "Kode Booking", "Pelanggan", "Akun Bank", "Nominal", "Status"];
+                const rows = transactions.map((t) => [
+                  t.id,
+                  t.date,
+                  t.type,
+                  t.category,
+                  t.bookingCode,
+                  t.customer,
+                  t.account,
+                  t.amountDisplay,
+                  t.status,
+                ]);
+                exportToCSV("Laporan_Arus_Kas_Transaksi_El_Massa", headers, rows);
+              }}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 transition cursor-pointer"
+              type="button"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" strokeWidth={1.5} />
+              Export Excel CSV
             </button>
           </div>
 
