@@ -1147,22 +1147,19 @@ export default function PackageCalculatorPage() {
                 )}
               </div>
 
-              {/* LIVE KEUNTUNGAN CARD IN SECTION 3 */}
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex items-center justify-between">
+              {/* LIVE KEUNTUNGAN BERSIH CARD IN SECTION 3 */}
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3.5 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-bold text-emerald-900 block uppercase tracking-wider">
-                    Total Proyeksi Keuntungan Rombongan ({targetPax} Pax)
+                  <span className="text-[11px] font-extrabold text-emerald-950 block uppercase tracking-wider">
+                    Total Keuntungan Bersih Rombongan ({targetPax} Pax)
                   </span>
-                  <span className="text-[10px] text-emerald-700 font-medium">
-                    Estimasi Profit Bersih ({formatRupiah(calculations.profitPerPax)} / Pax)
+                  <span className="text-[10px] text-emerald-800 font-semibold">
+                    Laba Bersih Murni ({formatRupiah(calculations.profitPerPax)} / Pax)
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-black text-emerald-800 block">
+                  <span className="text-xl font-black text-emerald-800 block">
                     {formatRupiah(calculations.totalGroupProfit)}
-                  </span>
-                  <span className="text-[10px] text-stone-500">
-                    Omset: {formatRupiah(calculations.totalGroupRevenue)}
                   </span>
                 </div>
               </div>
@@ -1174,31 +1171,31 @@ export default function PackageCalculatorPage() {
           {/* RIGHT 5 COLUMNS: LIVE COST BREAKDOWN & SELLING PRICE TIERS */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* 💰 HIGHLIGHT CARD: TOTAL KEUNTUNGAN ROMBONGAN */}
-            <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 p-5 text-white shadow-md space-y-3">
+            {/* 💰 HIGHLIGHT CARD: TOTAL KEUNTUNGAN BERSIH ROMBONGAN */}
+            <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-5 text-white shadow-lg space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-xs shadow-xs">
                     <Coins className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100">Total Keuntungan Rombongan</h3>
-                    <p className="text-[11px] text-emerald-200">Proyeksi Profit ({targetPax} Jamaah)</p>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-emerald-100">Total Keuntungan Bersih Rombongan</h3>
+                    <p className="text-[11px] text-emerald-200">Laba Bersih Murni ({targetPax} Jamaah)</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold text-white backdrop-blur-xs">
+                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold text-white backdrop-blur-xs border border-white/20">
                   +{formatRupiah(calculations.profitPerPax)} / Pax
                 </span>
               </div>
 
-              <div className="pt-2 flex items-baseline justify-between border-t border-white/20">
+              <div className="pt-3 flex items-baseline justify-between border-t border-white/20">
                 <div>
-                  <span className="text-xs text-emerald-200 block">Est. Profit Kotor Rombongan</span>
-                  <span className="text-2xl font-black text-white">{formatRupiah(calculations.totalGroupProfit)}</span>
+                  <span className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider block">Total Keuntungan Bersih</span>
+                  <span className="text-3xl font-black text-white tracking-tight">{formatRupiah(calculations.totalGroupProfit)}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-emerald-200 block">Total Omset Rombongan</span>
-                  <span className="text-sm font-bold text-white/90">{formatRupiah(calculations.totalGroupRevenue)}</span>
+                  <span className="text-[10px] text-emerald-200/80 block font-medium">Omset Rombongan</span>
+                  <span className="text-xs font-bold text-emerald-100/90">{formatRupiah(calculations.totalGroupRevenue)}</span>
                 </div>
               </div>
             </div>
@@ -1383,19 +1380,19 @@ export default function PackageCalculatorPage() {
                   <span>{formatRupiah(calculations.profitPerPax)}</span>
                 </div>
 
-                {/* TOTAL KEUNTUNGAN ROMBONGAN */}
-                <div className="rounded-xl border border-emerald-300 bg-emerald-500 p-3 text-white flex items-center justify-between mt-2">
+                {/* TOTAL KEUNTUNGAN BERSIH ROMBONGAN */}
+                <div className="rounded-xl border border-emerald-300 bg-emerald-600 p-3.5 text-white flex items-center justify-between mt-2 shadow-sm">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-emerald-100 block">
-                      TOTAL KEUNTUNGAN ROMBONGAN ({targetPax} PAX)
+                    <span className="text-[10px] uppercase font-bold text-emerald-100 block tracking-wider">
+                      TOTAL KEUNTUNGAN BERSIH ROMBONGAN ({targetPax} PAX)
                     </span>
-                    <span className="text-[11px] font-extrabold text-white">
+                    <span className="text-base font-black text-white">
                       {formatRupiah(calculations.totalGroupProfit)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-emerald-100 block">Total Omset Rombongan</span>
-                    <span className="text-xs font-bold text-white">{formatRupiah(calculations.totalGroupRevenue)}</span>
+                    <span className="text-[10px] text-emerald-200 block">Proyeksi Laba Bersih</span>
+                    <span className="text-xs font-extrabold text-white">+{formatRupiah(calculations.profitPerPax)} / Pax</span>
                   </div>
                 </div>
 
