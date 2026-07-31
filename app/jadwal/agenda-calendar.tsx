@@ -45,7 +45,8 @@ const monthNames = [
 ];
 
 export function AgendaCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 9, 1)); // Default Oktober 2026
+  const today = useMemo(() => new Date(), []);
+  const [currentDate, setCurrentDate] = useState(new Date()); // Dynamic Real Current Date
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
@@ -144,10 +145,10 @@ export function AgendaCalendar() {
 
           <button
             type="button"
-            onClick={() => setCurrentDate(new Date(2026, 9, 1))}
-            className="h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-600 hover:bg-stone-50 shadow-2xs"
+            onClick={() => setCurrentDate(new Date())}
+            className="h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-600 hover:bg-stone-50 shadow-2xs cursor-pointer"
           >
-            Hari Ini (Okt 2026)
+            Hari Ini ({monthNames[today.getMonth()].slice(0, 3)} {today.getFullYear()})
           </button>
         </div>
 
