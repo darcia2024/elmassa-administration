@@ -502,17 +502,6 @@ export default function BookingsPage() {
               })}
             </section>
 
-            {/* Mobile Fixed Floating Action Button (Persis Referensi Sticky Book Now Button) */}
-            <div className="fixed bottom-20 inset-x-4 z-40">
-              <Link
-                href="/booking/form"
-                className="w-full h-12 rounded-full bg-stone-900 text-white font-extrabold text-xs shadow-2xl active:scale-95 transition flex items-center justify-center gap-2 border border-stone-800"
-              >
-                <Plus className="h-4 w-4 text-brand-pink" />
-                <span>+ Buat Booking Jamaah Baru</span>
-              </Link>
-            </div>
-
           </div>
 
           {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
