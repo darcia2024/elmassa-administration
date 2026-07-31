@@ -12,7 +12,9 @@ import {
   Copy,
   DollarSign,
   Download,
+  Building2,
   FileCheck2,
+  FileText,
   Gift,
   HelpCircle,
   Hotel,
@@ -104,6 +106,11 @@ export default function PackageCalculatorPage() {
   // Fee Muthawwif & Fee Tour Leader (Shared Rupiah Total Rombongan - Dipisah 2 Kolom)
   const [muthawwifFeeIdrTotal, setMuthawwifFeeIdrTotal] = useState(12000000); // Fee Muthawwif Total Rombongan (Rp)
   const [tourLeaderFeeIdrTotal, setTourLeaderFeeIdrTotal] = useState(10000000); // Fee Tour Leader Total Rombongan (Rp)
+
+  // Operasional di Indonesia (Manasik, Operasional Kantor, & Asuransi Siskopatuh)
+  const [biayaManasikIdr, setBiayaManasikIdr] = useState(250000); // Biaya Manasik (Rp/Pax)
+  const [biayaOperasionalKantorIdr, setBiayaOperasionalKantorIdr] = useState(500000); // Biaya Operasional Kantor (Rp/Pax)
+  const [biayaAsuransiSiskopatuhIdr, setBiayaAsuransiSiskopatuhIdr] = useState(150000); // Biaya Asuransi Siskopatuh (Rp/Pax)
 
   // Bonus & Miscellaneous
   const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(350000); // Nasi Nampan + City Tour
@@ -215,7 +222,10 @@ export default function PackageCalculatorPage() {
       sharedStaffCostPerPax +
       totalFeeMarketing +
       equipmentTotalIdr +
-      totalBonusAndMisc;
+      totalBonusAndMisc +
+      biayaManasikIdr +
+      biayaOperasionalKantorIdr +
+      biayaAsuransiSiskopatuhIdr;
 
     // Profit Margin Calculation
     let profitPerPax = 0;
@@ -264,6 +274,9 @@ export default function PackageCalculatorPage() {
       womenEquipTotal,
       equipmentTotalIdr,
       totalBonusAndMisc,
+      biayaManasikIdr,
+      biayaOperasionalKantorIdr,
+      biayaAsuransiSiskopatuhIdr,
       hppQuadPerPax,
       profitPerPax,
       sellingPriceQuad,
@@ -294,6 +307,9 @@ export default function PackageCalculatorPage() {
     nasiBoxSaudiPriceSar,
     muthawwifFeeIdrTotal,
     tourLeaderFeeIdrTotal,
+    biayaManasikIdr,
+    biayaOperasionalKantorIdr,
+    biayaAsuransiSiskopatuhIdr,
     targetPax,
     equipMenIhram,
     equipMenKainBaju,
@@ -818,6 +834,40 @@ export default function PackageCalculatorPage() {
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
                   <p className="text-[10px] text-stone-400">Shared Total Rombongan (~{formatRupiah(calculations.tourLeaderFeePerPax)}/Pax)</p>
+                </div>
+
+                {/* Operasional di Indonesia: Biaya Manasik, Operasional Kantor & Asuransi Siskopatuh */}
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Biaya Manasik Umrah (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={biayaManasikIdr}
+                    onChange={(e) => setBiayaManasikIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Sewa gedung, konsumsi & perlengkapan manasik per pax</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Biaya Operasional Kantor (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={biayaOperasionalKantorIdr}
+                    onChange={(e) => setBiayaOperasionalKantorIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Alokasi biaya operasional kantor & administrasi per pax</p>
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="font-semibold text-stone-700">Biaya Asuransi Siskopatuh Kemenag (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={biayaAsuransiSiskopatuhIdr}
+                    onChange={(e) => setBiayaAsuransiSiskopatuhIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Premi Asuransi & Integrasi Siskopatuh Kemenag per pax</p>
                 </div>
 
                 <div className="space-y-1 sm:col-span-2">
@@ -1366,6 +1416,27 @@ export default function PackageCalculatorPage() {
                     <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Bonus Thaif & Emergency
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalBonusAndMisc)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-teal-600" /> Biaya Manasik Umrah Indonesia
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.biayaManasikIdr)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 text-purple-600" /> Biaya Operasional Kantor (Overhead)
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.biayaOperasionalKantorIdr)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Biaya Asuransi Siskopatuh Kemenag
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.biayaAsuransiSiskopatuhIdr)}</span>
                 </div>
 
                 {/* TOTAL HPP */}
