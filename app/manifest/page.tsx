@@ -1,10 +1,13 @@
 "use client";
 
+import React, { useMemo, useState } from "react";
 import {
   AlertCircle,
   Building,
   Calendar,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Download,
   Eye,
   FileSpreadsheet,
@@ -22,7 +25,6 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { exportToCSV } from "@/lib/export-excel";
 import { listParticipantsForBooking, type ParticipantRow } from "@/lib/seed-data/bookings";
@@ -54,19 +56,53 @@ export default function ManifestPage() {
     });
   }, [allParticipants, searchQuery]);
 
+  // Notion/Eduplex Layout States
+  const [activeTab, setActiveTab] = useState<"all" | "flight" | "rooming" | "visa">("all");
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({ "0": true });
+  const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
+  const [showChangesToggle, setShowChangesToggle] = useState(true);
+
+  const toggleExpand = (id: string) => {
+    setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleSelectAll = () => {
+    if (Object.keys(selectedIds).length === filteredParticipants.length) {
+      setSelectedIds({});
+    } else {
+      const all: Record<string, boolean> = {};
+      filteredParticipants.forEach((p) => (all[p.id] = true));
+      setSelectedIds(all);
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    setSelectedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
-    <AppShell eyebrow="Operasional Keberangkatan" title="Manifest Penerbangan, Paspor & E-Visa Jamaah">
-      <div className="space-y-5">
+    <AppShell eyebrow="Database Operasional" title="Employee & Jamaah Management System">
+      <div className="space-y-4 font-sans">
         
-        {/* Header Banner */}
-        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
+        {/* 🔒 Notion Top Breadcrumb & Page Header */}
+        <section className="rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs space-y-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-stone-400">
+            <span className="flex items-center gap-1 text-stone-600">
+              <span className="text-stone-400">🔒</span> Private Database
+            </span>
+            <span>/</span>
+            <span className="hover:text-stone-600 cursor-pointer">company</span>
+            <span>/</span>
+            <span className="font-bold text-stone-800">jamaah-flight-manifest-system</span>
+          </div>
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-extrabold text-brand-cocoa tracking-tight">
-                Manifest Operasional & Inspection Paspor/Visa Digital
+              <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+                Jamaah Manifest & Flight System
               </h1>
-              <p className="text-xs text-stone-500 mt-1">
-                Klik pada nama jamaah untuk melihat detail paspor RI, e-visa Umrah KSA, e-tiket Garuda, dan rooming list hotel.
+              <p className="text-xs text-stone-500 mt-1 font-medium max-w-2xl">
+                Comprehensive flight manifest tracking departments, passports, e-visas, rooming lists, and operational status.
               </p>
             </div>
 
@@ -74,7 +110,7 @@ export default function ManifestPage() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition cursor-pointer"
               >
                 <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
                 Cetak Manifest
@@ -103,172 +139,243 @@ export default function ManifestPage() {
           </div>
         </section>
 
-        {/* Metric Cards Row */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Grup Keberangkatan</p>
-              <Layers className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
-            </div>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">Grup 1 Babel</p>
-            <p className="mt-1 text-[11px] text-stone-400">40 Pax Jamaah Terdaftar</p>
-          </article>
-
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Penerbangan Maskapai</p>
-              <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
-            </div>
-            <p className="mt-1 text-2xl font-bold text-sky-800">Garuda GA-980</p>
-            <p className="mt-1 text-[11px] text-stone-400">Start Depati Amir Pangkalpinang</p>
-          </article>
-
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Status E-Visa Imigrasi</p>
-              <ShieldCheck className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
-            </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">40 Visa Valid</p>
-            <p className="mt-1 text-[11px] text-stone-400">100% Verified & Issued</p>
-          </article>
-
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Tanggal Keberangkatan</p>
-              <AlertCircle className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
-            </div>
-            <p className="mt-1 text-2xl font-bold text-amber-800">08 - 18 Juli 2026</p>
-            <p className="mt-1 text-[11px] text-stone-400">Durasi 11 Hari • Bonus Thaif</p>
-          </article>
-        </section>
-
-        {/* Manifest Table Card */}
-        <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+        {/* 📑 Notion-Style Sub-Navigation Tabs & Controls Strip */}
+        <section className="rounded-2xl border border-stone-200/80 bg-white p-3 shadow-2xs space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-base font-bold text-brand-cocoa">Daftar Manifest Peserta & Imigrasi</h3>
-              <p className="text-xs text-stone-500">
-                <span className="text-brand-pink font-semibold">Petunjuk:</span> Klik nama jamaah atau tombol mata di baris untuk melihat detail Paspor & E-Visa.
-              </p>
+            {/* Pill Tabs */}
+            <div className="flex items-center gap-1 bg-stone-100/70 p-1 rounded-xl w-fit">
+              <button
+                type="button"
+                onClick={() => setActiveTab("all")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  activeTab === "all"
+                    ? "bg-white text-stone-900 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Jamaah Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("flight")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  activeTab === "flight"
+                    ? "bg-white text-stone-900 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Flight & PNR
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("rooming")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  activeTab === "rooming"
+                    ? "bg-white text-stone-900 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Rooming Hotel
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("visa")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  activeTab === "visa"
+                    ? "bg-white text-stone-900 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Paspor & Visa
+              </button>
             </div>
 
-            <div className="flex items-center gap-2">
-              <select
-                className="h-9 rounded-xl border border-stone-200 bg-sky-50/60 px-3 text-xs font-bold text-sky-900 outline-none shadow-2xs"
-                value={selectedScheduleId}
-                onChange={(e) => setSelectedScheduleId(e.target.value)}
-              >
-                {groupScheduleOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-
-              <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 text-xs text-stone-500">
-                <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+            {/* Right Controls: Show Changes Toggle & Search */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-600 cursor-pointer">
+                <span>Sub-Rows Rincian</span>
                 <input
-                  className="w-full bg-transparent outline-none font-normal text-xs placeholder:text-stone-400"
-                  placeholder="Cari paspor, visa, nama..."
+                  type="checkbox"
+                  checked={showChangesToggle}
+                  onChange={(e) => setShowChangesToggle(e.target.checked)}
+                  className="h-4 w-4 rounded border-stone-300 text-stone-900 accent-stone-900"
+                />
+              </label>
+
+              <div className="h-4 w-[1px] bg-stone-200" />
+
+              <label className="flex h-8 items-center gap-2 rounded-lg border border-stone-200 bg-stone-50/50 px-2.5 text-xs text-stone-600">
+                <Search className="h-3.5 w-3.5 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="Filter nama, paspor, visa..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent outline-none text-xs font-medium placeholder:text-stone-400 w-36 sm:w-48"
                 />
               </label>
             </div>
           </div>
+        </section>
 
-          {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
-          <div className="space-y-3 block md:hidden">
-            {filteredParticipants.map((item, idx) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedParticipant(item)}
-                className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-2.5 active:bg-stone-50 cursor-pointer transition"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-stone-100 text-stone-700 font-bold text-xs">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <h4 className="font-bold text-xs text-stone-900">{item.name}</h4>
-                      <p className="font-mono text-[10px] text-stone-400">Paspor: {item.passportNumber}</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
-                    {item.documentStatus}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-medium">E-Visa KSA</span>
-                    <span className="font-mono font-bold text-stone-800">{item.visaNumber}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-medium">E-Tiket Flight</span>
-                    <span className="font-mono font-bold text-stone-800">{item.ticketNumber}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] pt-1 text-stone-500">
-                  <span>📍 {item.city}</span>
-                  <span className="font-bold text-brand-pink flex items-center gap-1">Lihat Detail <Eye className="h-3 w-3" /></span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
-            <table className="w-full min-w-[960px] border-collapse text-left text-xs">
+        {/* 🖥️ NOTION / EDUPLEX STYLE DATA TABLE */}
+        <section className="rounded-2xl border border-stone-200/80 bg-white overflow-hidden shadow-2xs">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] border-collapse text-left text-xs font-sans">
               <thead>
-                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
-                  <th className="py-2.5 pl-3 pr-2">Seat #</th>
-                  <th className="py-2.5 pr-2">Nama Jamaah Paspor</th>
-                  <th className="py-2.5 pr-2">No. Paspor RI</th>
-                  <th className="py-2.5 pr-2">E-Tiket Garuda</th>
-                  <th className="py-2.5 pr-2">E-Visa Umrah KSA</th>
-                  <th className="py-2.5 pr-2">Domisili Kota</th>
-                  <th className="py-2.5 pr-2">Rooming List</th>
-                  <th className="py-2.5 pr-3 text-right">Detail Dokumen</th>
+                <tr className="border-b border-stone-200 bg-stone-50/80 font-bold text-stone-600 text-[11px] select-none">
+                  <th className="py-3 pl-4 pr-2 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={Object.keys(selectedIds).length === filteredParticipants.length && filteredParticipants.length > 0}
+                      onChange={toggleSelectAll}
+                      className="h-3.5 w-3.5 rounded border-stone-300 accent-stone-900"
+                    />
+                  </th>
+                  <th className="py-3 px-3 w-32">
+                    <div className="flex items-center gap-1">
+                      <span>📄 Kode Jamaah</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-3 w-40">
+                    <div className="flex items-center gap-1">
+                      <span>💼 Group & Rombongan</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-3">
+                    <div className="flex items-center gap-1">
+                      <span>✉️ Email / Kontak</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-3 w-32">
+                    <div className="flex items-center gap-1">
+                      <span>🛡️ Status Visa</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-3">
+                    <div className="flex items-center gap-1">
+                      <span>👤 Nama Lengkap Paspor</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-3 w-32 text-right pr-4">
+                    <div className="flex items-center justify-end gap-1">
+                      <span>📅 Tgl Terbit / Expiry</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100 font-normal">
-                {filteredParticipants.map((p, index) => (
-                  <tr
-                    key={p.id}
-                    onClick={() => setSelectedParticipant(p)}
-                    className="cursor-pointer transition hover:bg-rose-50/40"
-                  >
-                    <td className="py-3 pl-3 pr-2 font-mono text-stone-400 text-[11px]">#{String(index + 1).padStart(2, "0")}</td>
-                    <td className="py-3 pr-2 font-semibold text-brand-cocoa whitespace-nowrap group">
-                      <span className="hover:text-brand-pink underline underline-offset-2 flex items-center gap-1.5">
-                        {p.name}
-                        <Eye className="h-3.5 w-3.5 text-brand-pink opacity-0 group-hover:opacity-100 transition" strokeWidth={1.5} />
-                      </span>
-                    </td>
-                    <td className="py-3 pr-2 font-mono font-bold text-stone-800 whitespace-nowrap">{p.passportNumber}</td>
-                    <td className="py-3 pr-2 font-mono text-sky-800 font-medium whitespace-nowrap">{p.ticketNumber}</td>
-                    <td className="py-3 pr-2 font-mono text-emerald-800 font-medium whitespace-nowrap">{p.visaNumber}</td>
-                    <td className="py-3 pr-2 font-medium text-stone-600 whitespace-nowrap">{p.city}</td>
-                    <td className="py-3 pr-2 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
-                        {index % 2 === 0 ? "Quad (Bintang 4)" : "Double (Bintang 4)"}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-3 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setSelectedParticipant(p); }}
-                        className="inline-flex items-center gap-1 rounded-xl border border-brand-pink/30 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-brand-pink hover:bg-brand-pink hover:text-white transition"
+              <tbody className="divide-y divide-stone-100">
+                {filteredParticipants.map((p, index) => {
+                  const isExpanded = !!expandedRows[p.id] || !!expandedRows[String(index)];
+                  const isSelected = !!selectedIds[p.id];
+                  const codeId = `MNF${String(index + 1).padStart(3, "0")}`;
+                  const groupCategory = index % 3 === 0 ? "Finance" : index % 3 === 1 ? "Marketing" : "Sales";
+                  const groupDotColor = index % 3 === 0 ? "bg-emerald-500" : index % 3 === 1 ? "bg-amber-500" : "bg-sky-500";
+
+                  return (
+                    <React.Fragment key={p.id || index}>
+                      {/* Main Data Row */}
+                      <tr
+                        className={`group transition hover:bg-stone-50/80 cursor-pointer ${
+                          isSelected ? "bg-rose-50/30" : index % 2 === 1 ? "bg-stone-50/20" : "bg-white"
+                        }`}
+                        onClick={() => setSelectedParticipant(p)}
                       >
-                        <Eye className="h-3 w-3" strokeWidth={1.5} />
-                        <span>Lihat Berkas</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        {/* Checkbox */}
+                        <td className="py-3 pl-4 pr-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectRow(p.id)}
+                            className="h-3.5 w-3.5 rounded border-stone-300 accent-stone-900"
+                          />
+                        </td>
+
+                        {/* Kode Jamaah with Expand Arrow */}
+                        <td className="py-3 px-3 font-mono font-bold text-stone-800 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpand(p.id || String(index));
+                              }}
+                              className="text-stone-400 hover:text-stone-800 p-0.5 rounded transition"
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="h-3.5 w-3.5" />
+                              ) : (
+                                <ChevronRight className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                            <span>{codeId}</span>
+                          </div>
+                        </td>
+
+                        {/* Group Pill Badge with Dot */}
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-stone-200/80 bg-white px-2.5 py-0.5 text-[11px] font-bold text-stone-800 shadow-2xs">
+                            <span className={`h-2 w-2 rounded-full ${groupDotColor}`} />
+                            {index % 3 === 0 ? "Bangka Belitung" : index % 3 === 1 ? "Sumbagsel" : "Palembang VIP"}
+                          </span>
+                        </td>
+
+                        {/* Email / Contact */}
+                        <td className="py-3 px-3 font-medium text-stone-600 whitespace-nowrap font-mono text-[11px]">
+                          {p.contact ? `${p.contact}@elmassa.com` : "jamaah@elmassa.com"}
+                        </td>
+
+                        {/* Visa Status (Pill Badge with Checkmark ✓ Active) */}
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-800 border border-emerald-200/80">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                            <span>✓ Active</span>
+                          </span>
+                        </td>
+
+                        {/* Nama Lengkap Paspor */}
+                        <td className="py-3 px-3 font-bold text-stone-900 whitespace-nowrap">
+                          {p.name}
+                        </td>
+
+                        {/* Tgl Terbit / Expiry */}
+                        <td className="py-3 px-3 text-right pr-4 font-medium text-stone-500 whitespace-nowrap font-mono text-[11px]">
+                          {p.passportNumber || "A-992182"}
+                        </td>
+                      </tr>
+
+                      {/* Expandable Sub-Rows (Notion Hatched Detail Layout) */}
+                      {isExpanded && showChangesToggle && (
+                        <tr className="bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(0,0,0,0.015)_6px,rgba(0,0,0,0.015)_12px)] border-t border-stone-100 text-stone-500">
+                          <td className="py-2.5 pl-4 pr-2" />
+                          <td className="py-2.5 px-3 font-mono text-[11px] text-stone-400 pl-7">
+                            ↳ Paspor RI
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-stone-200/50 bg-stone-100/60 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-stone-400" />
+                              {p.passportNumber || "A-992812"}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-[11px] text-stone-400">
+                            E-Tiket: {p.ticketNumber || "126-8829102"}
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50/60 px-2 py-0.5 rounded-md">
+                              E-Visa KSA: {p.visaNumber || "E-991204"}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-stone-400 font-medium">
+                            Room: {index % 2 === 0 ? "Quad (4 Pax)" : "Double (2 Pax)"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right pr-4 font-mono text-[10px] text-stone-400">
+                            Verified Oct 2026
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
