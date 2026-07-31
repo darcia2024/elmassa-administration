@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -79,8 +79,21 @@ export default function BookingsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("Semua");
   const [selectedGroup, setSelectedGroup] = useState<string>("Semua");
 
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_real_bookings");
+      if (saved) {
+        setBookings(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const filteredBookings = useMemo(() => {
-    return initialBookings.filter((b) => {
+    return bookings.filter((b) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         b.code.toLowerCase().includes(q) ||
@@ -93,7 +106,7 @@ export default function BookingsPage() {
 
       return matchesSearch && matchesStatus && matchesGroup;
     });
-  }, [searchQuery, selectedStatus, selectedGroup]);
+  }, [bookings, searchQuery, selectedStatus, selectedGroup]);
 
   const totalParticipants = useMemo(
     () => filteredBookings.reduce((sum, b) => sum + b.participants, 0),

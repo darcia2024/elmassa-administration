@@ -55,6 +55,48 @@ export default function BookingFormPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const code = `BK-${Date.now().toString().slice(-6)}`;
+      const newBooking = {
+        code,
+        customer: customerName || "Jamaah Terdaftar",
+        phone: customerPhone || "-",
+        packageName: selectedPkg.name,
+        departure: selectedPkg.date,
+        groupName: "Rombongan Jamaah",
+        participants: participants.length,
+        totalAmount: totalPrice,
+        paidAmount,
+        remainingAmount,
+        totalDisplay: `Rp ${totalPrice.toLocaleString("id-ID")}`,
+        paidDisplay: `Rp ${paidAmount.toLocaleString("id-ID")}`,
+        remainingDisplay: `Rp ${remainingAmount.toLocaleString("id-ID")}`,
+        status: remainingAmount <= 0 ? "Lunas" : paidAmount > 0 ? "DP" : "Belum Bayar",
+        paymentProgress: totalPrice > 0 ? Math.round((paidAmount / totalPrice) * 100) : 0,
+        createdDate: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+      };
+
+      const existingStr = localStorage.getItem("el_massa_real_bookings");
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      localStorage.setItem("el_massa_real_bookings", JSON.stringify([newBooking, ...existing]));
+
+      // Push real live notification
+      const newNotif = {
+        id: `notif-${Date.now()}`,
+        title: "📋 Booking Baru Terdaftar",
+        message: `Booking ${code} a.n ${newBooking.customer} (${participants.length} Pax) telah tersimpan.`,
+        time: "Baru saja",
+        category: "Keuangan",
+        read: false,
+        link: "/booking",
+      };
+      const existingNotifStr = localStorage.getItem("el_massa_real_notifications");
+      const existingNotifs = existingNotifStr ? JSON.parse(existingNotifStr) : [];
+      localStorage.setItem("el_massa_real_notifications", JSON.stringify([newNotif, ...existingNotifs]));
+    } catch (err) {
+      console.error(err);
+    }
+
     setIsSuccessToast(true);
     setTimeout(() => {
       router.push("/booking");

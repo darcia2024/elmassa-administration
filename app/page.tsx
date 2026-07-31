@@ -88,65 +88,69 @@ export default function DashboardPage() {
     });
   }, [dashboard.recentBookings, activeFilter, searchQuery]);
 
-  const maxRevenue = Math.max(...dashboard.weeklyRevenue.map((item) => item.amount), 1);
+  const bookingCount = dashboard.recentBookings.length;
+  const customerCount = dashboard.metrics.find((m) => m.key === "customers")?.value ?? 0;
+  const packageCount = dashboard.metrics.find((m) => m.key === "packages")?.value ?? 0;
+  const totalRev = dashboard.metrics.find((m) => m.key === "revenue")?.value ?? 0;
+
   const revenueBars = [
-    { day: "Su", amount: 12000000, height: 40 },
-    { day: "Mo", amount: 28000000, height: 65 },
-    { day: "Tu", amount: 35000000, height: 75 },
-    { day: "We", amount: 18000000, height: 45 },
-    { day: "Th", amount: 48000000, height: 95, active: true },
-    { day: "Fr", amount: 22000000, height: 50 },
-    { day: "Sa", amount: 31000000, height: 70 },
+    { day: "Su", amount: 0, height: 10, active: false },
+    { day: "Mo", amount: 0, height: 10, active: false },
+    { day: "Tu", amount: 0, height: 10, active: false },
+    { day: "We", amount: 0, height: 10, active: false },
+    { day: "Th", amount: 0, height: 10, active: false },
+    { day: "Fr", amount: 0, height: 10, active: false },
+    { day: "Sa", amount: 0, height: 10, active: false },
   ];
 
   const metricsConfig = [
     {
       key: "bookings",
       title: "Total Booking",
-      value: dashboard.metrics.find((m) => m.key === "bookings")?.displayValue ?? "0",
-      subtext: `${dashboard.recentBookings.filter((b) => b.status !== "Lunas").length} perlu tindak lanjut`,
-      trend: "+12.4%",
+      value: String(bookingCount),
+      subtext: bookingCount > 0 ? `${dashboard.recentBookings.filter((b) => b.status !== "Lunas").length} perlu tindak lanjut` : "0 transaksi booking",
+      trend: bookingCount > 0 ? "+12.4%" : "0%",
       icon: ClipboardList,
       iconColor: "text-brand-pink",
       iconBg: "bg-rose-50/80 border-brand-pink/20",
       solidBar: "bg-brand-pink",
-      progress: 78,
+      progress: bookingCount > 0 ? 78 : 0,
     },
     {
       key: "customers",
       title: "Jamaah Terdaftar",
-      value: dashboard.metrics.find((m) => m.key === "customers")?.displayValue ?? "0",
-      subtext: "85% paspor terverifikasi",
-      trend: "+8.1%",
+      value: String(customerCount),
+      subtext: customerCount > 0 ? "100% paspor terverifikasi" : "0 jamaah terdaftar",
+      trend: customerCount > 0 ? "+8.1%" : "0%",
       icon: Users,
       iconColor: "text-brand-brown",
       iconBg: "bg-amber-50/80 border-amber-200/60",
       solidBar: "bg-brand-brown",
-      progress: 85,
+      progress: customerCount > 0 ? 100 : 0,
     },
     {
       key: "packages",
       title: "Paket Wisata",
-      value: dashboard.metrics.find((m) => m.key === "packages")?.displayValue ?? "0",
+      value: String(packageCount),
       subtext: "Katalog Umrah & Tour aktif",
       trend: "Aktif",
       icon: Plane,
       iconColor: "text-stone-700",
       iconBg: "bg-stone-100/80 border-stone-200/60",
       solidBar: "bg-brand-cocoa",
-      progress: 92,
+      progress: packageCount > 0 ? 100 : 0,
     },
     {
       key: "revenue",
       title: "Est. Total Revenue",
-      value: dashboard.metrics.find((m) => m.key === "revenue")?.displayValue ?? "Rp 0",
+      value: `Rp ${totalRev.toLocaleString("id-ID")}`,
       subtext: "Total pembayaran lunas & DP",
-      trend: "+15.2%",
+      trend: totalRev > 0 ? "+15.2%" : "0%",
       icon: Banknote,
       iconColor: "text-emerald-700",
       iconBg: "bg-emerald-50/80 border-emerald-200/60",
       solidBar: "bg-emerald-600",
-      progress: 68,
+      progress: totalRev > 0 ? 100 : 0,
     },
   ];
 
@@ -412,22 +416,22 @@ export default function DashboardPage() {
               <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xs font-bold text-brand-cocoa uppercase tracking-wider">Pemasukan Mingguan</h3>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                    +18%
+                  <span className="text-[11px] font-semibold text-stone-600 bg-stone-50 px-2 py-0.5 rounded-md border border-stone-200/60">
+                    {totalRev > 0 ? "+18%" : "0%"}
                   </span>
                 </div>
 
                 <div className="flex h-36 items-end gap-2 pt-6 px-1">
                   {revenueBars.map((item) => (
                     <div key={item.day} className="relative flex flex-1 flex-col items-center gap-1.5 h-full justify-end group">
-                      {item.active && (
+                      {item.active && item.amount > 0 && (
                         <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10 rounded-md bg-brand-cocoa px-2 py-0.5 text-[9px] font-semibold text-white shadow-xs whitespace-nowrap">
-                          Rp 48M
+                          Rp {(item.amount / 1000000).toFixed(0)}M
                         </div>
                       )}
                       <div
                         className={`w-2.5 rounded-full transition-all ${
-                          item.active ? "bg-brand-pink" : "bg-stone-200 group-hover:bg-stone-300"
+                          item.active ? "bg-brand-pink" : "bg-stone-100 group-hover:bg-stone-200"
                         }`}
                         style={{ height: `${item.height}%` }}
                       />
