@@ -60,9 +60,9 @@ export default function PackageCalculatorPage() {
   // Visa & Saudi Mandatory Insurance
   const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(450); // 450 SAR per pax
 
-  // Handling Bandara Jakarta (CGK) & Arab Saudi (JED/MED)
+  // Handling Bandara Jakarta (CGK) & Arab Saudi (JED/MED - Shared Group SAR)
   const [handlingJakartaCgkIdr, setHandlingJakartaCgkIdr] = useState(350000); // Handling CGK Jakarta per pax (Rp)
-  const [handlingSaudiBandaraSar, setHandlingSaudiBandaraSar] = useState(150); // Handling JED/MED Saudi per pax (SAR)
+  const [handlingSaudiSharedSar, setHandlingSaudiSharedSar] = useState(4500); // Handling JED/MED Shared total group cost (SAR)
 
   // Transit & Lounge
   const [hotelTransitLoungeIdr, setHotelTransitLoungeIdr] = useState(650000); // Hotel Transit Jakarta / Lounge Executive Bandara CGK
@@ -101,8 +101,9 @@ export default function PackageCalculatorPage() {
   const [equipWomenBantalLeher, setEquipWomenBantalLeher] = useState(65000);
   const [equipWomenLanyard, setEquipWomenLanyard] = useState(25000);
 
-  // Muthawwif & Tour Leader Shared Cost
-  const [muthawwifFeeIdrTotal, setMuthawwifFeeIdrTotal] = useState(18000000); // Shared among group pax
+  // Fee Muthawwif & Fee Tour Leader (Shared Rupiah Total Rombongan - Dipisah 2 Kolom)
+  const [muthawwifFeeIdrTotal, setMuthawwifFeeIdrTotal] = useState(12000000); // Fee Muthawwif Total Rombongan (Rp)
+  const [tourLeaderFeeIdrTotal, setTourLeaderFeeIdrTotal] = useState(10000000); // Fee Tour Leader Total Rombongan (Rp)
 
   // Bonus & Miscellaneous
   const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(350000); // Nasi Nampan + City Tour
@@ -141,9 +142,10 @@ export default function PackageCalculatorPage() {
     // 3. Visa & Insurance
     const visaInsuranceIdr = sarToIdr(visaAndInsuranceSar);
 
-    // 4. Handling Bandara Dipisah (Jakarta CGK & Saudi JED/MED)
+    // 4. Handling Bandara Dipisah (Jakarta CGK per Pax & Saudi JED/MED Shared Group SAR)
     const handlingJakartaIdr = handlingJakartaCgkIdr;
-    const handlingSaudiIdr = sarToIdr(handlingSaudiBandaraSar);
+    const handlingSaudiPerPaxSar = handlingSaudiSharedSar / Math.max(targetPax, 1);
+    const handlingSaudiIdr = sarToIdr(handlingSaudiPerPaxSar);
     const totalTransportHandling = handlingJakartaIdr + handlingSaudiIdr;
 
     // 5. Transit & Lounge
@@ -155,8 +157,10 @@ export default function PackageCalculatorPage() {
     const nasiBoxSaudiTotalIdr = sarToIdr(nasiBoxSaudiTotalSar);
     const totalNasiBoxTransitIdr = nasiBoxJakartaTotalIdr + nasiBoxSaudiTotalIdr;
 
-    // 7. Shared Costs per Pax (Muthawwif & Leader)
-    const sharedStaffCostPerPax = Math.round(muthawwifFeeIdrTotal / Math.max(targetPax, 1));
+    // 7. Shared Costs per Pax (Muthawwif & Tour Leader Dipisah 2 Kolom Shared Rp)
+    const muthawwifFeePerPax = Math.round(muthawwifFeeIdrTotal / Math.max(targetPax, 1));
+    const tourLeaderFeePerPax = Math.round(tourLeaderFeeIdrTotal / Math.max(targetPax, 1));
+    const sharedStaffCostPerPax = muthawwifFeePerPax + tourLeaderFeePerPax;
 
     // 8. Marketing Fee & Agency
     const totalFeeMarketing = feeMarketingIdr;
@@ -237,12 +241,15 @@ export default function PackageCalculatorPage() {
       totalHotelIdr,
       visaInsuranceIdr,
       handlingJakartaIdr,
+      handlingSaudiPerPaxSar,
       handlingSaudiIdr,
       totalTransportHandling,
       totalTransitLounge,
       nasiBoxJakartaTotalIdr,
       nasiBoxSaudiTotalIdr,
       totalNasiBoxTransitIdr,
+      muthawwifFeePerPax,
+      tourLeaderFeePerPax,
       sharedStaffCostPerPax,
       totalFeeMarketing,
       menEquipTotal,
@@ -270,7 +277,7 @@ export default function PackageCalculatorPage() {
     madinahNights,
     visaAndInsuranceSar,
     handlingJakartaCgkIdr,
-    handlingSaudiBandaraSar,
+    handlingSaudiSharedSar,
     hotelTransitLoungeIdr,
     feeMarketingIdr,
     nasiBoxJakartaQty,
@@ -278,6 +285,7 @@ export default function PackageCalculatorPage() {
     nasiBoxSaudiQty,
     nasiBoxSaudiPriceSar,
     muthawwifFeeIdrTotal,
+    tourLeaderFeeIdrTotal,
     targetPax,
     equipMenIhram,
     equipMenKainBaju,
@@ -641,14 +649,14 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Handling Bandara Arab Saudi (SAR/Pax)</label>
+                  <label className="font-semibold text-stone-700">Handling Bandara Arab Saudi (Shared SAR Rombongan)</label>
                   <input
                     type="number"
-                    value={handlingSaudiBandaraSar}
-                    onChange={(e) => setHandlingSaudiBandaraSar(Number(e.target.value))}
+                    value={handlingSaudiSharedSar}
+                    onChange={(e) => setHandlingSaudiSharedSar(Number(e.target.value))}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
-                  <p className="text-[10px] text-stone-400">Tim Handling Bandara JED & MED (~{formatRupiah(calculations.handlingSaudiIdr)})</p>
+                  <p className="text-[10px] text-stone-400">Total Group SAR (~{calculations.handlingSaudiPerPaxSar.toFixed(1)} SAR/Pax = {formatRupiah(calculations.handlingSaudiIdr)}/Pax)</p>
                 </div>
 
                 <div className="space-y-1">
@@ -706,14 +714,27 @@ export default function PackageCalculatorPage() {
                   <p className="text-[10px] text-stone-400">Total Rp {calculations.nasiBoxSaudiTotalIdr.toLocaleString("id-ID")}</p>
                 </div>
 
+                {/* Fee Muthawwif & Tour Leader (Dipisah 2 Kolom Shared Rp) */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Total Fee Muthawwif & Leader (Rp Shared)</label>
+                  <label className="font-semibold text-stone-700">Fee Muthawwif (Shared Rp Rombongan)</label>
                   <input
                     type="number"
                     value={muthawwifFeeIdrTotal}
                     onChange={(e) => setMuthawwifFeeIdrTotal(Number(e.target.value))}
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
+                  <p className="text-[10px] text-stone-400">Shared Total Rombongan (~{formatRupiah(calculations.muthawwifFeePerPax)}/Pax)</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Fee Tour Leader (Shared Rp Rombongan)</label>
+                  <input
+                    type="number"
+                    value={tourLeaderFeeIdrTotal}
+                    onChange={(e) => setTourLeaderFeeIdrTotal(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Shared Total Rombongan (~{formatRupiah(calculations.tourLeaderFeePerPax)}/Pax)</p>
                 </div>
 
                 <div className="space-y-1 sm:col-span-2">
@@ -1184,9 +1205,16 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5 text-indigo-600" /> Shared Staff & Muthawwif
+                    <Users className="h-3.5 w-3.5 text-indigo-600" /> Fee Muthawwif Rombongan
                   </span>
-                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.sharedStaffCostPerPax)}</span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.muthawwifFeePerPax)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <UserCheck className="h-3.5 w-3.5 text-sky-600" /> Fee Tour Leader Rombongan
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.tourLeaderFeePerPax)}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
