@@ -218,8 +218,12 @@ export function CustomerList({ customers }: CustomerListProps) {
               <p className="text-xs font-semibold text-stone-500">Grup Rombongan Aktif</p>
               <Layers className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-amber-800">Rombongan Bangka Belitung</p>
-            <p className="mt-1 text-[11px] text-stone-400">30 Pax Rombongan • 08-18 Jul 2026</p>
+            <p className="mt-1 text-2xl font-bold text-amber-800">
+              {customers.length > 0 ? customers[0].groupName : "Belum Ada Grup"}
+            </p>
+            <p className="mt-1 text-[11px] text-stone-400">
+              {customers.length > 0 ? `${customers.length} Pax Rombongan` : "0 grup keberangkatan aktif"}
+            </p>
           </article>
 
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">

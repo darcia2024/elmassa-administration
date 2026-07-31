@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -76,6 +76,18 @@ export default function DashboardPage() {
   const dashboard = getDashboardStats();
   const [activeFilter, setActiveFilter] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [publishedPackages, setPublishedPackages] = useState<any[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_published_packages");
+      if (saved) {
+        setPublishedPackages(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const filteredBookings = useMemo(() => {
     return dashboard.recentBookings.filter((booking) => {
@@ -255,53 +267,33 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-50 text-brand-pink border border-brand-pink/20">
-                        <Plane className="h-4 w-4" strokeWidth={1.5} />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-brand-cocoa">Umrah 12 Hari Garuda</p>
-                        <p className="text-[10px] text-stone-500">12 Hari • Garuda Indonesia</p>
+                  {publishedPackages.length === 0 ? (
+                    <div className="col-span-3 py-6 text-center text-xs text-stone-400 font-medium bg-stone-50/50 rounded-xl border border-stone-200/50">
+                      Belum ada paket wisata aktif. Terbitkan paket baru dari{" "}
+                      <Link href="/paket/kalkulator" className="text-brand-pink font-semibold underline">
+                        Kalkulator HPP
+                      </Link>
+                      .
+                    </div>
+                  ) : (
+                    publishedPackages.slice(0, 3).map((pkg, idx) => (
+                      <div key={pkg.id || idx} className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-50 text-brand-pink border border-brand-pink/20">
+                            <Plane className="h-4 w-4" strokeWidth={1.5} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-brand-cocoa">{pkg.name}</p>
+                            <p className="text-[10px] text-stone-500">{pkg.duration || "9 Hari"} • {pkg.airline || "Garuda"}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between border-t border-stone-200/50 pt-2 text-[10px]">
+                          <span className="font-semibold text-emerald-700">{pkg.price || "Rp 0"}</span>
+                          <span className="rounded-md bg-rose-50 px-2 py-0.5 font-medium text-brand-pink">{pkg.category || "Wisata Halal"}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-stone-200/50 pt-2 text-[10px]">
-                      <span className="font-semibold text-amber-600">★ 4.8</span>
-                      <span className="rounded-md bg-rose-50 px-2 py-0.5 font-medium text-brand-pink">Wisata Halal</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-800 border border-amber-200/60">
-                        <Sparkles className="h-4 w-4" strokeWidth={1.5} />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-brand-cocoa">Umrah VIP Executive</p>
-                        <p className="text-[10px] text-stone-500">9 Hari Perjalanan</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-stone-200/50 pt-2 text-[10px]">
-                      <span className="font-semibold text-amber-600">★ 5.0</span>
-                      <span className="rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-800">Bintang 5</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-purple-50 text-purple-700 border border-purple-200/60">
-                        <ShieldCheck className="h-4 w-4" strokeWidth={1.5} />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-brand-cocoa">Umrah Ramadan 1448H</p>
-                        <p className="text-[10px] text-stone-500">25 Hari Perjalanan</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-stone-200/50 pt-2 text-[10px]">
-                      <span className="font-semibold text-amber-600">★ 4.9</span>
-                      <span className="rounded-md bg-purple-50 px-2 py-0.5 font-medium text-purple-800">Quota Terbatas</span>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </article>
 
