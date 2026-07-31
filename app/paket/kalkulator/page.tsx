@@ -122,6 +122,14 @@ export default function PackageCalculatorPage() {
   const [marginNominalPerPax, setMarginNominalPerPax] = useState(3500000); // Rp 3.500.000 profit / pax
   const [marginPercent, setMarginPercent] = useState(12); // 12%
 
+  // 4. Modal Terbitkan Paket State & Form
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [pubPackageName, setPubPackageName] = useState("");
+  const [pubCategory, setPubCategory] = useState("Umrah Spesial");
+  const [pubDepartureDate, setPubDepartureDate] = useState("15 November 2026");
+  const [pubDpMinimum, setPubDpMinimum] = useState("Rp 5.000.000");
+
   // 4. Calculations (Live Computed 0ms)
   const calculations = useMemo(() => {
     // Conversions
@@ -318,7 +326,68 @@ export default function PackageCalculatorPage() {
     doublePaxCount,
   ]);
 
-  const formatRupiah = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
+  const formatRupiah = (val: number) => `Rp ${(val || 0).toLocaleString("id-ID")}`;
+
+  const handleOpenPublishModal = () => {
+    const totalDays = (makkahNights || 5) + (madinahNights || 4);
+    setPubPackageName(`Umrah Spesial ${totalDays} Hari (${makkahHotelName})`);
+    setIsPublishModalOpen(true);
+  };
+
+  const handleConfirmPublish = () => {
+    const totalDays = (makkahNights || 5) + (madinahNights || 4);
+    const newPackage = {
+      id: `pkg-custom-${Date.now()}`,
+      name: pubPackageName || `Umrah Spesial ${totalDays} Hari`,
+      category: pubCategory,
+      duration: `${totalDays} Hari`,
+      departuresDate: pubDepartureDate || "15 November 2026",
+      price: formatRupiah(calculations.sellingPriceQuad),
+      numericPrice: calculations.sellingPriceQuad,
+      dpMinimum: pubDpMinimum || "Rp 5.000.000",
+      makkahHotel: makkahHotelName,
+      madinahHotel: madinahHotelName,
+      airline: "Saudia / Garuda Indonesia (Connecting PGK-CGK-JED)",
+      startPoint: "Start Pangkal Pinang",
+      programUmrah: `Program Umrah ${totalDays} Hari + Fullboard Hotel`,
+      bonusHighlights: [
+        "Free City Tour Thaif & Pabrik Parfum",
+        "Free City Tour Jabal Magnet & Ayam Albaik",
+        "Free Air Zamzam 5L & Perlengkapan Complete",
+      ],
+      posterImg: "/poster-el-massa.png",
+      bannerImg: "/banner-el-massa.png",
+      featured: true,
+      includes: [
+        "Tiket pesawat PP PGK - CGK - PGK (Garuda Indonesia)",
+        "Tiket pesawat PP CGK - JED/MED - CGK (Saudia / Garuda)",
+        "Visa Umrah KSA & Asuransi Kesehatan",
+        `Hotel Makkah (${makkahHotelName}) Fullboard 3x Makan`,
+        `Hotel Madinah (${madinahHotelName}) Fullboard 3x Makan`,
+        "Perlengkapan Umrah Lengkap",
+        "Tour Leader & Muthawwif Berpengalaman",
+        "Handling Bandara CGK, JED & MED",
+        "Bus AC Modern Terbaru",
+      ],
+      excludes: [
+        "Biaya pembuatan paspor",
+        "Biaya suntik vaksin (jika diperlukan)",
+        "Kebutuhan pribadi & bagasi berlebih",
+      ],
+    };
+
+    try {
+      const existingStr = localStorage.getItem("el_massa_published_packages");
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      const updated = [newPackage, ...existing];
+      localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+
+    setIsPublishModalOpen(false);
+    setIsSuccessModalOpen(true);
+  };
 
   return (
     <AppShell eyebrow="Manajemen Keuangan & HPP" title="Kalkulator Perancangan HPP Paket Umrah">
@@ -1249,18 +1318,19 @@ export default function PackageCalculatorPage() {
 
             {/* ACTION BUTTONS */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-3">
-              <Link
-                href="/paket"
-                className="w-full h-10 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-2"
+              <button
+                type="button"
+                onClick={handleOpenPublishModal}
+                className="w-full h-11 rounded-xl bg-brand-pink text-xs font-bold text-white shadow-md hover:bg-brand-pinkHover transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Save className="h-4 w-4" strokeWidth={1.5} />
+                <Save className="h-4 w-4" strokeWidth={2} />
                 <span>Simpan & Terbitkan ke Katalog Paket</span>
-              </Link>
+              </button>
 
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition flex items-center justify-center gap-2"
+                className="w-full h-10 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Printer className="h-4 w-4 text-stone-500" strokeWidth={1.5} />
                 <span>Cetak Lembar HPP Internal</span>
@@ -1272,6 +1342,184 @@ export default function PackageCalculatorPage() {
         </div>
 
       </div>
+
+      {/* ========================================================================= */}
+      {/* 🚀 MODAL 1: FORM TERBITKAN KAN PAKET KE KATALOG */}
+      {/* ========================================================================= */}
+      {isPublishModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-pink/10 text-brand-pink">
+                  <Save className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-brand-cocoa">Terbitkan Paket ke Katalog</h3>
+                  <p className="text-[11px] text-stone-500">Konfirmasi detail rincian harga untuk dipublikasikan</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsPublishModalOpen(false)}
+                className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-stone-700">Nama Paket Umrah</label>
+                <input
+                  type="text"
+                  value={pubPackageName}
+                  onChange={(e) => setPubPackageName(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-bold text-stone-700">Kategori Paket</label>
+                  <select
+                    value={pubCategory}
+                    onChange={(e) => setPubCategory(e.target.value)}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  >
+                    <option value="Umrah Spesial">Umrah Spesial</option>
+                    <option value="Umrah Reguler">Umrah Reguler</option>
+                    <option value="Umrah Berkah Spesial">Umrah Berkah Spesial</option>
+                    <option value="Umrah Plus Thaif">Umrah Plus Thaif</option>
+                    <option value="Umrah Ramadhan">Umrah Ramadhan</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-stone-700">Tanggal Keberangkatan</label>
+                  <input
+                    type="text"
+                    value={pubDepartureDate}
+                    onChange={(e) => setPubDepartureDate(e.target.value)}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-stone-700">DP Minimum Per Jamaah</label>
+                <input
+                  type="text"
+                  value={pubDpMinimum}
+                  onChange={(e) => setPubDpMinimum(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              {/* Ringkasan Harga Jual Hasil Kalkulasi */}
+              <div className="rounded-xl border border-brand-pink/20 bg-rose-50/30 p-3 space-y-2">
+                <p className="text-[11px] font-bold text-brand-cocoa">Ringkasan Harga Brosur & Proyeksi Profit:</p>
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                  <div className="rounded-lg bg-white p-2 border border-stone-100">
+                    <span className="text-stone-500 block font-semibold">Quad (4 Pax)</span>
+                    <span className="font-extrabold text-brand-pink text-xs">{formatRupiah(calculations.sellingPriceQuad)}</span>
+                  </div>
+                  <div className="rounded-lg bg-white p-2 border border-stone-100">
+                    <span className="text-stone-500 block font-semibold">Triple (3 Pax)</span>
+                    <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.sellingPriceTriple)}</span>
+                  </div>
+                  <div className="rounded-lg bg-white p-2 border border-stone-100">
+                    <span className="text-stone-500 block font-semibold">Double (2 Pax)</span>
+                    <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.sellingPriceDouble)}</span>
+                  </div>
+                </div>
+                <div className="pt-1 text-center">
+                  <span className="text-[11px] font-extrabold text-emerald-700">
+                    Est. Total Profit Rombongan: {formatRupiah(calculations.totalGroupProfit)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setIsPublishModalOpen(false)}
+                className="w-1/2 h-10 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600 hover:bg-stone-100"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleConfirmPublish}
+                className="w-1/2 h-10 rounded-xl bg-brand-pink text-xs font-bold text-white shadow-md hover:bg-brand-pinkHover transition"
+              >
+                Terbitkan Paket Sekarang
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🎉 MODAL 2: NOTIFIKASI SUKSES DITERBITKAN */}
+      {/* ========================================================================= */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <Sparkles className="h-8 w-8" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-extrabold text-stone-900">Paket Berhasil Diterbitkan! 🎉</h3>
+              <p className="text-xs text-stone-500">
+                Paket Umrah telah resmi ditambahkan ke <b>Katalog Paket El Massa</b>.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-left text-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-stone-600 font-semibold">Nama Paket:</span>
+                <span className="font-bold text-stone-900">{pubPackageName}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-600 font-semibold">Harga Brosur (Quad):</span>
+                <span className="font-black text-brand-pink">{formatRupiah(calculations.sellingPriceQuad)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-600 font-semibold">Estimasi Total Profit:</span>
+                <span className="font-bold text-emerald-700">{formatRupiah(calculations.totalGroupProfit)}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <Link
+                href="/paket"
+                className="w-full h-11 rounded-xl bg-brand-pink text-xs font-bold text-white shadow-md hover:bg-brand-pinkHover transition flex items-center justify-center gap-2"
+              >
+                <span>🚀 Buka Katalog Paket Umrah</span>
+              </Link>
+
+              <button
+                onClick={() => {
+                  setIsSuccessModalOpen(false);
+                  window.print();
+                }}
+                className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 flex items-center justify-center gap-2"
+              >
+                <Printer className="h-4 w-4 text-stone-500" />
+                <span>Cetak Lembar HPP Internal</span>
+              </button>
+
+              <button
+                onClick={() => setIsSuccessModalOpen(false)}
+                className="w-full h-8 text-xs font-semibold text-stone-400 hover:text-stone-600"
+              >
+                Tutup & Edit Paket Lain
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </AppShell>
   );
 }

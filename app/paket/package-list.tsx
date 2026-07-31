@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Award,
   Calculator,
@@ -149,9 +149,26 @@ export function PackageList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [selectedPkg, setSelectedPkg] = useState<PackageCardItem | null>(null);
+  const [customPackages, setCustomPackages] = useState<PackageCardItem[]>([]);
+
+  // Load custom published packages from HPP Calculator via localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_published_packages");
+      if (saved) {
+        setCustomPackages(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const allPackages = useMemo(() => {
+    return [...customPackages, ...officialPackages];
+  }, [customPackages]);
 
   const filteredPackages = useMemo(() => {
-    return officialPackages.filter((pkg) => {
+    return allPackages.filter((pkg) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         pkg.name.toLowerCase().includes(q) ||
@@ -164,7 +181,7 @@ export function PackageList() {
 
       return matchesSearch && matchesCat;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [allPackages, searchQuery, selectedCategory]);
 
   return (
     <div className="space-y-6 font-sans">
