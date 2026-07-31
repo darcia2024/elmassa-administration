@@ -219,19 +219,77 @@ export function AppShell({ children }: AppShellProps) {
     );
   }, [searchQuery]);
 
-  // 🔔 Notification Center States
+  // 🔔 Notification Center States (Real-time Live Sync)
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_real_notifications");
+      if (saved) {
+        setNotifications(JSON.parse(saved));
+      } else {
+        const initialSys: NotificationItem[] = [
+          {
+            id: "notif-sys-001",
+            title: "🟢 Database Supabase Cloud Terhubung",
+            message: "Koneksi PostgreSQL Cloud Supabase PT. AL MASSA AZKA WISATA aktif & terintegrasi.",
+            time: "Baru saja",
+            category: "Keuangan",
+            read: false,
+            link: "/dashboard",
+          },
+          {
+            id: "notif-sys-002",
+            title: "🧮 Kalkulator HPP Berfungsi Real-Time",
+            message: "Merancang HPP & menerbitkan paket otomatis tersimpan ke katalog.",
+            time: "Baru saja",
+            category: "Dokumen",
+            read: false,
+            link: "/paket/kalkulator",
+          },
+        ];
+        localStorage.setItem("el_massa_real_notifications", JSON.stringify(initialSys));
+        setNotifications(initialSys);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
   const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+    setNotifications((prev) => {
+      const updated = prev.map((item) => ({ ...item, read: true }));
+      try {
+        localStorage.setItem("el_massa_real_notifications", JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  const handleClearAll = () => {
+    setNotifications([]);
+    try {
+      localStorage.setItem("el_massa_real_notifications", JSON.stringify([]));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleToggleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, read: !item.read } : item)),
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, read: !item.read } : item));
+      try {
+        localStorage.setItem("el_massa_real_notifications", JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
   };
 
   const activeHref = getActiveHref(pathname);

@@ -381,6 +381,20 @@ export default function PackageCalculatorPage() {
       const existing = existingStr ? JSON.parse(existingStr) : [];
       const updated = [newPackage, ...existing];
       localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
+
+      // Push real live notification to Bell Notification Center
+      const newNotif = {
+        id: `notif-${Date.now()}`,
+        title: "📦 Paket Umrah Diterbitkan",
+        message: `Paket "${newPackage.name}" (${formatRupiah(calculations.sellingPriceQuad)}) resmi terbit di katalog.`,
+        time: "Baru saja",
+        category: "Dokumen",
+        read: false,
+        link: "/paket",
+      };
+      const existingNotifStr = localStorage.getItem("el_massa_real_notifications");
+      const existingNotifs = existingNotifStr ? JSON.parse(existingNotifStr) : [];
+      localStorage.setItem("el_massa_real_notifications", JSON.stringify([newNotif, ...existingNotifs]));
     } catch (e) {
       console.error(e);
     }
