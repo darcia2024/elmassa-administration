@@ -15,41 +15,19 @@ import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
-const departureReports = [
-  {
-    scheduleId: "SCH-JUL-08",
-    packageName: "Umrah Spesial Muharram 11 Hari",
-    departureDate: "08 Juli 2026",
-    airline: "Garuda GA-980",
-    quota: 40,
-    booked: 40,
-    paidBookings: 40,
-    receivableDisplay: "Rp 688.000.000",
-    status: "Terjadwal (Full)",
-  },
-  {
-    scheduleId: "SCH-AGU-12",
-    packageName: "Umrah Reguler 12 Hari",
-    departureDate: "12 Agustus 2026",
-    airline: "Saudia SV-815",
-    quota: 45,
-    booked: 18,
-    paidBookings: 9,
-    receivableDisplay: "Rp 122.500.000",
-    status: "Terjadwal",
-  },
-  {
-    scheduleId: "SCH-SEP-05",
-    packageName: "Umrah VIP Executive 9 Hari",
-    departureDate: "05 September 2026",
-    airline: "Emirates EK-357",
-    quota: 20,
-    booked: 8,
-    paidBookings: 8,
-    receivableDisplay: "Rp 0",
-    status: "Terjadwal",
-  },
-];
+type DepartureReportItem = {
+  scheduleId: string;
+  packageName: string;
+  departureDate: string;
+  airline: string;
+  quota: number;
+  booked: number;
+  paidBookings: number;
+  receivableDisplay: string;
+  status: string;
+};
+
+const departureReports: DepartureReportItem[] = [];
 
 const statusStyles: Record<string, string> = {
   "Terjadwal (Full)": "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",

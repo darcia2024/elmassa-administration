@@ -17,50 +17,22 @@ import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
-const incomeRows = [
-  {
-    id: "INC-001",
-    serviceType: "Umrah Spesial Muharram",
-    packageName: "Umrah Spesial Muharram 11 Hari",
-    bookingCode: "BK-2407-018",
-    customer: "H. Rusli Suparman & Rombongan (40 Pax)",
-    date: "08 Jul 2026",
-    grossDisplay: "Rp 1.188.000.000",
-    paidDisplay: "Rp 500.000.000",
-    marginDisplay: "Rp 195.000.000",
-    status: "DP / Parsial",
-  },
-  {
-    id: "INC-002",
-    serviceType: "Umrah Reguler",
-    packageName: "Umrah Reguler 12 Hari",
-    bookingCode: "BK-2407-021",
-    customer: "Romlan Effendi",
-    date: "12 Agu 2026",
-    grossDisplay: "Rp 65.000.000",
-    paidDisplay: "Rp 0",
-    marginDisplay: "Rp 9.500.000",
-    status: "Belum Bayar",
-  },
-  {
-    id: "INC-003",
-    serviceType: "Umrah VIP",
-    packageName: "Umrah VIP Executive 9 Hari",
-    bookingCode: "BK-2407-025",
-    customer: "Zainal Abidin",
-    date: "05 Sep 2026",
-    grossDisplay: "Rp 180.000.000",
-    paidDisplay: "Rp 180.000.000",
-    marginDisplay: "Rp 32.000.000",
-    status: "Final / Lunas",
-  },
-];
+type IncomeRowItem = {
+  id: string;
+  serviceType: string;
+  packageName: string;
+  bookingCode: string;
+  customer: string;
+  date: string;
+  grossDisplay: string;
+  paidDisplay: string;
+  marginDisplay: string;
+  status: string;
+};
 
-const serviceSummary = [
-  { label: "Umrah Spesial Muharram", totalOmzet: "Rp 1.188.000.000", count: "40 Pax Jamaah", share: "82%" },
-  { label: "Umrah Reguler 12 Hari", totalOmzet: "Rp 65.000.000", count: "2 Pax Jamaah", share: "5%" },
-  { label: "Umrah VIP Executive", totalOmzet: "Rp 180.000.000", count: "4 Pax Jamaah", share: "13%" },
-];
+const incomeRows: IncomeRowItem[] = [];
+
+const serviceSummary: Array<{ label: string; totalOmzet: string; count: string; share: string }> = [];
 
 const statusStyles: Record<string, string> = {
   "Final / Lunas": "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",

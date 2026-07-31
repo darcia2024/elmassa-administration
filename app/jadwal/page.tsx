@@ -6,32 +6,18 @@ import { AppShell } from "@/components/app-shell";
 import { AgendaCalendar } from "./agenda-calendar";
 import { ScheduleCrud } from "./schedule-crud";
 
-const schedules = [
-  {
-    id: "dep-umr-20261001",
-    packageName: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
-    type: "Umrah (Saudia / Garuda)",
-    departureDate: "01 Okt 2026",
-    returnDate: "12 Okt 2026",
-    quota: 45,
-    bookedSeats: 45,
-    priceDisplay: "Rp 33.500.000",
-    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - CGK - Saudia SV-817",
-    status: "Terjadwal (FULL)",
-  },
-  {
-    id: "dep-umr-20261108",
-    packageName: "Umrah Berkah Spesial November",
-    type: "Umrah (Garuda Direct MED)",
-    departureDate: "08 Nov 2026",
-    returnDate: "18 Nov 2026",
-    quota: 45,
-    bookedSeats: 45,
-    priceDisplay: "Rp 35.500.000",
-    meetingPoint: "Bandara Depati Amir Pangkalpinang (PGK) - Garuda Direct Madinah",
-    status: "Terjadwal (FULL)",
-  },
-];
+const schedules: Array<{
+  id: string;
+  packageName: string;
+  type: string;
+  departureDate: string;
+  returnDate: string;
+  quota: number;
+  bookedSeats: number;
+  priceDisplay: string;
+  meetingPoint: string;
+  status: string;
+}> = [];
 
 export default function DeparturesPage() {
   const [activeTab, setActiveTab] = useState<"calendar" | "table">("calendar");

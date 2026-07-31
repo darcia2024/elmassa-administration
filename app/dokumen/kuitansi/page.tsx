@@ -5,25 +5,25 @@ import Link from "next/link";
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
-const receipts = [
-  {
-    number: "KW-2407-044",
-    date: "25 Juli 2026",
-    bookingCode: "BK-2407-018",
-    receivedFrom: "Siti Rahma",
-    amountDisplay: "Rp 7.500.000",
-    amountWords: "Tujuh juta lima ratus ribu rupiah",
-    paymentFor: "Pembayaran cicilan paket Umrah Reguler 12 Hari",
-    paymentMethod: "Transfer",
-    account: "BCA El Massa",
-    staff: "Azriandri",
-    customerPhone: "0812-4455-7788",
-    status: "Terverifikasi",
-  },
-];
+type ReceiptItem = {
+  number: string;
+  date: string;
+  bookingCode: string;
+  receivedFrom: string;
+  amountDisplay: string;
+  amountWords: string;
+  paymentFor: string;
+  paymentMethod: string;
+  account: string;
+  staff: string;
+  customerPhone: string;
+  status: string;
+};
+
+const receipts: ReceiptItem[] = [];
 
 export default function ReceiptPage() {
-  const [selectedReceiptNumber, setSelectedReceiptNumber] = useState(receipts[0].number);
+  const [selectedReceiptNumber, setSelectedReceiptNumber] = useState(receipts[0]?.number || "");
   const receipt = receipts.find((item) => item.number === selectedReceiptNumber) ?? receipts[0];
   const handlePrint = () => window.print();
 
@@ -52,35 +52,54 @@ export default function ReceiptPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[300px_1fr]">
-          <aside className="print-hidden rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <h3 className="text-xs font-bold text-brand-cocoa uppercase tracking-wider mb-3">Daftar Kuitansi</h3>
-            <div className="space-y-2">
-              {receipts.map((item) => {
-                const isSelected = item.number === receipt.number;
-
-                return (
-                  <button
-                    key={item.number}
-                    className={`w-full rounded-xl border p-3.5 text-left text-xs transition ${
-                      isSelected
-                        ? "border-brand-pink bg-rose-50/40 text-brand-cocoa font-semibold"
-                        : "border-stone-200/70 bg-white text-stone-700 hover:border-stone-300"
-                    }`}
-                    type="button"
-                    onClick={() => setSelectedReceiptNumber(item.number)}
-                  >
-                    <span className="block font-bold text-brand-cocoa">{item.number}</span>
-                    <span className="mt-0.5 block text-[11px] text-stone-500">{item.receivedFrom}</span>
-                    <span className="mt-2 flex justify-between gap-3 text-[11px]">
-                      <span className="font-semibold text-emerald-700">{item.amountDisplay}</span>
-                      <span className="text-stone-400">{item.status}</span>
-                    </span>
-                  </button>
-                );
-              })}
+        {receipts.length === 0 ? (
+          <div className="rounded-2xl border border-stone-200/70 bg-white p-12 text-center shadow-2xs space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-brand-pink">
+              <ReceiptText className="h-7 w-7" strokeWidth={1.5} />
             </div>
-          </aside>
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-brand-cocoa">Belum Ada Kuitansi Pembayaran Terbit</h4>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Kuitansi resmi akan dibuat otomatis saat Anda mencatat pembayaran baru dari jamaah.
+              </p>
+            </div>
+            <Link
+              href="/pembayaran/form"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-pink px-5 text-xs font-bold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+            >
+              + Catat Pembayaran Baru
+            </Link>
+          </div>
+        ) : (
+          <section className="grid gap-5 xl:grid-cols-[300px_1fr]">
+            <aside className="print-hidden rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
+              <h3 className="text-xs font-bold text-brand-cocoa uppercase tracking-wider mb-3">Daftar Kuitansi</h3>
+              <div className="space-y-2">
+                {receipts.map((item) => {
+                  const isSelected = item.number === receipt?.number;
+
+                  return (
+                    <button
+                      key={item.number}
+                      className={`w-full rounded-xl border p-3.5 text-left text-xs transition ${
+                        isSelected
+                          ? "border-brand-pink bg-rose-50/40 text-brand-cocoa font-semibold"
+                          : "border-stone-200/70 bg-white text-stone-700 hover:border-stone-300"
+                      }`}
+                      type="button"
+                      onClick={() => setSelectedReceiptNumber(item.number)}
+                    >
+                      <span className="block font-bold text-brand-cocoa">{item.number}</span>
+                      <span className="mt-0.5 block text-[11px] text-stone-500">{item.receivedFrom}</span>
+                      <span className="mt-2 flex justify-between gap-3 text-[11px]">
+                        <span className="font-semibold text-emerald-700">{item.amountDisplay}</span>
+                        <span className="text-stone-400">{item.status}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
 
           {/* Receipt Viewport */}
           <article className="receipt-print rounded-2xl border border-stone-200/70 bg-white p-6 sm:p-8 shadow-2xs space-y-6">
@@ -145,6 +164,7 @@ export default function ReceiptPage() {
             </div>
           </article>
         </section>
+        )}
       </div>
     </AppShell>
   );

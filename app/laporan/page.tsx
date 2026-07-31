@@ -21,72 +21,24 @@ import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
-const receivables = [
-  {
-    bookingCode: "BK-2407-018",
-    customer: "H. Rusli Suparman & Rombongan (40 Pax)",
-    packageName: "Umrah Spesial Muharram 11 Hari",
-    departureDate: "08 Juli 2026",
-    totalDisplay: "Rp 1.188.000.000",
-    paidDisplay: "Rp 500.000.000",
-    remainingDisplay: "Rp 688.000.000",
-    remainingAmount: 688000000,
-    dueDate: "01 Juli 2026",
-    dueDateValue: "2026-07-01",
-    age: "7 hari",
-    status: "DP",
-    priority: "Tinggi",
-    phone: "081271991001",
-  },
-  {
-    bookingCode: "BK-2407-019",
-    customer: "H. Ruslan Efendi (Belitung)",
-    packageName: "Umrah Spesial Muharram 11 Hari",
-    departureDate: "08 Juli 2026",
-    totalDisplay: "Rp 59.400.000",
-    paidDisplay: "Rp 30.000.000",
-    remainingDisplay: "Rp 29.400.000",
-    remainingAmount: 29400000,
-    dueDate: "02 Juli 2026",
-    dueDateValue: "2026-07-02",
-    age: "5 hari",
-    status: "DP",
-    priority: "Normal",
-    phone: "081271991003",
-  },
-  {
-    bookingCode: "BK-2407-020",
-    customer: "Iskandar Harun (Sungailiat)",
-    packageName: "Umrah Spesial Muharram 11 Hari",
-    departureDate: "08 Juli 2026",
-    totalDisplay: "Rp 29.700.000",
-    paidDisplay: "Rp 29.700.000",
-    remainingDisplay: "Rp 0",
-    remainingAmount: 0,
-    dueDate: "25 Juni 2026",
-    dueDateValue: "2026-06-25",
-    age: "0 hari",
-    status: "Lunas",
-    priority: "Normal",
-    phone: "081271991005",
-  },
-  {
-    bookingCode: "BK-2407-021",
-    customer: "Romlan Effendi (Belinyu)",
-    packageName: "Umrah Reguler 12 Hari",
-    departureDate: "12 Agustus 2026",
-    totalDisplay: "Rp 65.000.000",
-    paidDisplay: "Rp 0",
-    remainingDisplay: "Rp 65.000.000",
-    remainingAmount: 65000000,
-    dueDate: "15 Juli 2026",
-    dueDateValue: "2026-07-15",
-    age: "14 hari lagi",
-    status: "Belum Bayar",
-    priority: "Tinggi",
-    phone: "081271991021",
-  },
-];
+type ReceivableItem = {
+  bookingCode: string;
+  customer: string;
+  packageName: string;
+  departureDate: string;
+  totalDisplay: string;
+  paidDisplay: string;
+  remainingDisplay: string;
+  remainingAmount: number;
+  dueDate: string;
+  dueDateValue: string;
+  age: string;
+  status: string;
+  priority: string;
+  phone: string;
+};
+
+const receivables: ReceivableItem[] = [];
 
 const priorityStyles: Record<string, string> = {
   Tinggi: "bg-rose-50/80 text-rose-700 border border-rose-200/60",

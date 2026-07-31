@@ -33,70 +33,9 @@ type InvoiceItem = {
   status: "Lunas" | "Sebagian" | "Belum Bayar";
 };
 
-const initialInvoices: InvoiceItem[] = [
-  {
-    number: "INV-2407-001",
-    bookingCode: "BK-2407-001",
-    customer: "Siti Rahma",
-    phone: "0812-4455-7788",
-    packageName: "Umrah Reguler 12 Hari",
-    issueDate: "01 Jul 2026",
-    dueDate: "20 Jul 2026",
-    totalDisplay: "Rp 97.500.000",
-    paidDisplay: "Rp 97.500.000",
-    remainingDisplay: "Rp 0",
-    remainingAmount: 0,
-    status: "Lunas",
-  },
-  {
-    number: "INV-2407-002",
-    bookingCode: "BK-2407-002",
-    customer: "Ahmad Hidayat",
-    phone: "0813-8899-1122",
-    packageName: "Umrah Plus Thaif 12 Hari",
-    issueDate: "03 Jul 2026",
-    dueDate: "25 Jul 2026",
-    totalDisplay: "Rp 69.000.000",
-    paidDisplay: "Rp 34.500.000",
-    remainingDisplay: "Rp 34.500.000",
-    remainingAmount: 34500000,
-    status: "Sebagian",
-  },
-  {
-    number: "INV-2407-003",
-    bookingCode: "BK-2407-003",
-    customer: "Budi Santoso",
-    phone: "0819-2233-4455",
-    packageName: "Umrah VIP Turki 14 Hari",
-    issueDate: "05 Jul 2026",
-    dueDate: "30 Jul 2026",
-    totalDisplay: "Rp 180.000.000",
-    paidDisplay: "Rp 45.000.000",
-    remainingDisplay: "Rp 135.000.000",
-    remainingAmount: 135000000,
-    status: "Sebagian",
-  },
-  {
-    number: "INV-2407-018",
-    bookingCode: "BK-2407-018",
-    customer: "Dewi Lestari",
-    phone: "0852-6677-8899",
-    packageName: "Umrah Awal Musim 9 Hari",
-    issueDate: "10 Jul 2026",
-    dueDate: "28 Jul 2026",
-    totalDisplay: "Rp 27.500.000",
-    paidDisplay: "Rp 0",
-    remainingDisplay: "Rp 27.500.000",
-    remainingAmount: 27500000,
-    status: "Belum Bayar",
-  },
-];
+const initialInvoices: InvoiceItem[] = [];
 
-const availableBookings = [
-  { code: "BK-2407-001", customer: "Siti Rahma", package: "Umrah Reguler 12 Hari", price: "Rp 97.500.000", phone: "0812-4455-7788" },
-  { code: "BK-2407-002", customer: "Ahmad Hidayat", package: "Umrah Plus Thaif 12 Hari", price: "Rp 69.000.000", phone: "0813-8899-1122" },
-  { code: "BK-2407-003", customer: "Budi Santoso", package: "Umrah VIP Turki 14 Hari", price: "Rp 180.000.000", phone: "0819-2233-4455" },
-];
+const availableBookings: Array<{ code: string; customer: string; package: string; price: string; phone: string }> = [];
 
 export default function FastInvoicePage() {
   const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoices);

@@ -2,36 +2,25 @@ import { ArrowUpRight, CircleDollarSign, CreditCard, FileText, Plus, ReceiptText
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
-const payments = [
-  {
-    receipt: "KW-2407-044",
-    bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    packageName: "Umrah Reguler 12 Hari",
-    date: "25 Jul 2026",
-    amountDisplay: "Rp 7.500.000",
-    method: "Transfer",
-    account: "BCA El Massa",
-    status: "Terverifikasi",
-  },
-  {
-    receipt: "KW-2407-045",
-    bookingCode: "BK-2407-019",
-    customer: "Ahmad Fauzi",
-    packageName: "Umrah Reguler 12 Hari",
-    date: "26 Jul 2026",
-    amountDisplay: "Rp 10.000.000",
-    method: "Transfer",
-    account: "Mandiri El Massa",
-    status: "Menunggu Cek",
-  },
-];
+type PaymentItem = {
+  receipt: string;
+  bookingCode: string;
+  customer: string;
+  packageName: string;
+  date: string;
+  amountDisplay: string;
+  method: string;
+  account: string;
+  status: string;
+};
+
+const payments: PaymentItem[] = [];
 
 const paymentSummary = [
-  { label: "Pembayaran Masuk", value: "Rp 151.500.000", note: "Total dana diterima", icon: CircleDollarSign },
-  { label: "Menunggu Cek", value: "Rp 25.000.000", note: "Perlu validasi staf", icon: WalletCards },
-  { label: "Rekening Bank", value: "3 Rekening", note: "BCA, Mandiri, Kas", icon: CreditCard },
-  { label: "Kuitansi Diterbitkan", value: "6 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
+  { label: "Pembayaran Masuk", value: "Rp 0", note: "Total dana diterima", icon: CircleDollarSign },
+  { label: "Menunggu Cek", value: "Rp 0", note: "Perlu validasi staf", icon: WalletCards },
+  { label: "Rekening Bank", value: "3 Rekening", note: "BCA, Mandiri, Kas Utama", icon: CreditCard },
+  { label: "Kuitansi Diterbitkan", value: "0 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
 ];
 
 export default function PaymentsPage() {

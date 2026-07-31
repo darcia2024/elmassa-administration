@@ -2,19 +2,19 @@ import { AlertTriangle, CalendarClock, CheckCircle2, Plus, WalletCards } from "l
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
-const installments = [
-  {
-    id: "CIC-001",
-    bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    packageName: "Umrah Reguler 12 Hari",
-    sequence: "Cicilan 2",
-    dueDate: "28 Jul 2026",
-    amountDisplay: "Rp 10.000.000",
-    paidDisplay: "Rp 0",
-    status: "Jatuh Tempo",
-  },
-];
+type InstallmentItem = {
+  id: string;
+  bookingCode: string;
+  customer: string;
+  packageName: string;
+  sequence: string;
+  dueDate: string;
+  amountDisplay: string;
+  paidDisplay: string;
+  status: string;
+};
+
+const installments: InstallmentItem[] = [];
 
 const statusStyles: Record<string, string> = {
   "Jatuh Tempo": "bg-rose-50 text-rose-700 ring-rose-200",

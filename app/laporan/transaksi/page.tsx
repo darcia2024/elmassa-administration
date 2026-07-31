@@ -3,30 +3,19 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 
-const transactions = [
-  {
-    id: "TRX-2407-044",
-    date: "25 Jul 2026",
-    type: "Masuk",
-    category: "Cicilan Booking",
-    bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    account: "BCA El Massa",
-    amountDisplay: "Rp 7.500.000",
-    status: "Terverifikasi",
-  },
-  {
-    id: "TRX-2407-045",
-    date: "26 Jul 2026",
-    type: "Masuk",
-    category: "Pelunasan DP",
-    bookingCode: "BK-2407-019",
-    customer: "Ahmad Fauzi",
-    account: "Mandiri El Massa",
-    amountDisplay: "Rp 10.000.000",
-    status: "Terverifikasi",
-  },
-];
+type TransactionItem = {
+  id: string;
+  date: string;
+  type: string;
+  category: string;
+  bookingCode: string;
+  customer: string;
+  account: string;
+  amountDisplay: string;
+  status: string;
+};
+
+const transactions: TransactionItem[] = [];
 
 export default function TransactionReportPage() {
   return (
@@ -46,7 +35,7 @@ export default function TransactionReportPage() {
               <p className="text-xs font-semibold text-stone-500">Total Pemasukan</p>
               <ArrowDownCircle className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">Rp 17.500.000</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">Rp 0</p>
             <p className="mt-1 text-[11px] text-stone-400">Pembayaran jamaah masuk</p>
           </article>
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
