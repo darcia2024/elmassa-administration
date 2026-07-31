@@ -71,11 +71,19 @@ export default function PackageCalculatorPage() {
   // Marketing & Agency Fee
   const [feeMarketingIdr, setFeeMarketingIdr] = useState(1000000); // Fee Marketing & Komisi Agen / Staf Sales per pax
 
-  // Catering & Food
-  const [cateringSarPerDay, setCateringSarPerDay] = useState(45); // 45 SAR / day / pax (3x makan)
+  // Nasi Box Transit (Jakarta CGK & Arab Saudi JED/MED)
+  const [nasiBoxJakartaQty, setNasiBoxJakartaQty] = useState(2); // 2x Makan Nasi Box Transit Jakarta
+  const [nasiBoxJakartaPriceIdr, setNasiBoxJakartaPriceIdr] = useState(45000); // Rp 45.000 / box
+  const [nasiBoxSaudiQty, setNasiBoxSaudiQty] = useState(2); // 2x Makan Nasi Box Transit Bandara Saudi (JED/MED)
+  const [nasiBoxSaudiPriceSar, setNasiBoxSaudiPriceSar] = useState(25); // 25 SAR / box
 
-  // Equipment & Gifts
-  const [equipmentIdr, setEquipmentIdr] = useState(1350000); // Koper Set, Ihram, Mukena, Batik, Tas
+  // Equipment Itemized Checklist (Perlengkapan Jamaah Rincian per Pax)
+  const [equipKoperHardcaseIdr, setEquipKoperHardcaseIdr] = useState(550000); // Koper Fiber Hardcase 24 Inch
+  const [equipTasPasporSlingIdr, setEquipTasPasporSlingIdr] = useState(120000); // Tas Paspor & Sling Bag Premium
+  const [equipIhramMukenaIdr, setEquipIhramMukenaIdr] = useState(250000); // Kain Ihram + Sabuk (Pa) / Mukena + Bergo (Pi)
+  const [equipBatikElmassaIdr, setEquipBatikElmassaIdr] = useState(180000); // Seragam Batik Resmi El Massa
+  const [equipBukuDoaManasikIdr, setEquipBukuDoaManasikIdr] = useState(50000); // Buku Doa & Panduan Manasik
+  const [equipZamzamTaggingIdr, setEquipZamzamTaggingIdr] = useState(200000); // Air Zamzam 5L & Syal/Koper Tagging
 
   // Muthawwif & Tour Leader Shared Cost
   const [muthawwifFeeIdrTotal, setMuthawwifFeeIdrTotal] = useState(18000000); // Shared among group pax
@@ -97,7 +105,7 @@ export default function PackageCalculatorPage() {
     // 1. Flight Total / Pax
     const totalFlight = flightPtkCgk + flightCgkJed;
 
-    // 2. Hotel Cost per Pax (Quad = 4 pax per room)
+    // 2. Hotel Cost per Pax (Quad = 4 pax per room) - FULLBOARD 3X MAKAN
     const makkahHotelTotalSar = makkahRoomSarPerNight * makkahNights; // Total cost per room Quad
     const makkahHotelPerPaxIdr = sarToIdr(makkahHotelTotalSar / 4);
 
@@ -116,9 +124,11 @@ export default function PackageCalculatorPage() {
     // 5. Transit & Lounge
     const totalTransitLounge = hotelTransitLoungeIdr;
 
-    // 6. Catering
-    const cateringTotalSar = cateringSarPerDay * durationDays;
-    const cateringIdr = sarToIdr(cateringTotalSar);
+    // 6. Nasi Box Transit (Jakarta & Saudi)
+    const nasiBoxJakartaTotalIdr = nasiBoxJakartaQty * nasiBoxJakartaPriceIdr;
+    const nasiBoxSaudiTotalSar = nasiBoxSaudiQty * nasiBoxSaudiPriceSar;
+    const nasiBoxSaudiTotalIdr = sarToIdr(nasiBoxSaudiTotalSar);
+    const totalNasiBoxTransitIdr = nasiBoxJakartaTotalIdr + nasiBoxSaudiTotalIdr;
 
     // 7. Shared Costs per Pax (Muthawwif & Leader)
     const sharedStaffCostPerPax = Math.round(muthawwifFeeIdrTotal / Math.max(targetPax, 1));
@@ -126,8 +136,17 @@ export default function PackageCalculatorPage() {
     // 8. Marketing Fee & Agency
     const totalFeeMarketing = feeMarketingIdr;
 
-    // 9. Equipment, Bonus & Misc
-    const totalEquipmentAndMisc = equipmentIdr + bonusCityTourThaifIdr + miscEmergencyIdr;
+    // 9. Equipment Rincian Total
+    const equipmentTotalIdr =
+      equipKoperHardcaseIdr +
+      equipTasPasporSlingIdr +
+      equipIhramMukenaIdr +
+      equipBatikElmassaIdr +
+      equipBukuDoaManasikIdr +
+      equipZamzamTaggingIdr;
+
+    // 10. Bonus & Misc
+    const totalBonusAndMisc = bonusCityTourThaifIdr + miscEmergencyIdr;
 
     // --- TOTAL HPP (HARGA POKOK PENJUALAN) PER PAX (QUAD) ---
     const hppQuadPerPax =
@@ -136,10 +155,11 @@ export default function PackageCalculatorPage() {
       visaInsuranceIdr +
       totalTransportHandling +
       totalTransitLounge +
-      cateringIdr +
+      totalNasiBoxTransitIdr +
       sharedStaffCostPerPax +
       totalFeeMarketing +
-      totalEquipmentAndMisc;
+      equipmentTotalIdr +
+      totalBonusAndMisc;
 
     // Profit Margin Calculation
     let profitPerPax = 0;
@@ -170,10 +190,13 @@ export default function PackageCalculatorPage() {
       transportBusIdr,
       totalTransportHandling,
       totalTransitLounge,
-      cateringIdr,
+      nasiBoxJakartaTotalIdr,
+      nasiBoxSaudiTotalIdr,
+      totalNasiBoxTransitIdr,
       sharedStaffCostPerPax,
       totalFeeMarketing,
-      totalEquipmentAndMisc,
+      equipmentTotalIdr,
+      totalBonusAndMisc,
       hppQuadPerPax,
       profitPerPax,
       sellingPriceQuad,
@@ -196,11 +219,18 @@ export default function PackageCalculatorPage() {
     handlingJakartaSaudiIdr,
     hotelTransitLoungeIdr,
     feeMarketingIdr,
-    cateringSarPerDay,
-    durationDays,
+    nasiBoxJakartaQty,
+    nasiBoxJakartaPriceIdr,
+    nasiBoxSaudiQty,
+    nasiBoxSaudiPriceSar,
     muthawwifFeeIdrTotal,
     targetPax,
-    equipmentIdr,
+    equipKoperHardcaseIdr,
+    equipTasPasporSlingIdr,
+    equipIhramMukenaIdr,
+    equipBatikElmassaIdr,
+    equipBukuDoaManasikIdr,
+    equipZamzamTaggingIdr,
     bonusCityTourThaifIdr,
     miscEmergencyIdr,
     sarExchangeRate,
@@ -365,12 +395,17 @@ export default function PackageCalculatorPage() {
               </div>
             </div>
 
-            {/* 3. Akomodasi Hotel Makkah & Madinah */}
+            {/* 3. Akomodasi Hotel Makkah & Madinah (FULLBOARD 3X MAKAN) */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
-              <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2 border-b border-stone-100 pb-3">
-                <Hotel className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
-                <span>3. Hotel Makkah & Madinah (Quad Base)</span>
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-3 gap-2">
+                <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2">
+                  <Hotel className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+                  <span>3. Hotel Makkah & Madinah (Quad Base)</span>
+                </h3>
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800 self-start sm:self-auto">
+                  ✓ Makan 3x/Hari Masuk Harga Hotel
+                </span>
+              </div>
 
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
                 {/* Makkah */}
@@ -449,11 +484,11 @@ export default function PackageCalculatorPage() {
               </div>
             </div>
 
-            {/* 4. Visa, Transport, Catering, Staff & Perlengkapan */}
+            {/* 4. Visa, Transport, Handling, Transit & Nasi Box */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
               <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2 border-b border-stone-100 pb-3">
                 <Receipt className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
-                <span>4. Visa, Transport, Catering & Perlengkapan</span>
+                <span>4. Visa, Transport, Handling, Transit & Nasi Box</span>
               </h3>
 
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
@@ -510,24 +545,48 @@ export default function PackageCalculatorPage() {
                   />
                 </div>
 
+                {/* Nasi Box Jakarta */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Catering 3x Makan/Hari (SAR/Hari)</label>
-                  <input
-                    type="number"
-                    value={cateringSarPerDay}
-                    onChange={(e) => setCateringSarPerDay(Number(e.target.value))}
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
-                  />
+                  <label className="font-semibold text-stone-700">Nasi Box Transit Jakarta (CGK)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={nasiBoxJakartaQty}
+                      onChange={(e) => setNasiBoxJakartaQty(Number(e.target.value))}
+                      placeholder="Qty Box"
+                      className="h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-semibold text-brand-cocoa"
+                    />
+                    <input
+                      type="number"
+                      value={nasiBoxJakartaPriceIdr}
+                      onChange={(e) => setNasiBoxJakartaPriceIdr(Number(e.target.value))}
+                      placeholder="Rp / Box"
+                      className="h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-brand-cocoa"
+                    />
+                  </div>
+                  <p className="text-[10px] text-stone-400">Total Rp {calculations.nasiBoxJakartaTotalIdr.toLocaleString("id-ID")}</p>
                 </div>
 
+                {/* Nasi Box Arab Saudi */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Perlengkapan & Koper Set (Rp/Pax)</label>
-                  <input
-                    type="number"
-                    value={equipmentIdr}
-                    onChange={(e) => setEquipmentIdr(Number(e.target.value))}
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
-                  />
+                  <label className="font-semibold text-stone-700">Nasi Box Transit Bandara Saudi (SAR)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={nasiBoxSaudiQty}
+                      onChange={(e) => setNasiBoxSaudiQty(Number(e.target.value))}
+                      placeholder="Qty Box"
+                      className="h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-semibold text-brand-cocoa"
+                    />
+                    <input
+                      type="number"
+                      value={nasiBoxSaudiPriceSar}
+                      onChange={(e) => setNasiBoxSaudiPriceSar(Number(e.target.value))}
+                      placeholder="SAR / Box"
+                      className="h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-brand-cocoa"
+                    />
+                  </div>
+                  <p className="text-[10px] text-stone-400">Total Rp {calculations.nasiBoxSaudiTotalIdr.toLocaleString("id-ID")}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -540,7 +599,7 @@ export default function PackageCalculatorPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 sm:col-span-2">
                   <label className="font-semibold text-stone-700">City Tour Thaif + Nasi Nampan (Rp/Pax)</label>
                   <input
                     type="number"
@@ -549,6 +608,95 @@ export default function PackageCalculatorPage() {
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* 5. Rincian Item Perlengkapan Jamaah (Itemized Checklist per Pax) */}
+            <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-rose-500" strokeWidth={1.5} />
+                  <span>5. Rincian Item Perlengkapan Jamaah (Per Pax)</span>
+                </h3>
+                <span className="text-xs font-black text-brand-pink">
+                  Total {formatRupiah(calculations.equipmentTotalIdr)}
+                </span>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>🧳 Koper Fiber Hardcase 24"</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipKoperHardcaseIdr}
+                    onChange={(e) => setEquipKoperHardcaseIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>💼 Tas Paspor & Sling Bag Premium</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipTasPasporSlingIdr}
+                    onChange={(e) => setEquipTasPasporSlingIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>🕋 Ihram & Sabuk / Mukena & Bergo</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipIhramMukenaIdr}
+                    onChange={(e) => setEquipIhramMukenaIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>👔 Seragam Batik Resmi El Massa</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipBatikElmassaIdr}
+                    onChange={(e) => setEquipBatikElmassaIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>📖 Buku Doa & Panduan Manasik</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipBukuDoaManasikIdr}
+                    onChange={(e) => setEquipBukuDoaManasikIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700 flex items-center gap-1">
+                    <span>💧 Air Zamzam 5L & Syal Tagging</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={equipZamzamTaggingIdr}
+                    onChange={(e) => setEquipZamzamTaggingIdr(Number(e.target.value))}
+                    className="w-full h-8 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-800"
+                  />
+                </div>
+
               </div>
             </div>
 
@@ -684,14 +832,14 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Hotel className="h-3.5 w-3.5 text-brand-pink" /> Hotel Makkah ({makkahNights} M)
+                    <Hotel className="h-3.5 w-3.5 text-brand-pink" /> Hotel Makkah (Fullboard 3x Makan)
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.makkahHotelPerPaxIdr)}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Hotel className="h-3.5 w-3.5 text-emerald-600" /> Hotel Madinah ({madinahNights} M)
+                    <Hotel className="h-3.5 w-3.5 text-emerald-600" /> Hotel Madinah (Fullboard 3x Makan)
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.madinahHotelPerPaxIdr)}</span>
                 </div>
@@ -719,9 +867,9 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Gift className="h-3.5 w-3.5 text-rose-500" /> Catering ({durationDays} Hari)
+                    <Gift className="h-3.5 w-3.5 text-rose-500" /> Nasi Box Transit CGK & Saudi
                   </span>
-                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.cateringIdr)}</span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalNasiBoxTransitIdr)}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
@@ -740,9 +888,16 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Koper, Bonus & Emergency
+                    <Gift className="h-3.5 w-3.5 text-brand-pink" /> Perlengkapan Jamaah (6 Item)
                   </span>
-                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalEquipmentAndMisc)}</span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.equipmentTotalIdr)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Bonus Thaif & Emergency
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalBonusAndMisc)}</span>
                 </div>
 
                 {/* TOTAL HPP */}
