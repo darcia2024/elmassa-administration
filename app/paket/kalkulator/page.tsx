@@ -63,6 +63,13 @@ export default function PackageCalculatorPage() {
   // Transport & Handling
   const [transportBusSarPerPax, setTransportBusSarPerPax] = useState(220); // Bus AC Makkah-Madinah-Jeddah-Thaif
   const [handlingBandaraIdr, setHandlingBandaraIdr] = useState(450000); // Handling JED & CGK
+  const [handlingJakartaSaudiIdr, setHandlingJakartaSaudiIdr] = useState(750000); // Handling Terpadu Jakarta (CGK) & Arab Saudi (JED/MED) per pax
+
+  // Transit & Lounge
+  const [hotelTransitLoungeIdr, setHotelTransitLoungeIdr] = useState(650000); // Hotel Transit Jakarta / Lounge Executive Bandara CGK
+
+  // Marketing & Agency Fee
+  const [feeMarketingIdr, setFeeMarketingIdr] = useState(1000000); // Fee Marketing & Komisi Agen / Staf Sales per pax
 
   // Catering & Food
   const [cateringSarPerDay, setCateringSarPerDay] = useState(45); // 45 SAR / day / pax (3x makan)
@@ -104,16 +111,22 @@ export default function PackageCalculatorPage() {
 
     // 4. Transport & Handling
     const transportBusIdr = sarToIdr(transportBusSarPerPax);
-    const totalTransportHandling = transportBusIdr + handlingBandaraIdr;
+    const totalTransportHandling = transportBusIdr + handlingBandaraIdr + handlingJakartaSaudiIdr;
 
-    // 5. Catering
+    // 5. Transit & Lounge
+    const totalTransitLounge = hotelTransitLoungeIdr;
+
+    // 6. Catering
     const cateringTotalSar = cateringSarPerDay * durationDays;
     const cateringIdr = sarToIdr(cateringTotalSar);
 
-    // 6. Shared Costs per Pax (Muthawwif & Leader)
+    // 7. Shared Costs per Pax (Muthawwif & Leader)
     const sharedStaffCostPerPax = Math.round(muthawwifFeeIdrTotal / Math.max(targetPax, 1));
 
-    // 7. Equipment, Bonus & Misc
+    // 8. Marketing Fee & Agency
+    const totalFeeMarketing = feeMarketingIdr;
+
+    // 9. Equipment, Bonus & Misc
     const totalEquipmentAndMisc = equipmentIdr + bonusCityTourThaifIdr + miscEmergencyIdr;
 
     // --- TOTAL HPP (HARGA POKOK PENJUALAN) PER PAX (QUAD) ---
@@ -122,8 +135,10 @@ export default function PackageCalculatorPage() {
       totalHotelIdr +
       visaInsuranceIdr +
       totalTransportHandling +
+      totalTransitLounge +
       cateringIdr +
       sharedStaffCostPerPax +
+      totalFeeMarketing +
       totalEquipmentAndMisc;
 
     // Profit Margin Calculation
@@ -154,8 +169,10 @@ export default function PackageCalculatorPage() {
       visaInsuranceIdr,
       transportBusIdr,
       totalTransportHandling,
+      totalTransitLounge,
       cateringIdr,
       sharedStaffCostPerPax,
+      totalFeeMarketing,
       totalEquipmentAndMisc,
       hppQuadPerPax,
       profitPerPax,
@@ -176,6 +193,9 @@ export default function PackageCalculatorPage() {
     visaAndInsuranceSar,
     transportBusSarPerPax,
     handlingBandaraIdr,
+    handlingJakartaSaudiIdr,
+    hotelTransitLoungeIdr,
+    feeMarketingIdr,
     cateringSarPerDay,
     durationDays,
     muthawwifFeeIdrTotal,
@@ -448,6 +468,39 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Hotel Jakarta / Lounge Bandara (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={hotelTransitLoungeIdr}
+                    onChange={(e) => setHotelTransitLoungeIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Transit Hotel CGK / Executive Lounge</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Handling Jakarta (CGK) & Arab Saudi (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={handlingJakartaSaudiIdr}
+                    onChange={(e) => setHandlingJakartaSaudiIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Tim Handling Bandara CGK, JED & MED</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Fee Marketing & Komisi Agen (Rp/Pax)</label>
+                  <input
+                    type="number"
+                    value={feeMarketingIdr}
+                    onChange={(e) => setFeeMarketingIdr(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                  <p className="text-[10px] text-stone-400">Komisi Sales / Mitra Agent Per Pax</p>
+                </div>
+
+                <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Transport Bus AC per Pax (SAR)</label>
                   <input
                     type="number"
@@ -659,6 +712,13 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
+                    <Hotel className="h-3.5 w-3.5 text-blue-600" /> Hotel Transit & Lounge CGK
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalTransitLounge)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
                     <Gift className="h-3.5 w-3.5 text-rose-500" /> Catering ({durationDays} Hari)
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.cateringIdr)}</span>
@@ -669,6 +729,13 @@ export default function PackageCalculatorPage() {
                     <Users className="h-3.5 w-3.5 text-indigo-600" /> Shared Staff & Muthawwif
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.sharedStaffCostPerPax)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-stone-100">
+                  <span className="text-stone-600 flex items-center gap-1.5">
+                    <UserCheck className="h-3.5 w-3.5 text-emerald-600" /> Fee Marketing & Komisi Agen
+                  </span>
+                  <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalFeeMarketing)}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
