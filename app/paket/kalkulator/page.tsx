@@ -91,9 +91,13 @@ export default function PackageCalculatorPage() {
   const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(350000); // Nasi Nampan + City Tour
   const [miscEmergencyIdr, setMiscEmergencyIdr] = useState(250000);
 
-  // Hotel Room Upgrade Surcharges (Per Pax)
-  const [tripleSurchargeIdr, setTripleSurchargeIdr] = useState(2500000); // Upgrade Kamar Triple (+ Rp 2.500.000 / pax)
-  const [doubleSurchargeIdr, setDoubleSurchargeIdr] = useState(4500000); // Upgrade Kamar Double (+ Rp 4.500.000 / pax)
+  // Group Room Distribution (Berapa Jamaah Upgrade Triple & Double)
+  const [triplePaxCount, setTriplePaxCount] = useState(6); // 6 Jamaah (2 Kamar Triple)
+  const [doublePaxCount, setDoublePaxCount] = useState(4); // 4 Jamaah (2 Kamar Double)
+
+  // Tariff Surcharge Tetap per Pax (Paten)
+  const TRIPLE_SURCHARGE_PATEN = 2500000; // Paten + Rp 2.500.000 / pax
+  const DOUBLE_SURCHARGE_PATEN = 4500000; // Paten + Rp 4.500.000 / pax
 
   // 3. Profit Margin Target
   const [marginType, setMarginType] = useState<"nominal" | "percent">("nominal");
@@ -171,17 +175,22 @@ export default function PackageCalculatorPage() {
       profitPerPax = Math.round(hppQuadPerPax * (marginPercent / 100));
     }
 
-    // Selling Price Quad
+    // Selling Price per Pax Tiers
     const sellingPriceQuad = hppQuadPerPax + profitPerPax;
+    const sellingPriceTriple = sellingPriceQuad + TRIPLE_SURCHARGE_PATEN;
+    const sellingPriceDouble = sellingPriceQuad + DOUBLE_SURCHARGE_PATEN;
 
-    // Triple (+ Rp 2.500.000) & Double (+ Rp 4.500.000)
-    const sellingPriceTriple = sellingPriceQuad + tripleSurchargeIdr;
-    const sellingPriceDouble = sellingPriceQuad + doubleSurchargeIdr;
+    // Room Distribution Count Calculation
+    const quadPaxCount = Math.max(0, targetPax - triplePaxCount - doublePaxCount);
 
-    // Group Profit Projection
-    const totalGroupRevenue = sellingPriceQuad * targetPax;
+    // Group Revenue & Profit Projection based on exact room distribution
+    const totalGroupRevenue =
+      quadPaxCount * sellingPriceQuad +
+      triplePaxCount * sellingPriceTriple +
+      doublePaxCount * sellingPriceDouble;
+
     const totalGroupHpp = hppQuadPerPax * targetPax;
-    const totalGroupProfit = profitPerPax * targetPax;
+    const totalGroupProfit = totalGroupRevenue - totalGroupHpp;
 
     return {
       totalFlight,
@@ -203,6 +212,9 @@ export default function PackageCalculatorPage() {
       sellingPriceQuad,
       sellingPriceTriple,
       sellingPriceDouble,
+      quadPaxCount,
+      triplePaxCount,
+      doublePaxCount,
       totalGroupRevenue,
       totalGroupHpp,
       totalGroupProfit,
@@ -237,8 +249,8 @@ export default function PackageCalculatorPage() {
     marginType,
     marginNominalPerPax,
     marginPercent,
-    tripleSurchargeIdr,
-    doubleSurchargeIdr,
+    triplePaxCount,
+    doublePaxCount,
   ]);
 
   const formatRupiah = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
@@ -484,28 +496,47 @@ export default function PackageCalculatorPage() {
                   </div>
                 </div>
 
-                {/* Surcharges Upgrade Kamar Triple & Double */}
-                <div className="sm:col-span-2 pt-2 border-t border-stone-100 grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-stone-700">Tambahan Kamar Triple (Rp/Pax)</label>
-                    <input
-                      type="number"
-                      value={tripleSurchargeIdr}
-                      onChange={(e) => setTripleSurchargeIdr(Number(e.target.value))}
-                      className="w-full h-8 rounded-lg border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-stone-800"
-                    />
-                    <p className="text-[10px] text-stone-400">Selisih harga dari Quad ke Triple</p>
+                {/* Komposisi Alokasi Kamar Rombongan */}
+                <div className="sm:col-span-2 pt-3 border-t border-stone-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-stone-800">Alokasi Pembagian Kamar Rombongan ({targetPax} Pax Total)</p>
+                    <span className="text-[10px] font-semibold text-stone-500">Tarif Upgrade Paten</span>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-stone-700">Tambahan Kamar Double (Rp/Pax)</label>
-                    <input
-                      type="number"
-                      value={doubleSurchargeIdr}
-                      onChange={(e) => setDoubleSurchargeIdr(Number(e.target.value))}
-                      className="w-full h-8 rounded-lg border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-stone-800"
-                    />
-                    <p className="text-[10px] text-stone-400">Selisih harga dari Quad ke Double</p>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="space-y-1 rounded-xl border border-stone-200 bg-stone-50/70 p-2.5">
+                      <label className="text-[10px] font-bold text-stone-600 block">Kamar Quad (4 Pax)</label>
+                      <p className="text-sm font-black text-brand-pink">{calculations.quadPaxCount} Pax</p>
+                      <p className="text-[9px] text-stone-400 font-medium">Sisa Kuota Otomatis</p>
+                    </div>
+
+                    <div className="space-y-1 rounded-xl border border-amber-200 bg-amber-50/40 p-2.5">
+                      <label className="text-[10px] font-bold text-amber-900 block">Upgrade Triple (+2.5 Jt)</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={triplePaxCount}
+                          onChange={(e) => setTriplePaxCount(Math.max(0, Number(e.target.value)))}
+                          className="w-full h-7 rounded-lg border border-amber-300 bg-white px-2 text-xs font-bold text-amber-900"
+                        />
+                        <span className="text-[10px] font-bold text-amber-800">Pax</span>
+                      </div>
+                      <p className="text-[9px] text-amber-700">~{Math.ceil(triplePaxCount / 3)} Kamar Triple</p>
+                    </div>
+
+                    <div className="space-y-1 rounded-xl border border-purple-200 bg-purple-50/40 p-2.5">
+                      <label className="text-[10px] font-bold text-purple-900 block">Upgrade Double (+4.5 Jt)</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={doublePaxCount}
+                          onChange={(e) => setDoublePaxCount(Math.max(0, Number(e.target.value)))}
+                          className="w-full h-7 rounded-lg border border-purple-300 bg-white px-2 text-xs font-bold text-purple-900"
+                        />
+                        <span className="text-[10px] font-bold text-purple-800">Pax</span>
+                      </div>
+                      <p className="text-[9px] text-purple-700">~{Math.ceil(doublePaxCount / 2)} Kamar Double</p>
+                    </div>
                   </div>
                 </div>
 
@@ -793,9 +824,14 @@ export default function PackageCalculatorPage() {
                 {/* QUAD */}
                 <div className="rounded-xl border border-brand-pink/30 bg-rose-50/40 p-3.5 flex items-center justify-between">
                   <div>
-                    <span className="rounded-md bg-brand-pink px-2 py-0.5 text-[10px] font-bold text-white uppercase">
-                      Kamar Quad (4 Pax)
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded-md bg-brand-pink px-2 py-0.5 text-[10px] font-bold text-white uppercase">
+                        Kamar Quad (4 Pax)
+                      </span>
+                      <span className="rounded-md bg-rose-200/70 px-2 py-0.5 text-[10px] font-extrabold text-rose-900">
+                        {calculations.quadPaxCount} Pax
+                      </span>
+                    </div>
                     <p className="text-[11px] font-semibold text-stone-500 mt-1">Standar Brosur Utama</p>
                   </div>
                   <div className="text-right">
@@ -805,12 +841,17 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 {/* TRIPLE */}
-                <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3.5 flex items-center justify-between">
+                <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-3.5 flex items-center justify-between">
                   <div>
-                    <span className="rounded-md bg-stone-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
-                      Kamar Triple (3 Pax)
-                    </span>
-                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ {formatRupiah(tripleSurchargeIdr)} / pax</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded-md bg-amber-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
+                        Kamar Triple (3 Pax)
+                      </span>
+                      <span className="rounded-md bg-amber-200/70 px-2 py-0.5 text-[10px] font-extrabold text-amber-950">
+                        {calculations.triplePaxCount} Pax
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ Rp 2.500.000 / pax</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-extrabold text-brand-cocoa">{formatRupiah(calculations.sellingPriceTriple)}</p>
@@ -818,12 +859,17 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 {/* DOUBLE */}
-                <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3.5 flex items-center justify-between">
+                <div className="rounded-xl border border-purple-200 bg-purple-50/40 p-3.5 flex items-center justify-between">
                   <div>
-                    <span className="rounded-md bg-stone-900 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
-                      Kamar Double (2 Pax)
-                    </span>
-                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ {formatRupiah(doubleSurchargeIdr)} / pax</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded-md bg-purple-900 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
+                        Kamar Double (2 Pax)
+                      </span>
+                      <span className="rounded-md bg-purple-200/70 px-2 py-0.5 text-[10px] font-extrabold text-purple-950">
+                        {calculations.doublePaxCount} Pax
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ Rp 4.500.000 / pax</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-extrabold text-brand-cocoa">{formatRupiah(calculations.sellingPriceDouble)}</p>
