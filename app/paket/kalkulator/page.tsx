@@ -1132,6 +1132,27 @@ export default function PackageCalculatorPage() {
                   </div>
                 )}
               </div>
+
+              {/* LIVE KEUNTUNGAN CARD IN SECTION 3 */}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-emerald-900 block uppercase tracking-wider">
+                    Total Proyeksi Keuntungan Rombongan ({targetPax} Pax)
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-medium">
+                    Estimasi Profit Bersih ({formatRupiah(calculations.profitPerPax)} / Pax)
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-black text-emerald-800 block">
+                    {formatRupiah(calculations.totalGroupProfit)}
+                  </span>
+                  <span className="text-[10px] text-stone-500">
+                    Omset: {formatRupiah(calculations.totalGroupRevenue)}
+                  </span>
+                </div>
+              </div>
+
             </div>
 
           </div>
@@ -1139,6 +1160,35 @@ export default function PackageCalculatorPage() {
           {/* RIGHT 5 COLUMNS: LIVE COST BREAKDOWN & SELLING PRICE TIERS */}
           <div className="lg:col-span-5 space-y-6">
             
+            {/* 💰 HIGHLIGHT CARD: TOTAL KEUNTUNGAN ROMBONGAN */}
+            <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 p-5 text-white shadow-md space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-xs">
+                    <Coins className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100">Total Keuntungan Rombongan</h3>
+                    <p className="text-[11px] text-emerald-200">Proyeksi Profit ({targetPax} Jamaah)</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold text-white backdrop-blur-xs">
+                  +{formatRupiah(calculations.profitPerPax)} / Pax
+                </span>
+              </div>
+
+              <div className="pt-2 flex items-baseline justify-between border-t border-white/20">
+                <div>
+                  <span className="text-xs text-emerald-200 block">Est. Profit Kotor Rombongan</span>
+                  <span className="text-2xl font-black text-white">{formatRupiah(calculations.totalGroupProfit)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-emerald-200 block">Total Omset Rombongan</span>
+                  <span className="text-sm font-bold text-white/90">{formatRupiah(calculations.totalGroupRevenue)}</span>
+                </div>
+              </div>
+            </div>
+
             {/* 🏷️ TIPE HARGA JUAL PAKET (QUAD / TRIPLE / DOUBLE) */}
             <div className="rounded-2xl border border-brand-pink/30 bg-white p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-extrabold text-brand-cocoa flex items-center justify-between border-b border-stone-100 pb-3">
@@ -1308,9 +1358,31 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 {/* TOTAL HPP */}
-                <div className="flex items-center justify-between pt-2 text-sm font-extrabold text-brand-cocoa">
+                <div className="flex items-center justify-between pt-2 text-sm font-extrabold text-brand-cocoa border-t border-stone-200">
                   <span>TOTAL HPP PER PAX</span>
                   <span className="text-brand-pink">{formatRupiah(calculations.hppQuadPerPax)}</span>
+                </div>
+
+                {/* KEUNTUNGAN PER PAX */}
+                <div className="flex items-center justify-between pt-1 text-xs font-bold text-emerald-700">
+                  <span>+ MARGIN KEUNTUNGAN PER PAX</span>
+                  <span>{formatRupiah(calculations.profitPerPax)}</span>
+                </div>
+
+                {/* TOTAL KEUNTUNGAN ROMBONGAN */}
+                <div className="rounded-xl border border-emerald-300 bg-emerald-500 p-3 text-white flex items-center justify-between mt-2">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-emerald-100 block">
+                      TOTAL KEUNTUNGAN ROMBONGAN ({targetPax} PAX)
+                    </span>
+                    <span className="text-[11px] font-extrabold text-white">
+                      {formatRupiah(calculations.totalGroupProfit)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-emerald-100 block">Total Omset Rombongan</span>
+                    <span className="text-xs font-bold text-white">{formatRupiah(calculations.totalGroupRevenue)}</span>
+                  </div>
                 </div>
 
               </div>
