@@ -92,6 +92,10 @@ export default function PackageCalculatorPage() {
   const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(350000); // Nasi Nampan + City Tour
   const [miscEmergencyIdr, setMiscEmergencyIdr] = useState(250000);
 
+  // Hotel Room Upgrade Surcharges (Per Pax)
+  const [tripleSurchargeIdr, setTripleSurchargeIdr] = useState(2500000); // Upgrade Kamar Triple (+ Rp 2.500.000 / pax)
+  const [doubleSurchargeIdr, setDoubleSurchargeIdr] = useState(4500000); // Upgrade Kamar Double (+ Rp 4.500.000 / pax)
+
   // 3. Profit Margin Target
   const [marginType, setMarginType] = useState<"nominal" | "percent">("nominal");
   const [marginNominalPerPax, setMarginNominalPerPax] = useState(3500000); // Rp 3.500.000 profit / pax
@@ -172,9 +176,9 @@ export default function PackageCalculatorPage() {
     // Selling Price Quad
     const sellingPriceQuad = hppQuadPerPax + profitPerPax;
 
-    // Triple (+ Rp 1.500.000) & Double (+ Rp 3.500.000)
-    const sellingPriceTriple = sellingPriceQuad + 1500000;
-    const sellingPriceDouble = sellingPriceQuad + 3500000;
+    // Triple (+ Rp 2.500.000) & Double (+ Rp 4.500.000)
+    const sellingPriceTriple = sellingPriceQuad + tripleSurchargeIdr;
+    const sellingPriceDouble = sellingPriceQuad + doubleSurchargeIdr;
 
     // Group Profit Projection
     const totalGroupRevenue = sellingPriceQuad * targetPax;
@@ -237,6 +241,8 @@ export default function PackageCalculatorPage() {
     marginType,
     marginNominalPerPax,
     marginPercent,
+    tripleSurchargeIdr,
+    doubleSurchargeIdr,
   ]);
 
   const formatRupiah = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
@@ -481,6 +487,32 @@ export default function PackageCalculatorPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Surcharges Upgrade Kamar Triple & Double */}
+                <div className="sm:col-span-2 pt-2 border-t border-stone-100 grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-stone-700">Tambahan Kamar Triple (Rp/Pax)</label>
+                    <input
+                      type="number"
+                      value={tripleSurchargeIdr}
+                      onChange={(e) => setTripleSurchargeIdr(Number(e.target.value))}
+                      className="w-full h-8 rounded-lg border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-stone-800"
+                    />
+                    <p className="text-[10px] text-stone-400">Selisih harga dari Quad ke Triple</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-stone-700">Tambahan Kamar Double (Rp/Pax)</label>
+                    <input
+                      type="number"
+                      value={doubleSurchargeIdr}
+                      onChange={(e) => setDoubleSurchargeIdr(Number(e.target.value))}
+                      className="w-full h-8 rounded-lg border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-bold text-stone-800"
+                    />
+                    <p className="text-[10px] text-stone-400">Selisih harga dari Quad ke Double</p>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -792,7 +824,7 @@ export default function PackageCalculatorPage() {
                     <span className="rounded-md bg-stone-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
                       Kamar Triple (3 Pax)
                     </span>
-                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ Rp 1.500.000 / pax</p>
+                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ {formatRupiah(tripleSurchargeIdr)} / pax</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-extrabold text-brand-cocoa">{formatRupiah(calculations.sellingPriceTriple)}</p>
@@ -805,7 +837,7 @@ export default function PackageCalculatorPage() {
                     <span className="rounded-md bg-stone-900 px-2 py-0.5 text-[10px] font-bold text-white uppercase">
                       Kamar Double (2 Pax)
                     </span>
-                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ Rp 3.500.000 / pax</p>
+                    <p className="text-[11px] font-semibold text-stone-500 mt-1">+ {formatRupiah(doubleSurchargeIdr)} / pax</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-extrabold text-brand-cocoa">{formatRupiah(calculations.sellingPriceDouble)}</p>
