@@ -60,8 +60,7 @@ export default function PackageCalculatorPage() {
   // Visa & Saudi Mandatory Insurance
   const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(450); // 450 SAR per pax
 
-  // Transport & Handling
-  const [transportBusSarPerPax, setTransportBusSarPerPax] = useState(220); // Bus AC Makkah-Madinah-Jeddah-Thaif
+  // Handling & Airport
   const [handlingBandaraIdr, setHandlingBandaraIdr] = useState(450000); // Handling JED & CGK
   const [handlingJakartaSaudiIdr, setHandlingJakartaSaudiIdr] = useState(750000); // Handling Terpadu Jakarta (CGK) & Arab Saudi (JED/MED) per pax
 
@@ -121,9 +120,8 @@ export default function PackageCalculatorPage() {
     // 3. Visa & Insurance
     const visaInsuranceIdr = sarToIdr(visaAndInsuranceSar);
 
-    // 4. Transport & Handling
-    const transportBusIdr = sarToIdr(transportBusSarPerPax);
-    const totalTransportHandling = transportBusIdr + handlingBandaraIdr + handlingJakartaSaudiIdr;
+    // 4. Handling Bandara
+    const totalTransportHandling = handlingBandaraIdr + handlingJakartaSaudiIdr;
 
     // 5. Transit & Lounge
     const totalTransitLounge = hotelTransitLoungeIdr;
@@ -191,7 +189,6 @@ export default function PackageCalculatorPage() {
       madinahHotelPerPaxIdr,
       totalHotelIdr,
       visaInsuranceIdr,
-      transportBusIdr,
       totalTransportHandling,
       totalTransitLounge,
       nasiBoxJakartaTotalIdr,
@@ -218,7 +215,6 @@ export default function PackageCalculatorPage() {
     madinahRoomSarPerNight,
     madinahNights,
     visaAndInsuranceSar,
-    transportBusSarPerPax,
     handlingBandaraIdr,
     handlingJakartaSaudiIdr,
     hotelTransitLoungeIdr,
@@ -567,16 +563,6 @@ export default function PackageCalculatorPage() {
                   <p className="text-[10px] text-stone-400">Komisi Sales / Mitra Agent Per Pax</p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-semibold text-stone-700">Transport Bus AC per Pax (SAR)</label>
-                  <input
-                    type="number"
-                    value={transportBusSarPerPax}
-                    onChange={(e) => setTransportBusSarPerPax(Number(e.target.value))}
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
-                  />
-                </div>
-
                 {/* Nasi Box Jakarta */}
                 <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Nasi Box Transit Jakarta (CGK)</label>
@@ -885,7 +871,7 @@ export default function PackageCalculatorPage() {
 
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-600 flex items-center gap-1.5">
-                    <Truck className="h-3.5 w-3.5 text-amber-600" /> Transport Bus & Handling
+                    <Truck className="h-3.5 w-3.5 text-amber-600" /> Handling Bandara (CGK, JED & MED)
                   </span>
                   <span className="font-bold text-brand-cocoa">{formatRupiah(calculations.totalTransportHandling)}</span>
                 </div>
