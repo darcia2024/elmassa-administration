@@ -16,22 +16,7 @@ export type InstallmentRow = {
 
 const allowedStatuses = ["Terjadwal", "Jatuh Tempo", "Lunas", "Dibatalkan"] as const;
 
-const installmentRows: InstallmentRow[] = [
-  {
-    id: "CIC-001",
-    bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    packageName: "Umrah Reguler 12 Hari",
-    sequence: "Cicilan 2",
-    dueDate: "28 Jul 2026",
-    dueDateValue: "2026-07-28",
-    amount: 10_000_000,
-    amountDisplay: "Rp 10.000.000",
-    paidAmount: 0,
-    paidDisplay: "Rp 0",
-    status: "Jatuh Tempo",
-  },
-];
+const installmentRows: InstallmentRow[] = [];
 
 function formatRupiah(value: number) {
   return `Rp ${value.toLocaleString("id-ID")}`;

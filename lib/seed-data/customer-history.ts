@@ -17,28 +17,9 @@ export type CustomerPaymentHistory = {
   accountDestination: string;
 };
 
-const bookingHistory: CustomerBookingHistory[] = [
-  {
-    code: "BK-2407-018",
-    customerId: "cust-001",
-    packageName: "Umrah Reguler 12 Hari",
-    departureDate: "2026-08-12",
-    status: "DP",
-    totalPrice: 32_500_000,
-    paidAmount: 12_500_000,
-  },
-];
+const bookingHistory: CustomerBookingHistory[] = [];
 
-const paymentHistory: CustomerPaymentHistory[] = [
-  {
-    receipt: "KW-2407-044",
-    customerId: "cust-001",
-    bookingCode: "BK-2407-018",
-    paymentDate: "2026-07-25",
-    amount: 7_500_000,
-    accountDestination: "BCA El Massa",
-  },
-];
+const paymentHistory: CustomerPaymentHistory[] = [];
 
 export function getCustomerHistory(customerId: string) {
   const bookings = bookingHistory.filter((item) => item.customerId === customerId);

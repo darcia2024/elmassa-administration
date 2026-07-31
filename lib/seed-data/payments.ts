@@ -19,25 +19,7 @@ export type PaymentRow = {
   notes?: string;
 };
 
-const paymentRows: PaymentRow[] = [
-  {
-    id: "pay-044",
-    receiptNumber: "KW-2407-044",
-    bookingCode: "BK-2407-018",
-    customerName: "Siti Rahma",
-    customerPhone: "0812-4455-7788",
-    packageName: "Umrah Reguler 12 Hari",
-    date: "2026-07-25",
-    amount: 7_500_000,
-    amountDisplay: "Rp 7.500.000",
-    amountWords: "Tujuh juta lima ratus ribu rupiah",
-    paymentFor: "Pembayaran cicilan paket Umrah Reguler 12 Hari",
-    paymentMethod: "Transfer",
-    account: "BCA El Massa",
-    staff: "Azriandri",
-    status: "Terverifikasi",
-  },
-];
+const paymentRows: PaymentRow[] = [];
 
 export function listPaymentRows() {
   return paymentRows;

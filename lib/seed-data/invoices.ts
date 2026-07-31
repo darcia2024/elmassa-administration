@@ -46,20 +46,7 @@ const addressesByCustomer: Record<string, string> = {
   "Nadia Putri": "Jl. Asia Afrika No. 14, Bandung",
 };
 
-const invoiceRows: InvoiceRow[] = [
-  createInvoiceObject({
-    bookingCode: "BK-2407-018",
-    customer: "Siti Rahma",
-    packageName: "Umrah Reguler 12 Hari",
-    issueDate: "10 Jul 2026",
-    dueDate: "28 Jul 2026",
-    dueDateValue: "2026-07-28",
-    total: 32_500_000,
-    paid: 12_500_000,
-    participantCount: 1,
-    number: "INV-2407-018",
-  }),
-];
+const invoiceRows: InvoiceRow[] = [];
 
 function formatRupiah(value: number) {
   return `Rp ${value.toLocaleString("id-ID")}`;
