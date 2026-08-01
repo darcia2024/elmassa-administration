@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Sparkles,
   Users,
@@ -66,7 +66,31 @@ export default function PenerbitanUmrahmePage() {
   // Show detailed fields accordion in form
   const [showDetailFields, setShowDetailFields] = useState(false);
 
-  // Form input states (Single Manual Input)
+  const [batchOptions, setBatchOptions] = useState<string[]>([
+    "Rombongan Bangka Belitung (08 - 18 Jul 2026)",
+    "Rombongan Sumbagsel & Palembang (12 - 24 Agu 2026)",
+    "Rombongan Executive VIP (05 - 14 Sep 2026)",
+  ]);
+
+  // Dynamic Package/Batch loading from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_published_packages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customNames = parsed.map((pkg: any) =>
+            `${pkg.name || pkg.packageName} (${pkg.departuresDate || pkg.departureDate || "Keberangkatan"})`
+          );
+          setBatchOptions([...customNames, ...batchOptions]);
+          setInputBatch(customNames[0]);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse el_massa_published_packages:", e);
+    }
+  }, []);
+
   const [inputNama, setInputNama] = useState("");
   const [inputNik, setInputNik] = useState("");
   const [inputPaspor, setInputPaspor] = useState("");
@@ -450,9 +474,11 @@ export default function PenerbitanUmrahmePage() {
                     onChange={(e) => setInputBatch(e.target.value)}
                     className="w-full h-11 px-3 rounded-xl border border-stone-200 bg-stone-50 text-xs font-bold text-stone-900 focus:outline-none focus:border-pink-500 focus:bg-white transition"
                   >
-                    <option value="Rombongan Bangka Belitung (08 - 18 Jul 2026)">Rombongan Bangka Belitung (08 Jul 2026)</option>
-                    <option value="Rombongan Sumbagsel & Palembang (12 - 24 Agu 2026)">Rombongan Sumbagsel & Palembang (12 Agu 2026)</option>
-                    <option value="Rombongan Executive VIP (05 - 14 Sep 2026)">Rombongan Executive VIP (05 Sep 2026)</option>
+                    {batchOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

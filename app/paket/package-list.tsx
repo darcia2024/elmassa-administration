@@ -116,16 +116,16 @@ export function PackageList() {
             <div className="flex items-center gap-2">
               <Link
                 href="/paket/kalkulator"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shrink-0"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-4 text-xs font-black text-white shadow-md shadow-pink-500/25 hover:from-pink-700 hover:to-rose-700 active:scale-95 transition-all shrink-0 border border-pink-500/30"
               >
-                <Calculator className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
-                <span>Hitung HPP & Costing</span>
+                <Sparkles className="h-4 w-4 text-white animate-pulse" />
+                <span>+ Hitung HPP & Buat Paket Wisata</span>
               </Link>
               <Link
                 href="/booking/form"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-bold text-stone-700 hover:bg-stone-100 transition shrink-0"
               >
-                <Plus className="h-4 w-4" strokeWidth={1.5} />
+                <Plus className="h-4 w-4 text-stone-500" strokeWidth={1.5} />
                 <span>Daftar Jamaah / Booking</span>
               </Link>
             </div>

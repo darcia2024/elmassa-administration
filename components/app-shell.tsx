@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bell,
   Building2,
+  Calculator,
   CalendarDays,
   Check,
   CheckCheck,
@@ -37,6 +38,7 @@ const navGroups = [
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", aliases: ["/"] },
       { label: "Paket Wisata", icon: Plane, href: "/paket" },
+      { label: "Kalkulator HPP Paket", icon: Calculator, href: "/paket/kalkulator" },
       { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
       { label: "Pelanggan", icon: Users, href: "/pelanggan" },
     ],

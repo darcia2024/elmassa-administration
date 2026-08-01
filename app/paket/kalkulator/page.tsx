@@ -42,6 +42,10 @@ import { AppShell } from "@/components/app-shell";
 export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
   const [packageName, setPackageName] = useState("Umrah Spesial Musim Baru 12 Hari");
+  const [departureDate, setDepartureDate] = useState("15 Oktober 2026");
+  const [categoryName, setCategoryName] = useState("Oktober");
+  const [airlineName, setAirlineName] = useState("Garuda Indonesia (GA-980)");
+  const [flightRoute, setFlightRoute] = useState("PGK ➔ CGK ➔ JED (Transit Jakarta)");
   const [durationDays, setDurationDays] = useState(12);
   const [makkahNights, setMakkahNights] = useState(5);
   const [madinahNights, setMadinahNights] = useState(4);
@@ -346,7 +350,9 @@ export default function PackageCalculatorPage() {
 
   const handleOpenPublishModal = () => {
     const totalDays = (makkahNights || 5) + (madinahNights || 4);
-    setPubPackageName(`Umrah Spesial ${totalDays} Hari (${makkahHotelName})`);
+    setPubPackageName(packageName || `Umrah Spesial ${totalDays} Hari (${makkahHotelName})`);
+    setPubCategory(categoryName || "Spesial");
+    setPubDepartureDate(departureDate || "15 Oktober 2026");
     setIsPublishModalOpen(true);
   };
 
@@ -354,17 +360,19 @@ export default function PackageCalculatorPage() {
     const totalDays = (makkahNights || 5) + (madinahNights || 4);
     const newPackage = {
       id: `pkg-custom-${Date.now()}`,
-      name: pubPackageName || `Umrah Spesial ${totalDays} Hari`,
-      category: pubCategory,
+      name: pubPackageName || packageName || `Umrah Spesial ${totalDays} Hari`,
+      category: pubCategory || categoryName,
       duration: `${totalDays} Hari`,
-      departuresDate: pubDepartureDate || "15 November 2026",
+      departuresDate: `${pubDepartureDate || departureDate} (${airlineName})`,
+      departureDate: pubDepartureDate || departureDate,
       price: formatRupiah(calculations.sellingPriceQuad),
       numericPrice: calculations.sellingPriceQuad,
       dpMinimum: pubDpMinimum || "Rp 5.000.000",
       makkahHotel: makkahHotelName,
       madinahHotel: madinahHotelName,
-      airline: "Saudia / Garuda Indonesia (Connecting PGK-CGK-JED)",
-      startPoint: "Start Pangkal Pinang",
+      airline: airlineName || "Garuda Indonesia GA-980",
+      flightRoute: flightRoute,
+      startPoint: "Start Pangkal Pinang / Jakarta",
       programUmrah: `Program Umrah ${totalDays} Hari + Fullboard Hotel`,
       bonusHighlights: [
         "Free City Tour Thaif & Pabrik Parfum",
@@ -527,6 +535,43 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Tanggal Keberangkatan *</label>
+                  <input
+                    type="text"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    placeholder="cth. 15 Oktober 2026"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Bulan / Kategori Paket</label>
+                  <select
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  >
+                    <option value="Oktober">Oktober</option>
+                    <option value="November">November</option>
+                    <option value="Desember">Desember</option>
+                    <option value="Ramadhan">Ramadhan</option>
+                    <option value="Spesial">Spesial</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Maskapai Penerbangan</label>
+                  <input
+                    type="text"
+                    value={airlineName}
+                    onChange={(e) => setAirlineName(e.target.value)}
+                    placeholder="cth. Garuda Indonesia GA-980"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+
+                <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Kurs 1 SAR ke IDR (Riyal)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-stone-400 font-bold text-[11px]">Rp</span>
@@ -541,14 +586,46 @@ export default function PackageCalculatorPage() {
               </div>
             </div>
 
-            {/* 2. Biaya Tiket Flight PP */}
+            {/* 2. Biaya Tiket Flight PP & Rute Keberangkatan */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
               <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2 border-b border-stone-100 pb-3">
                 <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
-                <span>2. Tiket Pesawat Flight PP</span>
+                <span>2. Tiket Pesawat Flight PP & Rute Keberangkatan</span>
               </h3>
 
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Rute Penerbangan (Flight Route)</label>
+                  <select
+                    value={flightRoute}
+                    onChange={(e) => setFlightRoute(e.target.value)}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  >
+                    <option value="PGK ➔ CGK ➔ JED (Transit Jakarta)">PGK ➔ CGK ➔ JED (Pangkal Pinang - Jakarta - Jeddah)</option>
+                    <option value="CGK ➔ JED (Direct Jakarta - Jeddah)">CGK ➔ JED (Direct Jakarta - Jeddah)</option>
+                    <option value="CGK ➔ MED (Direct Jakarta - Madinah)">CGK ➔ MED (Direct Jakarta - Madinah)</option>
+                    <option value="SUB ➔ JED (Direct Surabaya - Jeddah)">SUB ➔ JED (Direct Surabaya - Jeddah)</option>
+                    <option value="KNO ➔ MED (Direct Medan - Madinah)">KNO ➔ MED (Direct Medan - Madinah)</option>
+                    <option value="Custom Flight Route">Custom Flight Route</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Pilihan Maskapai Penerbangan</label>
+                  <select
+                    value={airlineName}
+                    onChange={(e) => setAirlineName(e.target.value)}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  >
+                    <option value="Garuda Indonesia (GA-980)">Garuda Indonesia (GA-980)</option>
+                    <option value="Saudia Airlines (SV-815)">Saudia Airlines (SV-815)</option>
+                    <option value="Lion Air Premium (JT-110)">Lion Air Premium (JT-110)</option>
+                    <option value="Emirates (EK-357)">Emirates (EK-357)</option>
+                    <option value="Qatar Airways (QR-958)">Qatar Airways (QR-958)</option>
+                    <option value="Batik Air (ID-770)">Batik Air (ID-770)</option>
+                  </select>
+                </div>
+
                 <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Domestic Flight PP (PGK - CGK)</label>
                   <input
@@ -557,7 +634,7 @@ export default function PackageCalculatorPage() {
                     onChange={(e) => setFlightPtkCgk(Number(e.target.value))}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
-                  <p className="text-[10px] text-stone-400">Garuda Indonesia Pangkalpinang PP</p>
+                  <p className="text-[10px] text-stone-400">Tiket Feeder Domestik PP (Rp/Pax)</p>
                 </div>
 
                 <div className="space-y-1">
@@ -568,7 +645,7 @@ export default function PackageCalculatorPage() {
                     onChange={(e) => setFlightCgkJed(Number(e.target.value))}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
-                  <p className="text-[10px] text-stone-400">Saudia Airlines / Garuda Direct Saudi</p>
+                  <p className="text-[10px] text-stone-400">Tiket Utama Internasional PP (Rp/Pax)</p>
                 </div>
               </div>
             </div>

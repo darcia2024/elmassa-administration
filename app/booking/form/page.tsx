@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, ClipboardList, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 
-const packagesOptions = [
+const defaultPackagesOptions = [
   { id: "pkg-1", name: "Umrah Spesial Muharram 11 Hari", price: 29700000, date: "08 - 18 Juli 2026 (Garuda GA-980)" },
   { id: "pkg-2", name: "Umrah Reguler 12 Hari", price: 32500000, date: "12 - 24 Agustus 2026 (Saudia SV-815)" },
   { id: "pkg-3", name: "Umrah VIP Executive", price: 45000000, date: "05 - 14 September 2026 (Emirates EK-357)" },
@@ -14,6 +14,7 @@ const packagesOptions = [
 
 export default function BookingFormPage() {
   const router = useRouter();
+  const [packagesList, setPackagesList] = useState(defaultPackagesOptions);
   const [selectedPkgId, setSelectedPkgId] = useState("pkg-1");
   const [customerName, setCustomerName] = useState("H. Rusli Suparman & Rombongan");
   const [customerPhone, setCustomerPhone] = useState("0812-7199-1001");
@@ -22,12 +23,35 @@ export default function BookingFormPage() {
   const [paidAmount, setPaidAmount] = useState(500000000);
   const [isSuccessToast, setIsSuccessToast] = useState(false);
 
+  // Load custom published packages dynamically from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_published_packages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customFormatted = parsed.map((pkg: any) => ({
+            id: pkg.id || `custom-${Math.random()}`,
+            name: pkg.name || pkg.packageName || "Paket Umrah Kustom",
+            price: pkg.numericPrice || Number(String(pkg.price || "").replace(/\D/g, "")) || 30000000,
+            date: `${pkg.departuresDate || pkg.departureDate || "Keberangkatan"} (${pkg.airline || "Airline"})`,
+          }));
+
+          setPackagesList([...customFormatted, ...defaultPackagesOptions]);
+          setSelectedPkgId(customFormatted[0].id);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse el_massa_published_packages:", e);
+    }
+  }, []);
+
   const [participants, setParticipants] = useState([
     { name: "H. Rusli Suparman", passport: "C9824101", phone: "0812-7199-1001" },
     { name: "Hj. Zubaidah Mansur", passport: "C9824102", phone: "0812-7199-1002" },
   ]);
 
-  const selectedPkg = packagesOptions.find((p) => p.id === selectedPkgId) ?? packagesOptions[0];
+  const selectedPkg = packagesList.find((p) => p.id === selectedPkgId) ?? packagesList[0] ?? defaultPackagesOptions[0];
   const totalPrice = participants.length * selectedPkg.price;
   const remainingAmount = Math.max(totalPrice - paidAmount, 0);
 
@@ -197,13 +221,18 @@ export default function BookingFormPage() {
               </label>
 
               <label className="block space-y-1 sm:col-span-2">
-                <span className="text-xs font-semibold text-stone-700">Pilih Paket Wisata & Keberangkatan</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-stone-700">Pilih Paket Wisata & Keberangkatan</span>
+                  <Link href="/paket/kalkulator" className="text-[11px] font-bold text-brand-pink hover:underline">
+                    + Buat Paket Baru di Kalkulator
+                  </Link>
+                </div>
                 <select
                   className="w-full h-9 rounded-xl border border-stone-200 bg-white px-3.5 text-xs text-brand-cocoa font-semibold outline-none focus:border-brand-pink transition shadow-2xs"
                   value={selectedPkgId}
                   onChange={(e) => setSelectedPkgId(e.target.value)}
                 >
-                  {packagesOptions.map((pkg) => (
+                  {packagesList.map((pkg) => (
                     <option key={pkg.id} value={pkg.id}>
                       {pkg.name} — {pkg.date} — Rp {pkg.price.toLocaleString("id-ID")} / Pax
                     </option>
