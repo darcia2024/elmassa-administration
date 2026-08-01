@@ -9,7 +9,18 @@ export type ScheduleRow = {
   status: string;
 };
 
-const scheduleRows: ScheduleRow[] = [];
+const scheduleRows: ScheduleRow[] = [
+  {
+    id: "sched-001",
+    packageId: "pkg-001",
+    departureDate: "2026-07-08",
+    returnDate: "2026-07-18",
+    price: 29700000,
+    quota: 40,
+    meetingPoint: "Terminal Keberangkatan Bandara Depati Amir Pangkalpinang",
+    status: "Terjadwal",
+  },
+];
 
 export function listScheduleRows(packageId: string) {
   return scheduleRows.filter((item) => item.packageId === packageId);

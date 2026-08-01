@@ -44,9 +44,73 @@ export function resolveBookingStatus(totalPrice: number, paidAmount: number, cur
   return "DP";
 }
 
-const bookingRows: BookingRow[] = [];
+const bookingRows: BookingRow[] = [
+  {
+    id: "book-001",
+    code: "BK-202607-001",
+    customerId: "cust-001",
+    customerName: "H. Rusli Suparman & Rombongan (4 Pax)",
+    packageName: "Umrah Spesial Muharram 1448H (11 Hari GA-980)",
+    scheduleId: "sched-001",
+    departureDate: "2026-07-08",
+    status: "DP",
+    totalPrice: 118800000,
+    paidAmount: 50000000,
+    participantCount: 4,
+    bookingDate: "2026-07-01",
+  },
+];
 
-const participantRows: ParticipantRow[] = [];
+const participantRows: ParticipantRow[] = [
+  {
+    id: "MNF001",
+    bookingId: "book-001",
+    name: "H. Rusli Suparman",
+    passportNumber: "C9824101",
+    ticketNumber: "126-9821401",
+    visaNumber: "EV-992101",
+    visaStatus: "Terbit (Valid)",
+    contact: "0812-7199-1001",
+    city: "Pangkalpinang",
+    documentStatus: "Lengkap",
+  },
+  {
+    id: "MNF002",
+    bookingId: "book-001",
+    name: "Hj. Zubaidah Mansur",
+    passportNumber: "C9824102",
+    ticketNumber: "126-9821402",
+    visaNumber: "EV-992102",
+    visaStatus: "Terbit (Valid)",
+    contact: "0812-7199-1002",
+    city: "Pangkalpinang",
+    documentStatus: "Lengkap",
+  },
+  {
+    id: "MNF003",
+    bookingId: "book-001",
+    name: "Ahmad Fauzi",
+    passportNumber: "C9824103",
+    ticketNumber: "126-9821403",
+    visaNumber: "EV-992103",
+    visaStatus: "Terbit (Valid)",
+    contact: "0812-7199-1003",
+    city: "Pangkalpinang",
+    documentStatus: "Lengkap",
+  },
+  {
+    id: "MNF004",
+    bookingId: "book-001",
+    name: "Siti Aminah",
+    passportNumber: "C9824104",
+    ticketNumber: "126-9821404",
+    visaNumber: "EV-992104",
+    visaStatus: "Terbit (Valid)",
+    contact: "0812-7199-1004",
+    city: "Pangkalpinang",
+    documentStatus: "Lengkap",
+  },
+];
 
 export function listBookingRows() {
   return bookingRows;

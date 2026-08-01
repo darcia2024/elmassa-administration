@@ -10,7 +10,19 @@ export type CustomerRow = {
   status: string;
 };
 
-const customerRows: CustomerRow[] = [];
+const customerRows: CustomerRow[] = [
+  {
+    id: "cust-001",
+    name: "H. Rusli Suparman",
+    phone: "0812-7199-1001",
+    email: "rusli.suparman@gmail.com",
+    address: "Jl. Soekarno Hatta No. 45, Bukit Intan",
+    city: "Pangkalpinang",
+    customerType: "Rombongan Keluarga",
+    groupName: "Rombongan Bangka Belitung (08 - 18 Jul 2026)",
+    status: "Aktif",
+  },
+];
 
 export function listCustomerRows() {
   return customerRows;
