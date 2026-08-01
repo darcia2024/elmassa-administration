@@ -46,37 +46,7 @@ const addressesByCustomer: Record<string, string> = {
   "Nadia Putri": "Jl. Asia Afrika No. 14, Bandung",
 };
 
-const invoiceRows: InvoiceRow[] = [
-  {
-    id: "inv-INV-202607-001",
-    number: "INV-202607-001",
-    bookingCode: "BK-202607-001",
-    customer: "H. Rusli Suparman & Rombongan (4 Pax)",
-    address: "Jl. Soekarno Hatta No. 45, Pangkalpinang",
-    packageName: "Umrah Spesial Muharram 1448H (11 Hari GA-980)",
-    issueDate: "2026-07-01",
-    dueDate: "2026-07-20",
-    dueDateValue: "2026-07-20",
-    status: "Sebagian",
-    items: [
-      {
-        name: "Umrah Spesial Muharram 1448H (11 Hari GA-980)",
-        qty: 4,
-        price: 29700000,
-        priceDisplay: "Rp 29.700.000",
-        total: 118800000,
-        totalDisplay: "Rp 118.800.000",
-      },
-    ],
-    total: 118800000,
-    totalDisplay: "Rp 118.800.000",
-    paid: 50000000,
-    paidDisplay: "Rp 50.000.000",
-    remaining: 68800000,
-    remainingDisplay: "Rp 68.800.000",
-    notes: "Setoran DP Rp 50.000.000 telah diterima via Transfer Bank BCA.",
-  },
-];
+const invoiceRows: InvoiceRow[] = [];
 
 function formatRupiah(value: number) {
   return `Rp ${value.toLocaleString("id-ID")}`;

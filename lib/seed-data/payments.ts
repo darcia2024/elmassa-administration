@@ -19,27 +19,7 @@ export type PaymentRow = {
   notes?: string;
 };
 
-const paymentRows: PaymentRow[] = [
-  {
-    id: "PAY-202607-001",
-    receiptNumber: "KW-202607-001",
-    bookingCode: "BK-202607-001",
-    customerName: "H. Rusli Suparman & Rombongan",
-    customerPhone: "0812-7199-1001",
-    packageName: "Umrah Spesial Muharram 1448H (11 Hari GA-980)",
-    date: "01 Juli 2026",
-    amount: 50000000,
-    amountDisplay: "Rp 50.000.000",
-    amountWords: "Lima Puluh Juta Rupiah",
-    paymentFor: "Setoran Uang Muka (DP) 4 Pax Jamaah Umrah Spesial Muharram GA-980",
-    paymentMethod: "Transfer Bank BCA",
-    account: "BCA 8440-888-999 a.n PT AL MASSA AZKA WISATA",
-    staff: "Siti Rahma (Finance Staff)",
-    status: "Terverifikasi",
-    referenceNumber: "TRX-BCA-9921401",
-    notes: "Setoran DP 4 Pax Rombongan Bangka Belitung",
-  },
-];
+const paymentRows: PaymentRow[] = [];
 
 export function listPaymentRows() {
   return paymentRows;

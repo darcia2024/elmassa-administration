@@ -132,12 +132,12 @@ export default function DashboardPage() {
       key: "customers",
       title: "Jamaah Terdaftar",
       value: String(customerCount),
-      subtext: customerCount > 0 ? "100% paspor terverifikasi" : "0 jamaah terdaftar",
-      trend: customerCount > 0 ? "+8.1%" : "0%",
+      subtext: customerCount > 0 ? "🟢 100% Akun UmrahMe Aktif" : "0 jamaah terdaftar",
+      trend: "UmrahMe",
       icon: Users,
-      iconColor: "text-brand-brown",
-      iconBg: "bg-amber-50/80 border-amber-200/60",
-      solidBar: "bg-brand-brown",
+      iconColor: "text-emerald-700",
+      iconBg: "bg-emerald-50/80 border-emerald-200/60",
+      solidBar: "bg-emerald-600",
       progress: customerCount > 0 ? 100 : 0,
     },
     {
@@ -148,17 +148,17 @@ export default function DashboardPage() {
       trend: "Aktif",
       icon: Plane,
       iconColor: "text-stone-700",
-      iconBg: "bg-stone-100/80 border-stone-200/60",
-      solidBar: "bg-brand-cocoa",
+      iconBg: "bg-stone-100 border-stone-200",
+      solidBar: "bg-stone-800",
       progress: packageCount > 0 ? 100 : 0,
     },
     {
       key: "revenue",
       title: "Est. Total Revenue",
-      value: `Rp ${totalRev.toLocaleString("id-ID")}`,
+      value: `Rp ${formatRupiah(totalRev)}`,
       subtext: "Total pembayaran lunas & DP",
-      trend: totalRev > 0 ? "+15.2%" : "0%",
-      icon: Banknote,
+      trend: "+15.2%",
+      icon: Wallet,
       iconColor: "text-emerald-700",
       iconBg: "bg-emerald-50/80 border-emerald-200/60",
       solidBar: "bg-emerald-600",
@@ -330,15 +330,16 @@ export default function DashboardPage() {
                         <th className="py-2.5 pl-3 pr-2">Kode & Jamaah</th>
                         <th className="py-2.5 pr-2">Paket Wisata</th>
                         <th className="py-2.5 pr-2">Tgl Berangkat</th>
-                        <th className="py-2.5 pr-2">Status</th>
-                        <th className="py-2.5 pr-2">Pembayaran</th>
+                        <th className="py-2.5 pr-2">Status Pembayaran</th>
+                        <th className="py-2.5 pr-2">Akun UmrahMe</th>
+                        <th className="py-2.5 pr-2">Total Biaya</th>
                         <th className="py-2.5 pr-3 text-right">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100 font-normal">
                       {filteredBookings.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-6 text-center text-stone-400">
+                          <td colSpan={7} className="py-6 text-center text-stone-400">
                             Tidak ada data booking yang sesuai.
                           </td>
                         </tr>
@@ -375,6 +376,13 @@ export default function DashboardPage() {
 
                               <td className="py-3 pr-2">
                                 <StatusBadge status={booking.status} />
+                              </td>
+
+                              <td className="py-3 pr-2">
+                                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold whitespace-nowrap">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  🟢 UmrahMe Aktif
+                                </span>
                               </td>
 
                               <td className="py-3 pr-2 font-semibold text-brand-cocoa">

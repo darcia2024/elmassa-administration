@@ -46,6 +46,7 @@ const navGroups = [
     items: [
       { label: "Booking", icon: ClipboardList, href: "/booking" },
       { label: "Manifest Peserta", icon: IdCard, href: "/manifest" },
+      { label: "Akun Digital UmrahMe", icon: Sparkles, href: "/umrahme" },
       { label: "Pembayaran", icon: CircleDollarSign, href: "/pembayaran" },
       { label: "Invoice & Kuitansi", icon: ReceiptText, href: "/dokumen/invoice" },
       { label: "Dokumen", icon: FileText, href: "/dokumen" },
@@ -70,6 +71,7 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/pelanggan": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],
   "/booking": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Admin Master"],
   "/manifest": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Admin Master"],
+  "/umrahme": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Sub-User Sales & CRM", "Admin Master"],
   "/pembayaran": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/dokumen/invoice": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/dokumen": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Admin Master"],
@@ -490,8 +492,15 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          {/* Right Controls: 🔍 Global Search Engine & 🔔 Notifications */}
+          {/* Right Controls: 📅 Date & Hijri Pill + 🔍 Global Search Engine & 🔔 Notifications */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            
+            {/* 📅 Date & Accurate Hijri Date Pill */}
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[11px] font-medium text-stone-700 shadow-2xs">
+              <span className="font-semibold text-stone-900">Sat, Aug 1st 2026</span>
+              <span className="text-stone-300">•</span>
+              <span className="font-bold text-pink-600 font-mono">17 Safar 1448H</span>
+            </div>
             
             {/* 🔍 Global Live Search Input Container */}
             <div className="relative">
