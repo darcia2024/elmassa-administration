@@ -342,15 +342,9 @@ export default function PenerbitanUmrahmePage() {
       <div className="space-y-6 pb-12 font-sans">
 
         {/* 🚀 TOP HEADER HERO CARD */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-950 via-pink-900 to-stone-950 p-6 sm:p-8 text-white shadow-xl border border-pink-800/40">
-          <div className="absolute right-0 top-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-pink-500/10 blur-3xl pointer-events-none" />
-          
+        <section className="relative overflow-hidden rounded-3xl bg-[#be185d] p-6 sm:p-8 text-white shadow-xl border border-pink-700/40">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-pink-500/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-pink-300 border border-pink-400/30">
-                <Sparkles className="h-3.5 w-3.5 text-pink-300" />
-                <span>Panel Integrasi UmrahMe × El Massa</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                 Penerbitan & Detail Akun Digital Jamaah
               </h1>
@@ -367,7 +361,7 @@ export default function PenerbitanUmrahmePage() {
                 className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
               >
                 <Bell className="h-4 w-4" />
-                <span>📢 Broadcast Pengumuman</span>
+                <span>Broadcast Pengumuman</span>
               </button>
 
               <button
@@ -376,7 +370,7 @@ export default function PenerbitanUmrahmePage() {
                 className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
               >
                 <FileSpreadsheet className="h-4 w-4" />
-                <span>📊 Bulk Import Excel</span>
+                <span>Bulk Import Excel</span>
               </button>
 
               <div className="rounded-2xl bg-white/10 backdrop-blur-md p-3 px-4 border border-white/15 text-center min-w-[110px]">
@@ -551,14 +545,14 @@ export default function PenerbitanUmrahmePage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !inputNama.trim()}
-                className="w-full h-12 rounded-2xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition active:scale-[0.98] disabled:opacity-50"
+                className="w-full h-12 rounded-2xl bg-[#be185d] hover:bg-[#9d174d] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition active:scale-[0.98] disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                <span>⚡ Terbitkan & Auto-Generate Akun UmrahMe</span>
+                <span>Terbitkan & Auto-Generate Akun UmrahMe</span>
               </button>
             </form>
           </section>

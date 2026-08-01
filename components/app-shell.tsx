@@ -484,7 +484,7 @@ export function AppShell({ children }: AppShellProps) {
 
             <div className="min-w-0">
               <h2 className="text-xs sm:text-base font-bold tracking-tight text-stone-900 truncate">
-                Selamat Datang, {activeUser.name.split(" ")[0]} 👋
+                Selamat Datang, {activeUser.name.split(" ")[0]}
               </h2>
               <p className="text-[10px] sm:text-[11px] font-normal text-stone-500 truncate hidden xs:block sm:block">
                 Dashboard Operasional El Massa Tour & Travel
