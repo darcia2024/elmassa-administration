@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  Trash2,
   Upload,
   Users,
   X,
@@ -78,9 +79,39 @@ export function PackageList() {
   }, []);
 
   const canEditPackage = useMemo(() => {
-    const allowedRoles = ["Super Admin", "Manager Operasional", "Admin Paket", "Direktur Utama"];
+    const allowedRoles = ["Super Admin", "Manager Operasional", "Admin Paket", "Direktur Utama", "Akun Master"];
     return allowedRoles.includes(userRole);
   }, [userRole]);
+
+  const canDeletePackage = useMemo(() => {
+    const allowedMasterRoles = ["Super Admin", "Manager Operasional", "Direktur Utama", "Akun Master"];
+    return allowedMasterRoles.includes(userRole);
+  }, [userRole]);
+
+  // Delete Package State & Handlers
+  const [deletingPkg, setDeletingPkg] = useState<PackageCardItem | null>(null);
+
+  const confirmDeletePackage = (pkg: PackageCardItem) => {
+    setDeletingPkg(pkg);
+  };
+
+  const executeDeletePackage = () => {
+    if (!deletingPkg) return;
+    const updatedList = customPackages.filter((item) => item.id !== deletingPkg.id);
+    setCustomPackages(updatedList);
+    try {
+      localStorage.setItem("el_massa_published_packages", JSON.stringify(updatedList));
+    } catch (e) {
+      console.error(e);
+    }
+    if (selectedPkg?.id === deletingPkg.id) {
+      setSelectedPkg(null);
+    }
+    if (editingPkg?.id === deletingPkg.id) {
+      setEditingPkg(null);
+    }
+    setDeletingPkg(null);
+  };
 
   // Edit Modal State & Poster Upload State
   const [editingPkg, setEditingPkg] = useState<PackageCardItem | null>(null);
@@ -377,6 +408,17 @@ export function PackageList() {
                   </button>
                 )}
 
+                {canDeletePackage && (
+                  <button
+                    type="button"
+                    onClick={() => confirmDeletePackage(pkg)}
+                    className="h-9 px-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition flex items-center gap-1 shrink-0"
+                    title="Hapus Paket (Khusus Akun Master)"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                  </button>
+                )}
+
                 <Link
                   href="/booking/form"
                   className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1"
@@ -535,6 +577,17 @@ export function PackageList() {
                   </button>
                 )}
 
+                {canDeletePackage && (
+                  <button
+                    type="button"
+                    onClick={() => confirmDeletePackage(pkg)}
+                    className="h-7 px-1.5 rounded-lg border border-rose-200 bg-rose-50 text-[10px] font-bold text-rose-700 active:bg-rose-100 transition flex items-center shrink-0"
+                    title="Hapus Paket (Khusus Akun Master)"
+                  >
+                    <Trash2 className="h-2.5 w-2.5 text-rose-600" />
+                  </button>
+                )}
+
                 <Link
                   href="/booking/form"
                   className="flex-1 h-7 rounded-lg bg-stone-900 text-[10px] font-bold text-white shadow-2xs active:bg-stone-800 transition flex items-center justify-center"
@@ -653,6 +706,20 @@ export function PackageList() {
                 >
                   <Edit3 className="h-4 w-4 text-amber-700" />
                   <span>Edit Paket Ini</span>
+                </button>
+              )}
+
+              {canDeletePackage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = selectedPkg;
+                    confirmDeletePackage(current);
+                  }}
+                  className="h-9 rounded-xl border border-rose-300 bg-rose-50 px-4 text-xs font-bold text-rose-800 hover:bg-rose-100 flex items-center gap-1.5"
+                >
+                  <Trash2 className="h-4 w-4 text-rose-600" />
+                  <span>Hapus Paket</span>
                 </button>
               )}
 
@@ -816,23 +883,86 @@ export function PackageList() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4">
+            <div className="flex items-center justify-between border-t border-stone-100 pt-4">
+              <div>
+                {canDeletePackage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = editingPkg;
+                      confirmDeletePackage(current);
+                    }}
+                    className="h-9 rounded-xl border border-rose-300 bg-rose-50 px-4 text-xs font-bold text-rose-800 hover:bg-rose-100 flex items-center gap-1.5"
+                  >
+                    <Trash2 className="h-4 w-4 text-rose-600" />
+                    <span>Hapus Paket Ini</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingPkg(null)}
+                  className="h-9 rounded-xl border border-stone-200 bg-white px-4 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  className="h-9 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-5 text-xs font-extrabold text-white shadow-md hover:from-pink-700 hover:to-rose-700 active:scale-95 transition"
+                >
+                  Simpan Perubahan Paket
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ DELETE PACKAGE CONFIRMATION MODAL */}
+      {deletingPkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4">
+          <div className="relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 border-b border-stone-100 pb-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
+                <Trash2 className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-base font-extrabold text-stone-900">Hapus Paket Wisata</h3>
+                <p className="text-xs font-semibold text-rose-700">Otorisasi Akun Master ({userRole})</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-stone-600">
+              <p>Apakah Anda yakin ingin menghapus paket berikut secara permanen?</p>
+              <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+                <p className="font-extrabold text-stone-900">{deletingPkg.name}</p>
+                <p className="text-[11px] text-stone-500">{deletingPkg.departuresDate} • {deletingPkg.price}</p>
+              </div>
+              <p className="text-[11px] text-stone-500 italic">
+                * Paket yang dihapus akan otomatis hilang dari katalog travel & aplikasi jamaah UmrahMe.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-3">
               <button
                 type="button"
-                onClick={() => setEditingPkg(null)}
+                onClick={() => setDeletingPkg(null)}
                 className="h-9 rounded-xl border border-stone-200 bg-white px-4 text-xs font-semibold text-stone-600 hover:bg-stone-50"
               >
                 Batal
               </button>
               <button
                 type="button"
-                onClick={handleSaveEdit}
-                className="h-9 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-5 text-xs font-extrabold text-white shadow-md hover:from-pink-700 hover:to-rose-700 active:scale-95 transition"
+                onClick={executeDeletePackage}
+                className="h-9 rounded-xl bg-rose-600 px-5 text-xs font-extrabold text-white shadow-md hover:bg-rose-700 active:scale-95 transition"
               >
-                Simpan Perubahan Paket
+                Ya, Hapus Paket Permanen
               </button>
             </div>
-
           </div>
         </div>
       )}
