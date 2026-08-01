@@ -5,6 +5,7 @@ import {
   Award,
   Calculator,
   Calendar,
+  CalendarDays,
   CheckCircle2,
   Clock,
   Compass,
@@ -29,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { ItineraryDayItem } from "@/lib/itinerary-generator";
 
 type PackageCardItem = {
   id: string;
@@ -49,6 +51,7 @@ type PackageCardItem = {
   bannerImg?: string;
   includes: string[];
   excludes: string[];
+  itinerary?: ItineraryDayItem[];
   featured?: boolean;
 };
 
@@ -683,6 +686,48 @@ export function PackageList() {
                 </ul>
               </div>
             </div>
+
+            {/* 🗓️ ITINERARY RENCANA PERJALANAN DETAIL */}
+            {selectedPkg.itinerary && selectedPkg.itinerary.length > 0 && (
+              <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-4 space-y-3">
+                <h4 className="font-extrabold text-stone-900 text-sm flex items-center gap-2 border-b border-stone-200 pb-2">
+                  <CalendarDays className="h-4 w-4 text-emerald-600" />
+                  <span>Rencana Perjalanan (Itinerary Harian)</span>
+                </h4>
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                  {selectedPkg.itinerary.map((dayItem, dIdx) => (
+                    <div key={dIdx} className="rounded-lg border border-stone-200 bg-white p-3 text-xs space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="grid h-6 w-6 place-items-center rounded-lg bg-stone-900 text-white font-black text-[10px]">
+                            H{dayItem.day}
+                          </span>
+                          <span className="font-extrabold text-stone-900">{dayItem.title}</span>
+                        </div>
+                        {dayItem.date && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                            {dayItem.date}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 pl-8">
+                        {dayItem.activities.map((act, aIdx) => (
+                          <div key={aIdx} className="flex items-start gap-2">
+                            {act.time && (
+                              <span className="font-bold text-stone-500 text-[10px] shrink-0 bg-stone-100 px-1.5 py-0.5 rounded">
+                                {act.time}
+                              </span>
+                            )}
+                            <p className="text-[11px] text-stone-700">{act.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Modal Footer Actions */}
             <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4">

@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { generateDefaultItinerary, ItineraryDayItem } from "@/lib/itinerary-generator";
 
 export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
@@ -48,6 +49,9 @@ export default function PackageCalculatorPage() {
   const [domesticAirline, setDomesticAirline] = useState("Garuda Indonesia (Feeder PGK ⇄ CGK)");
   const [internationalAirline, setInternationalAirline] = useState("Saudia Airlines (SV-815)");
   const [flightRoute, setFlightRoute] = useState("PGK ➔ CGK ➔ JED (Pangkal Pinang - Jakarta - Jeddah)");
+  
+  // Itinerary List State
+  const [itineraryList, setItineraryList] = useState<ItineraryDayItem[]>([]);
   const [durationDays, setDurationDays] = useState(12);
   const [makkahNights, setMakkahNights] = useState(5);
   const [madinahNights, setMadinahNights] = useState(4);
@@ -105,6 +109,33 @@ export default function PackageCalculatorPage() {
   const [makkahRoomSarPerNight, setMakkahRoomSarPerNight] = useState(480); // 480 SAR / night / room Quad
   const [madinahHotelName, setMadinahHotelName] = useState("Daar El Naeem");
   const [madinahRoomSarPerNight, setMadinahRoomSarPerNight] = useState(380); // 380 SAR / night / room Quad
+
+  // Auto-generate itinerary list on initial load or date/hotel changes
+  useEffect(() => {
+    if (itineraryList.length === 0) {
+      const generated = generateDefaultItinerary(
+        durationDays,
+        departureDate,
+        domesticAirline,
+        internationalAirline,
+        makkahHotelName,
+        madinahHotelName
+      );
+      setItineraryList(generated);
+    }
+  }, [durationDays, departureDate, domesticAirline, internationalAirline, makkahHotelName, madinahHotelName, itineraryList.length]);
+
+  const handleRegenerateItinerary = () => {
+    const generated = generateDefaultItinerary(
+      durationDays,
+      departureDate,
+      domesticAirline,
+      internationalAirline,
+      makkahHotelName,
+      madinahHotelName
+    );
+    setItineraryList(generated);
+  };
 
   // Visa & Saudi Mandatory Insurance
   const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(450); // 450 SAR per pax
@@ -420,6 +451,7 @@ export default function PackageCalculatorPage() {
       flightRoute: flightRoute,
       startPoint: "Start Pangkal Pinang (PGK)",
       programUmrah: `Program Umrah ${totalDays} Hari + Fullboard Hotel`,
+      itinerary: itineraryList,
       bonusHighlights: [
         "Free City Tour Thaif & Pabrik Parfum",
         "Free City Tour Jabal Magnet & Ayam Albaik",
@@ -677,6 +709,77 @@ export default function PackageCalculatorPage() {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* 🗓️ RENCANA PERJALANAN / ITINERARY SECTION */}
+            <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+                <h3 className="text-sm font-bold text-brand-cocoa flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+                  <span>Susunan Itinerary Rencana Perjalanan ({durationDays} Hari)</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleRegenerateItinerary}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-extrabold text-emerald-800 hover:bg-emerald-100 transition self-start sm:self-auto shadow-2xs"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Generate Ulang Itinerary</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-stone-500">
+                Itinerary ini dibuat otomatis mengikuti tanggal & durasi paket, dan akan tersambung langsung ke brosur & aplikasi <strong>UmrahMe</strong>.
+              </p>
+
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {itineraryList.map((dayItem, idx) => (
+                  <div key={idx} className="rounded-xl border border-stone-200 bg-stone-50/70 p-3 text-xs space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="grid h-6 w-6 place-items-center rounded-lg bg-stone-900 text-white font-black text-[10px]">
+                          H{dayItem.day}
+                        </span>
+                        <input
+                          type="text"
+                          value={dayItem.title}
+                          onChange={(e) => {
+                            const updated = [...itineraryList];
+                            updated[idx].title = e.target.value;
+                            setItineraryList(updated);
+                          }}
+                          className="font-bold text-stone-900 bg-white border border-stone-200 rounded-lg px-2 py-0.5 text-xs outline-none focus:border-brand-pink"
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        {dayItem.date}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 pl-8">
+                      {dayItem.activities.map((act, aIdx) => (
+                        <div key={aIdx} className="flex items-start gap-2">
+                          {act.time && (
+                            <span className="font-extrabold text-stone-600 text-[10px] w-20 shrink-0 bg-stone-200 px-1.5 py-0.5 rounded">
+                              {act.time}
+                            </span>
+                          )}
+                          <input
+                            type="text"
+                            value={act.description}
+                            onChange={(e) => {
+                              const updated = [...itineraryList];
+                              updated[idx].activities[aIdx].description = e.target.value;
+                              setItineraryList(updated);
+                            }}
+                            className="flex-1 bg-white border border-stone-200 rounded-md px-2 py-0.5 text-[11px] text-stone-700 outline-none focus:border-brand-pink"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
