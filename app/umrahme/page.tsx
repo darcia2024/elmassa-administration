@@ -345,10 +345,11 @@ export default function PenerbitanUmrahmePage() {
         <section className="relative overflow-hidden rounded-3xl bg-[#be185d] p-6 sm:p-8 text-white shadow-xl border border-pink-700/40">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white shadow-md border border-pink-100">
-                <img src="/umrahme-logo.png" alt="UmrahMe Logo" className="h-5 w-auto object-contain" />
-                <span className="text-[11px] font-bold text-pink-700 tracking-wide uppercase">Ekosistem Digital UmrahMe</span>
-              </div>
+              <img
+                src="/umrahme-logo.png"
+                alt="UmrahMe Logo"
+                className="h-10 sm:h-12 w-auto object-contain drop-shadow"
+              />
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                 Penerbitan & Detail Akun Digital Jamaah
               </h1>
@@ -565,9 +566,7 @@ export default function PenerbitanUmrahmePage() {
           <section className="lg:col-span-5 rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 px-2.5 rounded-2xl bg-pink-50 text-pink-600 border border-pink-200 flex items-center justify-center">
-                  <img src="/umrahme-logo.png" alt="UmrahMe" className="h-5 w-auto object-contain" />
-                </div>
+                <img src="/umrahme-logo.png" alt="UmrahMe Logo" className="h-8 w-auto object-contain shrink-0" />
                 <div>
                   <h3 className="text-base font-extrabold text-stone-900">Modul Fitur UmrahMe</h3>
                   <p className="text-xs text-stone-500 font-normal">Atur fitur apa saja yang aktif untuk jamaah.</p>
