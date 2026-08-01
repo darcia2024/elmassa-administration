@@ -43,6 +43,7 @@ export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
   const [packageName, setPackageName] = useState("Umrah Spesial Musim Baru 12 Hari");
   const [departureDate, setDepartureDate] = useState("15 Oktober 2026");
+  const [returnDate, setReturnDate] = useState("26 Oktober 2026");
   const [categoryName, setCategoryName] = useState("Oktober");
   const [domesticAirline, setDomesticAirline] = useState("Garuda Indonesia (Feeder PGK ⇄ CGK)");
   const [internationalAirline, setInternationalAirline] = useState("Saudia Airlines (SV-815)");
@@ -364,8 +365,9 @@ export default function PackageCalculatorPage() {
       name: pubPackageName || packageName || `Umrah Spesial ${totalDays} Hari`,
       category: pubCategory || categoryName,
       duration: `${totalDays} Hari`,
-      departuresDate: `${pubDepartureDate || departureDate} (${internationalAirline})`,
+      departuresDate: `${pubDepartureDate || departureDate} - ${returnDate} (${internationalAirline})`,
       departureDate: pubDepartureDate || departureDate,
+      returnDate: returnDate,
       price: formatRupiah(calculations.sellingPriceQuad),
       numericPrice: calculations.sellingPriceQuad,
       dpMinimum: pubDpMinimum || "Rp 5.000.000",
@@ -544,6 +546,17 @@ export default function PackageCalculatorPage() {
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
                     placeholder="cth. 15 Oktober 2026"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Tanggal Kepulangan *</label>
+                  <input
+                    type="text"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    placeholder="cth. 26 Oktober 2026"
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
                 </div>

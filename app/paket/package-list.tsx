@@ -9,8 +9,10 @@ import {
   Clock,
   Compass,
   Download,
+  Edit3,
   Gift,
   Hotel,
+  Image as ImageIcon,
   MapPin,
   MessageSquare,
   PackageCheck,
@@ -21,6 +23,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  Upload,
   Users,
   X,
 } from "lucide-react";
@@ -56,17 +59,111 @@ export function PackageList() {
   const [selectedPkg, setSelectedPkg] = useState<PackageCardItem | null>(null);
   const [customPackages, setCustomPackages] = useState<PackageCardItem[]>([]);
 
-  // Load custom published packages from HPP Calculator via localStorage
+  // Load custom published packages from HPP Calculator via localStorage & active user role
+  const [userRole, setUserRole] = useState("Super Admin");
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("el_massa_published_packages");
       if (saved) {
         setCustomPackages(JSON.parse(saved));
       }
+      const savedRole = localStorage.getItem("el_massa_user_role");
+      if (savedRole) {
+        setUserRole(savedRole);
+      }
     } catch (e) {
       console.error(e);
     }
   }, []);
+
+  const canEditPackage = useMemo(() => {
+    const allowedRoles = ["Super Admin", "Manager Operasional", "Admin Paket", "Direktur Utama"];
+    return allowedRoles.includes(userRole);
+  }, [userRole]);
+
+  // Edit Modal State & Poster Upload State
+  const [editingPkg, setEditingPkg] = useState<PackageCardItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editDpMinimum, setEditDpMinimum] = useState("");
+  const [editDeparturesDate, setEditDeparturesDate] = useState("");
+  const [editAirline, setEditAirline] = useState("");
+  const [editMakkahHotel, setEditMakkahHotel] = useState("");
+  const [editMadinahHotel, setEditMadinahHotel] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editPosterImg, setEditPosterImg] = useState("");
+
+  const openEditModal = (pkg: PackageCardItem) => {
+    setEditingPkg(pkg);
+    setEditName(pkg.name);
+    setEditPrice(pkg.price);
+    setEditDpMinimum(pkg.dpMinimum);
+    setEditDeparturesDate(pkg.departuresDate);
+    setEditAirline(pkg.airline);
+    setEditMakkahHotel(pkg.makkahHotel);
+    setEditMadinahHotel(pkg.madinahHotel);
+    setEditCategory(pkg.category);
+    setEditPosterImg(pkg.posterImg || "");
+  };
+
+  const handlePosterUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setEditPosterImg(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingPkg) return;
+
+    const updatedList = customPackages.map((item) => {
+      if (item.id === editingPkg.id) {
+        return {
+          ...item,
+          name: editName,
+          price: editPrice,
+          dpMinimum: editDpMinimum,
+          departuresDate: editDeparturesDate,
+          airline: editAirline,
+          makkahHotel: editMakkahHotel,
+          madinahHotel: editMadinahHotel,
+          category: editCategory,
+          posterImg: editPosterImg || item.posterImg,
+        };
+      }
+      return item;
+    });
+
+    setCustomPackages(updatedList);
+    try {
+      localStorage.setItem("el_massa_published_packages", JSON.stringify(updatedList));
+    } catch (e) {
+      console.error(e);
+    }
+
+    setEditingPkg(null);
+    if (selectedPkg && selectedPkg.id === editingPkg.id) {
+      setSelectedPkg({
+        ...selectedPkg,
+        name: editName,
+        price: editPrice,
+        dpMinimum: editDpMinimum,
+        departuresDate: editDeparturesDate,
+        airline: editAirline,
+        makkahHotel: editMakkahHotel,
+        madinahHotel: editMadinahHotel,
+        category: editCategory,
+        posterImg: editPosterImg || selectedPkg.posterImg,
+      });
+    }
+  };
 
   const allPackages = useMemo(() => {
     return [...customPackages, ...officialPackages];
@@ -265,8 +362,20 @@ export function PackageList() {
                   onClick={() => setSelectedPkg(pkg)}
                   className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
                 >
-                  Lihat Detail & Brosur
+                  Lihat Detail
                 </button>
+
+                {canEditPackage && (
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(pkg)}
+                    className="h-9 px-3 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-800 hover:bg-amber-100 transition flex items-center gap-1 shrink-0"
+                    title="Edit Paket (Khusus Staff Authorized)"
+                  >
+                    <Edit3 className="h-3.5 w-3.5 text-amber-700" />
+                    <span>Edit</span>
+                  </button>
+                )}
 
                 <Link
                   href="/booking/form"
@@ -414,6 +523,18 @@ export function PackageList() {
                   Detail
                 </button>
 
+                {canEditPackage && (
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(pkg)}
+                    className="h-7 px-2 rounded-lg border border-amber-300 bg-amber-50 text-[10px] font-bold text-amber-800 active:bg-amber-100 transition flex items-center gap-0.5 shrink-0"
+                    title="Edit Paket"
+                  >
+                    <Edit3 className="h-2.5 w-2.5" />
+                    <span>Edit</span>
+                  </button>
+                )}
+
                 <Link
                   href="/booking/form"
                   className="flex-1 h-7 rounded-lg bg-stone-900 text-[10px] font-bold text-white shadow-2xs active:bg-stone-800 transition flex items-center justify-center"
@@ -519,6 +640,22 @@ export function PackageList() {
               >
                 Tutup
               </button>
+
+              {canEditPackage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = selectedPkg;
+                    setSelectedPkg(null);
+                    openEditModal(current);
+                  }}
+                  className="h-9 rounded-xl border border-amber-300 bg-amber-50 px-4 text-xs font-bold text-amber-900 hover:bg-amber-100 flex items-center gap-1.5"
+                >
+                  <Edit3 className="h-4 w-4 text-amber-700" />
+                  <span>Edit Paket Ini</span>
+                </button>
+              )}
+
               <Link
                 href="/booking/form"
                 className="h-9 rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover flex items-center gap-1"
@@ -526,6 +663,174 @@ export function PackageList() {
                 <Plus className="h-4 w-4" strokeWidth={1.5} />
                 <span>Booking Paket Ini Sekarang</span>
               </Link>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ✏️ EDIT PACKAGE MODAL (RESTRICTED TO AUTHORIZED ROLES) */}
+      {editingPkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
+                  <Edit3 className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-extrabold text-stone-900">Edit Data Paket Wisata</h3>
+                  <p className="text-xs text-stone-500">Khusus Staf Authorized ({userRole})</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditingPkg(null)}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-stone-200 bg-stone-50 text-stone-500 hover:bg-stone-100 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Form Fields Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 text-xs">
+              <div className="sm:col-span-2 space-y-1">
+                <label className="font-semibold text-stone-700">Nama Paket</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-stone-700">Harga Jual Paket (All In)</label>
+                <input
+                  type="text"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-pink outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-stone-700">DP Minimum</label>
+                <input
+                  type="text"
+                  value={editDpMinimum}
+                  onChange={(e) => setEditDpMinimum(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <label className="font-semibold text-stone-700">Jadwal Keberangkatan & Kepulangan</label>
+                <input
+                  type="text"
+                  value={editDeparturesDate}
+                  onChange={(e) => setEditDeparturesDate(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-stone-700">Hotel Makkah</label>
+                <input
+                  type="text"
+                  value={editMakkahHotel}
+                  onChange={(e) => setEditMakkahHotel(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-stone-700">Hotel Madinah</label>
+                <input
+                  type="text"
+                  value={editMadinahHotel}
+                  onChange={(e) => setEditMadinahHotel(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <label className="font-semibold text-stone-700">Maskapai Flight</label>
+                <input
+                  type="text"
+                  value={editAirline}
+                  onChange={(e) => setEditAirline(e.target.value)}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-stone-900 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              {/* 🖼️ POSTER UPLOADER SECTION */}
+              <div className="sm:col-span-2 rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-stone-800 flex items-center gap-1.5 text-xs">
+                    <ImageIcon className="h-4 w-4 text-brand-pink" />
+                    <span>Upload Poster Gambar Paket</span>
+                  </label>
+                  <span className="text-[10px] text-stone-500">JPG, PNG, WEBP</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  {editPosterImg ? (
+                    <div className="relative h-24 w-20 rounded-lg overflow-hidden border border-stone-300 shrink-0 bg-stone-200">
+                      <img src={editPosterImg} alt="Preview Poster" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setEditPosterImg("")}
+                        className="absolute top-1 right-1 rounded-full bg-stone-900/80 text-white p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-24 w-20 rounded-lg border-2 border-dashed border-stone-300 bg-white flex flex-col items-center justify-center p-2 text-stone-400 shrink-0">
+                      <Upload className="h-5 w-5 mb-1" />
+                      <span className="text-[8px] font-bold text-center">Belum ada gambar</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-2">
+                    <label className="inline-flex h-9 items-center gap-2 rounded-xl bg-stone-900 text-white font-bold text-xs px-4 cursor-pointer hover:bg-stone-800 transition">
+                      <Upload className="h-4 w-4" />
+                      <span>Pilih Gambar dari Komputer</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePosterUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[10px] text-stone-500">
+                      Poster ini akan langsung tampil di brosur katalog & aplikasi jamaah UmrahMe.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setEditingPkg(null)}
+                className="h-9 rounded-xl border border-stone-200 bg-white px-4 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                className="h-9 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-5 text-xs font-extrabold text-white shadow-md hover:from-pink-700 hover:to-rose-700 active:scale-95 transition"
+              >
+                Simpan Perubahan Paket
+              </button>
             </div>
 
           </div>
