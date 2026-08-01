@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   Calculator,
@@ -42,8 +42,8 @@ import { AppShell } from "@/components/app-shell";
 export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
   const [packageName, setPackageName] = useState("Umrah Spesial Musim Baru 12 Hari");
-  const [departureDate, setDepartureDate] = useState("15 Oktober 2026");
-  const [returnDate, setReturnDate] = useState("26 Oktober 2026");
+  const [departureDate, setDepartureDate] = useState("2026-10-15");
+  const [returnDate, setReturnDate] = useState("2026-10-26");
   const [categoryName, setCategoryName] = useState("Oktober");
   const [domesticAirline, setDomesticAirline] = useState("Garuda Indonesia (Feeder PGK ⇄ CGK)");
   const [internationalAirline, setInternationalAirline] = useState("Saudia Airlines (SV-815)");
@@ -53,6 +53,52 @@ export default function PackageCalculatorPage() {
   const [madinahNights, setMadinahNights] = useState(4);
   const [targetPax, setTargetPax] = useState(45);
   const [sarExchangeRate, setSarExchangeRate] = useState(4300); // 1 SAR = Rp 4.300
+
+  // Helper: Format YYYY-MM-DD to Indonesian Date String
+  const formatIndoDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const year = parts[0];
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const months = [
+          "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        if (months[monthIdx]) {
+          return `${day} ${months[monthIdx]} ${year}`;
+        }
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Auto Calculate Duration Days & Hotel Nights from Departure & Return Date
+  useEffect(() => {
+    if (!departureDate || !returnDate) return;
+    try {
+      const start = new Date(departureDate).getTime();
+      const end = new Date(returnDate).getTime();
+      if (!isNaN(start) && !isNaN(end) && end >= start) {
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Inclusive count
+        if (diffDays > 0) {
+          setDurationDays(diffDays);
+          const availableNights = Math.max(diffDays - 3, 2);
+          const mNights = Math.ceil(availableNights * 0.55);
+          const mdNights = availableNights - mNights;
+          setMakkahNights(mNights);
+          setMadinahNights(mdNights);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [departureDate, returnDate]);
 
   // 2. Costing Inputs (in IDR or SAR)
   // Flight
@@ -365,7 +411,7 @@ export default function PackageCalculatorPage() {
       name: pubPackageName || packageName || `Umrah Spesial ${totalDays} Hari`,
       category: pubCategory || categoryName,
       duration: `${totalDays} Hari`,
-      departuresDate: `${pubDepartureDate || departureDate} - ${returnDate} (${internationalAirline})`,
+      departuresDate: `${formatIndoDate(pubDepartureDate || departureDate)} s/d ${formatIndoDate(returnDate)} (${internationalAirline})`,
       departureDate: pubDepartureDate || departureDate,
       returnDate: returnDate,
       price: formatRupiah(calculations.sellingPriceQuad),
@@ -542,23 +588,42 @@ export default function PackageCalculatorPage() {
                 <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Tanggal Keberangkatan *</label>
                   <input
-                    type="text"
+                    type="date"
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
-                    placeholder="cth. 15 Oktober 2026"
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="font-semibold text-stone-700">Tanggal Kepulangan *</label>
                   <input
-                    type="text"
+                    type="date"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    placeholder="cth. 26 Oktober 2026"
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
+                </div>
+
+                {/* 📅 LIVE AUTO-CALCULATED DURATION BANNER */}
+                <div className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white font-black text-sm shadow-xs">
+                      {durationDays}d
+                    </span>
+                    <div>
+                      <p className="text-xs font-extrabold text-emerald-950">
+                        Durasi Program: {durationDays} Hari ({makkahNights} Malam Makkah + {madinahNights} Malam Madinah)
+                      </p>
+                      <p className="text-[11px] font-bold text-emerald-700 mt-0.5">
+                        {formatIndoDate(departureDate)} ➔ {formatIndoDate(returnDate)}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-[10px] font-black text-emerald-800 shrink-0 self-start sm:self-auto flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-emerald-600 animate-pulse" />
+                    <span>✓ Dihitung Otomatis</span>
+                  </span>
                 </div>
 
                 <div className="space-y-1">
