@@ -77,7 +77,7 @@ export default function PackageCalculatorPage() {
     }
   };
 
-  // Auto Calculate Duration Days & Hotel Nights from Departure & Return Date
+  // Auto Calculate Duration Days from Departure & Return Date
   useEffect(() => {
     if (!departureDate || !returnDate) return;
     try {
@@ -88,11 +88,6 @@ export default function PackageCalculatorPage() {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Inclusive count
         if (diffDays > 0) {
           setDurationDays(diffDays);
-          const availableNights = Math.max(diffDays - 3, 2);
-          const mNights = Math.ceil(availableNights * 0.55);
-          const mdNights = availableNights - mNights;
-          setMakkahNights(mNights);
-          setMadinahNights(mdNights);
         }
       }
     } catch (e) {
@@ -582,6 +577,28 @@ export default function PackageCalculatorPage() {
                     value={targetPax}
                     onChange={(e) => setTargetPax(Number(e.target.value))}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Lama Menginap Makkah (Malam)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={makkahNights}
+                    onChange={(e) => setMakkahNights(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-stone-700">Lama Menginap Madinah (Malam)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={madinahNights}
+                    onChange={(e) => setMadinahNights(Number(e.target.value))}
+                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none focus:border-brand-pink"
                   />
                 </div>
 
