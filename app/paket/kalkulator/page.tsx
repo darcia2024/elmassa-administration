@@ -608,15 +608,22 @@ export default function PackageCalculatorPage() {
                 {/* 📅 LIVE AUTO-CALCULATED DURATION BANNER */}
                 <div className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white font-black text-sm shadow-xs">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white font-black text-sm shadow-xs">
                       {durationDays}d
                     </span>
                     <div>
                       <p className="text-xs font-extrabold text-emerald-950">
-                        Durasi Program: {durationDays} Hari ({makkahNights} Malam Makkah + {madinahNights} Malam Madinah)
+                        Total Program: {durationDays} Hari Trip
                       </p>
-                      <p className="text-[11px] font-bold text-emerald-700 mt-0.5">
-                        {formatIndoDate(departureDate)} ➔ {formatIndoDate(returnDate)}
+                      <p className="text-[11px] font-semibold text-emerald-900 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span>🏨 {makkahNights} Malam Makkah</span>
+                        <span>+</span>
+                        <span>🏨 {madinahNights} Malam Madinah</span>
+                        <span>+</span>
+                        <span>✈️ {Math.max(durationDays - (makkahNights + madinahNights), 0)} Hari Flight & Transit</span>
+                      </p>
+                      <p className="text-[10px] font-bold text-emerald-700 mt-0.5">
+                        Jadwal: {formatIndoDate(departureDate)} ➔ {formatIndoDate(returnDate)}
                       </p>
                     </div>
                   </div>
