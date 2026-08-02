@@ -769,26 +769,58 @@ export default function PackageCalculatorPage() {
                       </span>
                     </div>
 
-                    <div className="space-y-1 pl-8">
+                    <div className="space-y-1.5 pl-8">
                       {dayItem.activities.map((act, aIdx) => (
-                        <div key={aIdx} className="flex items-start gap-2">
-                          {act.time && (
-                            <span className="font-extrabold text-stone-600 text-[10px] w-20 shrink-0 bg-stone-200 px-1.5 py-0.5 rounded">
-                              {act.time}
-                            </span>
-                          )}
+                        <div key={aIdx} className="flex items-center gap-2">
                           <input
                             type="text"
+                            placeholder="Jam (cth: 09:00 WIB)"
+                            value={act.time || ""}
+                            onChange={(e) => {
+                              const updated = [...itineraryList];
+                              updated[idx].activities[aIdx].time = e.target.value;
+                              setItineraryList(updated);
+                            }}
+                            className="w-28 shrink-0 font-extrabold text-stone-800 bg-white border border-stone-200 rounded-md px-2 py-1 text-[11px] outline-none focus:border-brand-pink shadow-2xs"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Deskripsi kegiatan..."
                             value={act.description}
                             onChange={(e) => {
                               const updated = [...itineraryList];
                               updated[idx].activities[aIdx].description = e.target.value;
                               setItineraryList(updated);
                             }}
-                            className="flex-1 bg-white border border-stone-200 rounded-md px-2 py-0.5 text-[11px] text-stone-700 outline-none focus:border-brand-pink"
+                            className="flex-1 bg-white border border-stone-200 rounded-md px-2.5 py-1 text-[11px] text-stone-700 outline-none focus:border-brand-pink font-medium shadow-2xs"
                           />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...itineraryList];
+                              updated[idx].activities.splice(aIdx, 1);
+                              setItineraryList(updated);
+                            }}
+                            className="h-6 w-6 grid place-items-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-md shrink-0 transition text-xs font-bold"
+                            title="Hapus baris kegiatan"
+                          >
+                            ✕
+                          </button>
                         </div>
                       ))}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...itineraryList];
+                          updated[idx].activities.push({ time: "08:00 WIB", description: "Kegiatan baru..." });
+                          setItineraryList(updated);
+                        }}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-900 mt-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md px-2 py-0.5 transition"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>Tambah Baris Jam / Agenda Hari {dayItem.day}</span>
+                      </button>
                     </div>
                   </div>
                 ))}
