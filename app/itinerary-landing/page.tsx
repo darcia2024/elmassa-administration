@@ -175,12 +175,11 @@ export default function ItineraryLandingPreviewPage() {
     <AppShell title="Preview Landing Page Itinerary Interaktif (elmassa.itinerary)">
       <div className="space-y-8 font-sans max-w-5xl mx-auto pb-12">
         
-        {/* HERO BANNER SECTION */}
-        <div className="relative overflow-hidden rounded-3xl bg-stone-900 text-white p-6 sm:p-10 shadow-2xl border border-stone-800">
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-900/60 via-stone-900/90 to-amber-900/40 z-0 pointer-events-none" />
-          <div className="relative z-10 space-y-4 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-pink-500/20 border border-pink-400/30 px-3.5 py-1 text-xs font-bold text-pink-300 backdrop-blur-xs">
-              <Sparkles className="h-3.5 w-3.5 text-pink-400 animate-pulse" />
+        {/* HERO BANNER SECTION - SOLID DEEP BROWN (#2A170E) */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#2a170e] text-white p-6 sm:p-10 shadow-xl border border-[#3d2417]">
+          <div className="relative z-10 space-y-4 max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#3d2417] border border-[#523221] px-4 py-1.5 text-xs font-bold text-amber-200">
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>Preview Live App Itinerary Interaktif (elmassa.itinerary)</span>
             </div>
 
@@ -188,22 +187,33 @@ export default function ItineraryLandingPreviewPage() {
               Rencana Perjalanan Ibadah Umrah <span className="text-pink-400">El Massa Tour & Travel</span>
             </h1>
 
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-              Tampilan landing page brosur itinerary interaktif hari demi hari, khusus keberangkatan <strong>Pangkal Pinang (PGK)</strong> menuju Makkah, Madinah, & Kota Thaif.
+            <p className="text-xs sm:text-sm text-amber-100/80 leading-relaxed max-w-2xl">
+              Tampilan landing page brosur itinerary interaktif hari demi hari, khusus keberangkatan <strong>Pangkal Pinang (PGK)</strong> menuju Makkah, Madinah, &amp; Kota Thaif.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-3">
               <button
                 type="button"
                 onClick={() => openWA("Halo El Massa, saya mau tanya paket & itinerary Umrah ini")}
-                className="h-10 px-5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 font-extrabold text-xs text-white shadow-lg hover:from-pink-700 hover:to-rose-700 transition flex items-center gap-2"
+                className="h-11 px-5 rounded-xl bg-pink-600 hover:bg-pink-700 font-extrabold text-xs text-white shadow-lg transition flex items-center gap-2 cursor-pointer"
               >
                 <span>Konsultasi Itinerary via WA</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
+
+              <a
+                href="http://localhost:5173"
+                target="_blank"
+                rel="noreferrer"
+                className="h-11 px-4 rounded-xl bg-[#3d2417] hover:bg-[#4d2d1d] border border-[#523221] text-xs font-bold text-amber-100 transition flex items-center gap-2 cursor-pointer"
+              >
+                <ExternalLink className="h-4 w-4 text-amber-400" />
+                <span>Buka Standalone App ↗</span>
+              </a>
+
               <Link
                 href="/paket/kalkulator"
-                className="h-10 px-4 rounded-xl border border-stone-700 bg-stone-800/80 text-xs font-bold text-stone-200 hover:bg-stone-800 transition flex items-center gap-1.5"
+                className="h-11 px-4 rounded-xl border border-[#4d2d1d] bg-[#1e1009] text-xs font-bold text-stone-300 hover:bg-[#2a170e] transition flex items-center gap-1.5"
               >
                 <span>Edit Itinerary di Web Admin</span>
               </Link>
@@ -212,16 +222,16 @@ export default function ItineraryLandingPreviewPage() {
         </div>
 
         {/* MONTH TAB SELECTOR */}
-        <div className="flex items-center justify-between gap-3 border-b border-stone-200 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {(["oktober", "november", "desember"] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setSelectedTab(tab)}
-                className={`h-9 px-4 rounded-xl text-xs font-bold capitalize transition whitespace-nowrap ${
+                className={`h-10 px-5 rounded-xl text-xs font-bold capitalize transition whitespace-nowrap cursor-pointer ${
                   selectedTab === tab
-                    ? "bg-stone-900 text-white shadow-md"
+                    ? "bg-[#2a170e] text-amber-200 shadow-md border border-[#3d2417]"
                     : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                 }`}
               >
@@ -230,7 +240,7 @@ export default function ItineraryLandingPreviewPage() {
             ))}
           </div>
 
-          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl shrink-0">
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-xl shrink-0 self-start sm:self-auto">
             ✓ 12 Hari Program (PGK - Saudi)
           </span>
         </div>
