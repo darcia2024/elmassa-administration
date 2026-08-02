@@ -388,10 +388,20 @@ export default function PenerbitanUmrahmePage() {
 
             {/* Quick Actions & Stats */}
             <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0">
+              <a
+                href="https://umrahme-elmassa.vercel.app/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto h-11 px-5 rounded-2xl bg-white hover:bg-rose-50 text-stone-900 font-black text-xs flex items-center justify-center gap-2 shadow-xl border border-pink-200 transition active:scale-95 group cursor-pointer"
+              >
+                <Smartphone className="h-4 w-4 text-pink-600 group-hover:scale-110 transition-transform" />
+                <span>Buka App Jemaah (Uji Login) ↗</span>
+              </a>
+
               <button
                 type="button"
                 onClick={() => setIsBroadcastModalOpen(true)}
-                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
+                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
               >
                 <Bell className="h-4 w-4" />
                 <span>Broadcast Pengumuman</span>
@@ -400,7 +410,7 @@ export default function PenerbitanUmrahmePage() {
               <button
                 type="button"
                 onClick={() => setIsExcelModalOpen(true)}
-                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
+                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
               >
                 <FileSpreadsheet className="h-4 w-4" />
                 <span>Bulk Import Excel</span>
@@ -1301,20 +1311,35 @@ export default function PenerbitanUmrahmePage() {
               </div>
               <div className="flex justify-between border-b border-stone-200/60 pb-2">
                 <span className="text-stone-500 font-normal">Metode Login:</span>
-                <strong className="text-emerald-700 font-bold">Input Nama Jamaah Alone</strong>
+                <strong className="text-emerald-700 font-bold">Input Nama Lengkap / NIK Jamaah</strong>
               </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500 font-normal">Link Web Login:</span>
-                <span className="text-pink-600 font-bold truncate max-w-[180px]">
-                  https://elmassa-administration.vercel.app/login
-                </span>
+              <div className="flex justify-between items-center">
+                <span className="text-stone-500 font-normal">Link App Jamaah:</span>
+                <a
+                  href="https://umrahme-elmassa.vercel.app/login"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-pink-600 font-bold hover:underline truncate max-w-[200px]"
+                >
+                  https://umrahme-elmassa.vercel.app/login ↗
+                </a>
               </div>
             </div>
 
             <div className="space-y-2 pt-1">
               <a
+                href="https://umrahme-elmassa.vercel.app/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-11 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <Smartphone className="h-4 w-4" />
+                <span>📱 Buka App Jemaah &amp; Uji Login Akun Ini ↗</span>
+              </a>
+
+              <a
                 href={`https://wa.me/?text=${encodeURIComponent(
-                  `Assalamu'alaikum Wr. Wb. Bpk/Ibu *${successModal.nama}*,\n\nAkun Digital UmrahMe Anda telah aktif resmi dari *El Massa Travel*:\n\n👤 *Nama*: ${successModal.nama}\n💳 *ID Jamaah*: ${successModal.nomorJamaah}\n🌐 *Link Login*: https://elmassa-administration.vercel.app/login\n\nSilakan masukkan Nama Lengkap Anda di atas untuk mengakses Kartu Digital & Panduan Umrah Anda.`
+                  `Assalamu'alaikum Wr. Wb. Bpk/Ibu *${successModal.nama}*,\n\nAkun Digital UmrahMe Anda telah aktif resmi dari *El Massa Travel*:\n\n👤 *Nama*: ${successModal.nama}\n💳 *ID Jamaah*: ${successModal.nomorJamaah}\n🌐 *Link Login*: https://umrahme-elmassa.vercel.app/login\n\nSilakan masukkan Nama Lengkap Anda di atas untuk mengakses Kartu Digital & Panduan Umrah Anda.`
                 )}`}
                 target="_blank"
                 rel="noreferrer"
@@ -1328,7 +1353,7 @@ export default function PenerbitanUmrahmePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const text = `Assalamu'alaikum Wr. Wb. Bpk/Ibu *${successModal.nama}*,\nAkun Digital UmrahMe Anda telah aktif resmi dari *El Massa Travel*:\n\n👤 Nama: ${successModal.nama}\n💳 ID Jamaah: ${successModal.nomorJamaah}\n🌐 Link Login: https://elmassa-administration.vercel.app/login`;
+                    const text = `Assalamu'alaikum Wr. Wb. Bpk/Ibu *${successModal.nama}*,\nAkun Digital UmrahMe Anda telah aktif resmi dari *El Massa Travel*:\n\n👤 Nama: ${successModal.nama}\n💳 ID Jamaah: ${successModal.nomorJamaah}\n🌐 Link Login: https://umrahme-elmassa.vercel.app/login`;
                     navigator.clipboard.writeText(text);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
