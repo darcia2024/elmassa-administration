@@ -4,38 +4,12 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound } from "lu
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const validUsers = [
-  {
-    email: "azriandri@elmassa.test",
-    name: "Azriandri",
-    password: "admin123",
-    role: "CEO / Admin Master",
-  },
-  {
-    email: "ruslan.ops@elmassa.test",
-    name: "H. Ruslan Efendi",
-    password: "admin123",
-    role: "Sub-User Operasional",
-  },
-  {
-    email: "zubaidah.fin@elmassa.test",
-    name: "Hj. Zubaidah",
-    password: "admin123",
-    role: "Sub-User Keuangan",
-  },
-  {
-    email: "ridwan.sales@elmassa.test",
-    name: "Ridwan Hasan",
-    password: "admin123",
-    role: "Sub-User Sales & CRM",
-  },
-  {
-    email: "ahmad.field@elmassa.test",
-    name: "Ust. Ahmad Syahputra",
-    password: "admin123",
-    role: "Sub-User Lapangan",
-  },
-];
+const defaultAdminMaster = {
+  email: "azriandri@elmassa.test",
+  name: "Azriandri",
+  password: "admin123",
+  role: "Admin Master",
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,24 +27,37 @@ export default function LoginPage() {
       return;
     }
 
-    // Match existing staff user or create dynamic staff session
-    const matchedUser = validUsers.find(
-      (u) => u.email.toLowerCase() === inputEmail && u.password === password
+    // Get current staff list from localStorage
+    let activeStaffList = [defaultAdminMaster];
+    try {
+      const saved = localStorage.getItem("el_massa_staff_users");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          activeStaffList = parsed;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Check matching email & password
+    const matchedUser = activeStaffList.find(
+      (u) => u.email.toLowerCase() === inputEmail && (u.password || "admin123") === password
     );
 
-    const sessionUser = matchedUser || {
-      email: inputEmail,
-      name: inputEmail.split("@")[0].toUpperCase(),
-      role: "Staf Operasional Travel",
-    };
+    if (!matchedUser) {
+      setError("Email atau password tidak terdaftar / salah. Silakan hubungi Admin Master.");
+      return;
+    }
 
     window.localStorage.setItem(
       "el-massa-session",
       JSON.stringify({
-        email: sessionUser.email,
+        email: matchedUser.email,
         loggedInAt: new Date().toISOString(),
-        name: sessionUser.name,
-        role: sessionUser.role,
+        name: matchedUser.name,
+        role: matchedUser.role,
       })
     );
 

@@ -53,50 +53,6 @@ const initialAccounts: UserAccount[] = [
     teamDivision: "CEO & Direksi Utama",
     password: "admin123",
   },
-  {
-    id: "acc-002",
-    name: "H. Ruslan Efendi",
-    email: "ruslan.ops@elmassa.test",
-    phone: "0812-7199-1003",
-    role: "Sub-User Operasional",
-    branch: "Tanjung Pandan (Belitung)",
-    status: "Aktif",
-    teamDivision: "Operasional & Flight",
-    password: "admin123",
-  },
-  {
-    id: "acc-003",
-    name: "Hj. Zubaidah",
-    email: "zubaidah.fin@elmassa.test",
-    phone: "0812-7199-1002",
-    role: "Sub-User Keuangan",
-    branch: "Pangkalpinang (Bangka)",
-    status: "Aktif",
-    teamDivision: "Kas & Keuangan",
-    password: "admin123",
-  },
-  {
-    id: "acc-004",
-    name: "Ridwan Hasan",
-    email: "ridwan.sales@elmassa.test",
-    phone: "0812-7199-1023",
-    role: "Sub-User Sales & CRM",
-    branch: "Palembang (Sumbagsel)",
-    status: "Aktif",
-    teamDivision: "Sales & Pelanggan",
-    password: "admin123",
-  },
-  {
-    id: "acc-005",
-    name: "Ust. Ahmad Syahputra",
-    email: "ahmad.field@elmassa.test",
-    phone: "0812-7199-1055",
-    role: "Sub-User Lapangan",
-    branch: "Pangkalpinang (Bangka)",
-    status: "Aktif",
-    teamDivision: "Handling Bandara & Muthawwif",
-    password: "admin123",
-  },
 ];
 
 const roleBadgeStyles: Record<UserRole, string> = {
@@ -110,6 +66,34 @@ const roleBadgeStyles: Record<UserRole, string> = {
 export default function StaffAndSubUsersPage() {
   const [accounts, setAccounts] = useState<UserAccount[]>(initialAccounts);
   const [activeTab, setActiveTab] = useState<"Semua" | "Admin Master" | "Sub-User Tim">("Semua");
+
+  // Sync with localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_staff_users");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAccounts(parsed);
+        } else {
+          localStorage.setItem("el_massa_staff_users", JSON.stringify(initialAccounts));
+        }
+      } else {
+        localStorage.setItem("el_massa_staff_users", JSON.stringify(initialAccounts));
+      }
+    } catch (e) {
+      console.error("Failed to load staff users:", e);
+    }
+  }, []);
+
+  const updateAccountsState = (newAccounts: UserAccount[]) => {
+    setAccounts(newAccounts);
+    try {
+      localStorage.setItem("el_massa_staff_users", JSON.stringify(newAccounts));
+    } catch (e) {
+      console.error("Failed to save staff users:", e);
+    }
+  };
   
   // Account Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -185,7 +169,7 @@ export default function StaffAndSubUsersPage() {
     e.preventDefault();
 
     if (editingId) {
-      setAccounts(
+      updateAccountsState(
         accounts.map((acc) =>
           acc.id === editingId
             ? { ...acc, ...formData }
@@ -198,7 +182,7 @@ export default function StaffAndSubUsersPage() {
         id: `acc-${Date.now()}`,
         ...formData,
       };
-      setAccounts([...accounts, newAcc]);
+      updateAccountsState([...accounts, newAcc]);
       showToast(`Sub-User baru "${formData.name}" berhasil didaftarkan! Password: ${formData.password || "admin123"}`);
     }
 
@@ -209,7 +193,7 @@ export default function StaffAndSubUsersPage() {
     e.preventDefault();
     if (!passwordTargetUser || !newPassword.trim()) return;
 
-    setAccounts(
+    updateAccountsState(
       accounts.map((acc) =>
         acc.id === passwordTargetUser.id
           ? { ...acc, password: newPassword.trim() }
@@ -227,7 +211,7 @@ export default function StaffAndSubUsersPage() {
       return;
     }
     if (confirm(`Yakin ingin menghapus sub-user "${acc.name}"?`)) {
-      setAccounts(accounts.filter((a) => a.id !== acc.id));
+      updateAccountsState(accounts.filter((a) => a.id !== acc.id));
       showToast(`Sub-user "${acc.name}" telah dihapus dari sistem.`);
     }
   };
