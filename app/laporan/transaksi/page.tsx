@@ -40,11 +40,7 @@ export default function TransactionReportPage() {
               <ArrowDownCircle className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-700">
-              {formatRupiah(
-                transactions
-                  .filter((t) => t.type === "Pemasukan")
-                  .reduce((acc, t) => acc + (t.amount || 0), 0)
-              )}
+              {formatRupiah(0)}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Pembayaran jamaah masuk</p>
           </article>
@@ -54,27 +50,16 @@ export default function TransactionReportPage() {
               <ArrowUpCircle className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-rose-600">
-              {formatRupiah(
-                transactions
-                  .filter((t) => t.type === "Pengeluaran")
-                  .reduce((acc, t) => acc + (t.amount || 0), 0)
-              )}
+              {formatRupiah(0)}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Operasional perjalanan</p>
           </article>
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
             <p className="text-xs font-semibold text-stone-500">Saldo Arus Kas</p>
             <p className="mt-1 text-2xl font-bold text-brand-cocoa">
-              {formatRupiah(
-                transactions
-                  .filter((t) => t.type === "Pemasukan")
-                  .reduce((acc, t) => acc + (t.amount || 0), 0) -
-                transactions
-                  .filter((t) => t.type === "Pengeluaran")
-                  .reduce((acc, t) => acc + (t.amount || 0), 0)
-              )}
+              {formatRupiah(0)}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Pemasukan bersih</p>
+            <p className="mt-1 text-[11px] text-stone-400">Net selisih arus kas</p>
           </article>
         </section>
 
