@@ -689,11 +689,23 @@ export default function PackageCalculatorPage() {
                     onChange={(e) => setCategoryName(e.target.value)}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   >
+                    <option value="Januari">Januari</option>
+                    <option value="Februari">Februari</option>
+                    <option value="Maret">Maret</option>
+                    <option value="April">April</option>
+                    <option value="Mei">Mei</option>
+                    <option value="Juni">Juni</option>
+                    <option value="Juli">Juli</option>
+                    <option value="Agustus">Agustus</option>
+                    <option value="September">September</option>
                     <option value="Oktober">Oktober</option>
                     <option value="November">November</option>
                     <option value="Desember">Desember</option>
                     <option value="Ramadhan">Ramadhan</option>
-                    <option value="Spesial">Spesial</option>
+                    <option value="Syawal">Syawal / Idul Fitri</option>
+                    <option value="Akhir Tahun">Akhir Tahun</option>
+                    <option value="Awal Musim">Awal Musim / Hijriah</option>
+                    <option value="Spesial">Spesial / Custom</option>
                   </select>
                 </div>
 
