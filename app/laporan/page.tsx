@@ -165,10 +165,10 @@ export default function ReportsPage() {
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-700">
               {filteredReceivables.length > 0 ? `${(
-                (filteredReceivables.reduce((acc, r) => acc + r.paid, 0) /
-                  filteredReceivables.reduce((acc, r) => acc + r.totalPrice, 1)) *
+                (filteredReceivables.filter((r) => r.remainingAmount === 0).length /
+                  filteredReceivables.length) *
                 100
-              ).toFixed(1)}% Terbayar` : "0% Terbayar"}
+              ).toFixed(0)}% Terbayar` : "0% Terbayar"}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Rata-rata pelunasan rombongan</p>
           </article>
