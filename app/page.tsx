@@ -50,17 +50,13 @@ function StatusBadge({ status }: { status: string }) {
       dot: "bg-amber-500",
     },
     "Belum Bayar": {
-      bg: "bg-rose-50/80 text-rose-700",
+      bg: "bg-rose-50/80 text-rose-800",
       border: "border-rose-200/60",
       dot: "bg-rose-500",
     },
   };
 
-  const style = styles[status] ?? {
-    bg: "bg-stone-50 text-stone-600",
-    border: "border-stone-200",
-    dot: "bg-stone-400",
-  };
+  const style = styles[status] || styles["Belum Bayar"];
 
   return (
     <span
@@ -69,6 +65,109 @@ function StatusBadge({ status }: { status: string }) {
       <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
       {status}
     </span>
+  );
+}
+
+function DashboardLiveCalendar() {
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentDate(new Date());
+  }, []);
+
+  const monthNames = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+
+  if (!currentDate) return null;
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+  const today = new Date();
+  const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
+  const realTodayDate = today.getDate();
+
+  const daysGrid: { day: number; isCurrentMonth: boolean; isToday?: boolean }[] = [];
+
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    daysGrid.push({ day: prevMonthTotalDays - i, isCurrentMonth: false });
+  }
+
+  for (let i = 1; i <= totalDays; i++) {
+    daysGrid.push({ day: i, isCurrentMonth: true, isToday: isCurrentMonthReal && i === realTodayDate });
+  }
+
+  const remaining = 35 - daysGrid.length;
+  const fillCount = remaining >= 0 ? remaining : 42 - daysGrid.length;
+  for (let i = 1; i <= fillCount; i++) {
+    daysGrid.push({ day: i, isCurrentMonth: false });
+  }
+
+  return (
+    <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs font-sans">
+      <div className="mb-4 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handlePrevMonth}
+          className="grid h-6 w-6 place-items-center rounded-md text-stone-400 hover:bg-stone-100 transition active:scale-95 cursor-pointer"
+          aria-label="Bulan sebelumnya"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+        <p className="text-xs font-bold text-brand-cocoa">
+          {monthNames[month]}, {year}
+        </p>
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          className="grid h-6 w-6 place-items-center rounded-md text-stone-400 hover:bg-stone-100 transition active:scale-95 cursor-pointer"
+          aria-label="Bulan selanjutnya"
+        >
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 text-center text-[10px] font-bold text-stone-400 mb-2">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+
+      <div className="grid grid-cols-7 text-center text-[11px] font-normal gap-y-1.5 text-stone-700">
+        {daysGrid.map((item, idx) => {
+          if (!item.isCurrentMonth) {
+            return (
+              <span key={idx} className="text-stone-300">
+                {item.day}
+              </span>
+            );
+          }
+          if (item.isToday) {
+            return (
+              <span
+                key={idx}
+                className="grid h-5 w-5 mx-auto place-items-center rounded-full bg-brand-pink text-white font-bold text-[10px] shadow-2xs"
+              >
+                {item.day}
+              </span>
+            );
+          }
+          return <span key={idx}>{item.day}</span>;
+        })}
+      </div>
+    </article>
   );
 }
 
@@ -441,32 +540,8 @@ export default function DashboardPage() {
                 </div>
               </article>
 
-              {/* Flat Light Calendar Widget */}
-              <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
-                <div className="mb-4 flex items-center justify-between">
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-stone-400 hover:bg-stone-100">
-                    <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </button>
-                  <p className="text-xs font-bold text-brand-cocoa">Juli, 2026</p>
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-md text-stone-400 hover:bg-stone-100">
-                    <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-7 text-center text-[10px] font-medium text-stone-400 mb-2">
-                  <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-                </div>
-                <div className="grid grid-cols-7 text-center text-[11px] font-normal gap-y-1.5 text-stone-700">
-                  <span className="text-stone-300">29</span><span className="text-stone-300">30</span>
-                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                  <span>6</span><span>7</span><span>8</span>
-                  <span className="grid h-5 w-5 mx-auto place-items-center rounded-full bg-brand-pink text-white font-bold text-[10px]">9</span>
-                  <span>10</span><span>11</span><span>12</span>
-                  <span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span>
-                  <span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span>
-                  <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
-                </div>
-              </article>
+              {/* Dynamic Realtime Interactive Calendar Widget */}
+              <DashboardLiveCalendar />
 
               {/* Document Status Widget */}
               <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">

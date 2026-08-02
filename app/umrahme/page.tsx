@@ -66,13 +66,10 @@ export default function PenerbitanUmrahmePage() {
   // Show detailed fields accordion in form
   const [showDetailFields, setShowDetailFields] = useState(false);
 
-  const [batchOptions, setBatchOptions] = useState<string[]>([
-    "Rombongan Bangka Belitung (08 - 18 Jul 2026)",
-    "Rombongan Sumbagsel & Palembang (12 - 24 Agu 2026)",
-    "Rombongan Executive VIP (05 - 14 Sep 2026)",
-  ]);
+  const [batchOptions, setBatchOptions] = useState<string[]>([]);
+  const [inputBatch, setInputBatch] = useState<string>("");
 
-  // Dynamic Package/Batch loading from localStorage
+  // Load strictly user-created custom packages from localStorage (from Kalkulator HPP / Published Packages)
   useEffect(() => {
     try {
       const saved = localStorage.getItem("el_massa_published_packages");
@@ -82,12 +79,20 @@ export default function PenerbitanUmrahmePage() {
           const customNames = parsed.map((pkg: any) =>
             `${pkg.name || pkg.packageName} (${pkg.departuresDate || pkg.departureDate || "Keberangkatan"})`
           );
-          setBatchOptions([...customNames, ...batchOptions]);
+          setBatchOptions(customNames);
           setInputBatch(customNames[0]);
+          return;
         }
       }
+      // If no custom package created by user yet
+      const placeholder = ["-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --"];
+      setBatchOptions(placeholder);
+      setInputBatch(placeholder[0]);
     } catch (e) {
       console.error("Failed to parse el_massa_published_packages:", e);
+      const placeholder = ["-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --"];
+      setBatchOptions(placeholder);
+      setInputBatch(placeholder[0]);
     }
   }, []);
 
@@ -99,7 +104,6 @@ export default function PenerbitanUmrahmePage() {
   const [inputTelepon, setInputTelepon] = useState("");
   const [inputKontakDarurat, setInputKontakDarurat] = useState("");
   const [inputAlamat, setInputAlamat] = useState("");
-  const [inputBatch, setInputBatch] = useState("Rombongan Bangka Belitung (08 - 18 Jul 2026)");
   const [inputRombongan, setInputRombongan] = useState("Rombongan 01 (Bangka Belitung)");
   const [inputBus, setInputBus] = useState("Bus 01");
   const [inputKamar, setInputKamar] = useState("Kamar #408 (Quad)");

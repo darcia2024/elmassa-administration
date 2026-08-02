@@ -48,7 +48,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                   </span>
                 </div>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  {customer.groupName ?? "Rombongan Bangka Belitung (08-18 Jul 2026)"} • {customer.city}
+                  {customer.groupName ?? "Umrah Spesial Oktober 2026 (25 Okt - 05 Nov 2026)"} • {customer.city}
                 </p>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                 <span className="text-[10px] font-semibold text-stone-400 uppercase">Grup Rombongan</span>
                 <p className="font-bold text-brand-pink flex items-center gap-1">
                   <Layers className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  {customer.groupName ?? "Rombongan Bangka Belitung (08-18 Jul 2026)"}
+                  {customer.groupName ?? "Umrah Spesial Oktober 2026 (25 Okt - 05 Nov 2026)"}
                 </p>
               </div>
 

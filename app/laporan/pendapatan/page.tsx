@@ -117,7 +117,9 @@ export default function IncomeReportPage() {
               <p className="text-xs font-semibold text-stone-500">Total Project Omzet</p>
               <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">Rp 1.433.000.000</p>
+            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">
+              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Total nilai kontrak paket</p>
           </article>
 
@@ -126,7 +128,9 @@ export default function IncomeReportPage() {
               <p className="text-xs font-semibold text-stone-500">Kas Masuk (Realisasi)</p>
               <BarChart3 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">Rp 680.000.000</p>
+            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Pemasukan kas terverifikasi</p>
           </article>
 
@@ -135,7 +139,9 @@ export default function IncomeReportPage() {
               <p className="text-xs font-semibold text-stone-500">Estimasi Gross Margin</p>
               <TrendingUp className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-pink">Rp 236.500.000</p>
+            <p className="mt-1 text-xl font-extrabold text-brand-pink">
+              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Margin kotor travel (~16.5%)</p>
           </article>
 
@@ -144,8 +150,8 @@ export default function IncomeReportPage() {
               <p className="text-xs font-semibold text-stone-500">Total Jamaah</p>
               <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-sky-800">46 Jamaah</p>
-            <p className="mt-1 text-[11px] text-stone-400">Periode Juli - September 2026</p>
+            <p className="mt-1 text-2xl font-bold text-sky-800">{filteredRows.length} Jamaah</p>
+            <p className="mt-1 text-[11px] text-stone-400">Periode real operasional</p>
           </article>
         </section>
 

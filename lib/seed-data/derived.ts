@@ -213,7 +213,7 @@ export function getCustomerPageRows() {
       phone: customer.phone,
       email: customer.email ?? "",
       type: customer.customerType,
-      groupName: customer.groupName ?? "Rombongan Bangka Belitung (08-18 Jul 2026)",
+      groupName: customer.groupName ?? "Umrah Spesial Oktober 2026 (25 Okt - 05 Nov 2026)",
       status: customer.status,
       city: customer.city,
       address: customer.address,

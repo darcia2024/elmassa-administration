@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 import { exportToCSV } from "@/lib/export-excel";
+import { formatRupiah } from "@/lib/seed-data/derived";
 
 type TransactionItem = {
   id: string;
@@ -38,7 +39,13 @@ export default function TransactionReportPage() {
               <p className="text-xs font-semibold text-stone-500">Total Pemasukan</p>
               <ArrowDownCircle className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">Rp 0</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">
+              {formatRupiah(
+                transactions
+                  .filter((t) => t.type === "Pemasukan")
+                  .reduce((acc, t) => acc + (t.amount || 0), 0)
+              )}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Pembayaran jamaah masuk</p>
           </article>
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
@@ -46,12 +53,27 @@ export default function TransactionReportPage() {
               <p className="text-xs font-semibold text-stone-500">Total Pengeluaran</p>
               <ArrowUpCircle className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-rose-600">Rp 0</p>
+            <p className="mt-1 text-2xl font-bold text-rose-600">
+              {formatRupiah(
+                transactions
+                  .filter((t) => t.type === "Pengeluaran")
+                  .reduce((acc, t) => acc + (t.amount || 0), 0)
+              )}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Operasional perjalanan</p>
           </article>
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
             <p className="text-xs font-semibold text-stone-500">Saldo Arus Kas</p>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">Rp 17.500.000</p>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">
+              {formatRupiah(
+                transactions
+                  .filter((t) => t.type === "Pemasukan")
+                  .reduce((acc, t) => acc + (t.amount || 0), 0) -
+                transactions
+                  .filter((t) => t.type === "Pengeluaran")
+                  .reduce((acc, t) => acc + (t.amount || 0), 0)
+              )}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Pemasukan bersih</p>
           </article>
         </section>

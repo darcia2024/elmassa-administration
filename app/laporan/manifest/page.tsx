@@ -87,7 +87,7 @@ export default function ManifestReportPage() {
               <Users className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-brand-cocoa">{participants.length} Jamaah</p>
-            <p className="mt-1 text-[11px] text-stone-400">Rombongan Bangka Belitung</p>
+            <p className="mt-1 text-[11px] text-stone-400">Grup Paket Terpilih</p>
           </article>
 
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
@@ -110,11 +110,11 @@ export default function ManifestReportPage() {
 
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Penerbangan Garuda</p>
+              <p className="text-xs font-semibold text-stone-500">Penerbangan</p>
               <Plane className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">GA-980 Direct</p>
-            <p className="mt-1 text-[11px] text-stone-400">Start 08 Juli 2026</p>
+            <p className="mt-1 text-2xl font-bold text-brand-cocoa">Penerbangan Utama</p>
+            <p className="mt-1 text-[11px] text-stone-400">Sesuai grup keberangkatan</p>
           </article>
         </section>
 

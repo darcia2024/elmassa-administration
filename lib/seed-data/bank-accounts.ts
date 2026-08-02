@@ -9,17 +9,7 @@ export type BankAccountRow = {
   notes?: string;
 };
 
-const bankAccountRows: BankAccountRow[] = [
-  {
-    id: "rek-bca",
-    bankName: "BCA",
-    accountNumber: "1234567890",
-    accountName: "El Massa Tour & Travel",
-    branch: "Bekasi",
-    isPrimary: true,
-    status: "Aktif",
-  },
-];
+const bankAccountRows: BankAccountRow[] = [];
 
 export function listBankAccountRows() {
   return bankAccountRows;

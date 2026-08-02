@@ -30,13 +30,14 @@ import { exportToCSV } from "@/lib/export-excel";
 import { listParticipantsForBooking, type ParticipantRow } from "@/lib/seed-data/bookings";
 
 const groupScheduleOptions = [
-  { id: "grup-babel-20260708", label: "Grup 1: Rombongan Bangka Belitung (08 - 18 Jul 2026 • Garuda GA-980)" },
-  { id: "grup-sumbagsel-20260812", label: "Grup 2: Rombongan Sumbagsel & Palembang (12 - 24 Agu 2026 • Saudia SV-815)" },
-  { id: "grup-vip-20260905", label: "Grup 3: Rombongan Executive VIP (05 - 14 Sep 2026 • Emirates EK-357)" },
+  { id: "grup-oktober-2026", label: "Grup 1: Umrah Spesial Oktober 2026 (25 Okt - 05 Nov 2026 • Garuda GA-980)" },
+  { id: "grup-november-2026", label: "Grup 2: Umrah Reguler November 2026 (10 - 21 Nov 2026 • Saudia SV-815)" },
+  { id: "grup-desember-2026", label: "Grup 3: Umrah Akhir Tahun Desember 2026 (20 - 31 Des 2026 • Oman Air WY-848)" },
+  { id: "grup-juli-2026", label: "Grup 4: Umrah Liburan Juli 2026 (08 - 19 Jul 2026 • Lion Premium JT-110)" },
 ];
 
 export default function ManifestPage() {
-  const [selectedScheduleId, setSelectedScheduleId] = useState("grup-babel-20260708");
+  const [selectedScheduleId, setSelectedScheduleId] = useState("grup-oktober-2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantRow | null>(null);
 

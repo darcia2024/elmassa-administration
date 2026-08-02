@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { ArrowUpRight, CircleDollarSign, CreditCard, FileText, Plus, ReceiptText, Search, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -16,14 +19,36 @@ type PaymentItem = {
 
 const payments: PaymentItem[] = [];
 
-const paymentSummary = [
-  { label: "Pembayaran Masuk", value: "Rp 0", note: "Total dana diterima", icon: CircleDollarSign },
-  { label: "Menunggu Cek", value: "Rp 0", note: "Perlu validasi staf", icon: WalletCards },
-  { label: "Rekening Bank", value: "3 Rekening", note: "BCA, Mandiri, Kas Utama", icon: CreditCard },
-  { label: "Kuitansi Diterbitkan", value: "0 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
-];
-
 export default function PaymentsPage() {
+  const [bankAccountsCount, setBankAccountsCount] = useState(0);
+  const [bankNamesNote, setBankNamesNote] = useState("Belum Ada Rekening");
+
+  // Load real bank accounts created by user from localStorage / company identity
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_company_identity");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.bankAccounts && Array.isArray(parsed.bankAccounts) && parsed.bankAccounts.length > 0) {
+          setBankAccountsCount(parsed.bankAccounts.length);
+          const names = parsed.bankAccounts.map((b: any) => b.bankName || b.bank).filter(Boolean);
+          setBankNamesNote(names.length > 0 ? names.join(", ") : "Rekening Terdaftar");
+          return;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setBankAccountsCount(0);
+    setBankNamesNote("Belum Ada Rekening");
+  }, []);
+
+  const paymentSummary = [
+    { label: "Pembayaran Masuk", value: "Rp 0", note: "Total dana diterima", icon: CircleDollarSign },
+    { label: "Menunggu Cek", value: "Rp 0", note: "Perlu validasi staf", icon: WalletCards },
+    { label: "Rekening Bank", value: `${bankAccountsCount} Rekening`, note: bankNamesNote, icon: CreditCard },
+    { label: "Kuitansi Diterbitkan", value: "0 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
+  ];
   return (
     <AppShell eyebrow="Keuangan" title="Pembayaran & Cicilan">
       <div className="space-y-5">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Filter, Layers, MapPin, Phone, Search, UserCheck, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -22,13 +22,6 @@ type CustomerListProps = {
   customers: Customer[];
 };
 
-const groupOptions = [
-  "Semua Grup Keberangkatan",
-  "Rombongan Bangka Belitung (08-18 Jul 2026)",
-  "Rombongan Palembang & Sumbagsel (Agustus 2026)",
-  "Jamaah VIP Executive (September 2026)",
-];
-
 const statusStyles: Record<string, string> = {
   Aktif: "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
   "Follow-up": "bg-amber-50/80 text-amber-800 border border-amber-200/60",
@@ -38,8 +31,30 @@ const statusStyles: Record<string, string> = {
 
 export function CustomerList({ customers }: CustomerListProps) {
   const [query, setQuery] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("Semua Grup Keberangkatan");
+  const [selectedGroup, setSelectedGroup] = useState("Semua Paket Keberangkatan");
   const [selectedCategoryPill, setSelectedCategoryPill] = useState("Semua");
+  const [filterOptions, setFilterOptions] = useState<string[]>(["Semua Paket Keberangkatan"]);
+
+  // Load strictly user-created custom packages from localStorage (from Kalkulator HPP / Published Packages)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("el_massa_published_packages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customNames = parsed.map((pkg: any) =>
+            `${pkg.name || pkg.packageName} (${pkg.departuresDate || pkg.departureDate || "Keberangkatan"})`
+          );
+          setFilterOptions(["Semua Paket Keberangkatan", ...customNames]);
+          return;
+        }
+      }
+      setFilterOptions(["Semua Paket Keberangkatan", "-- Belum Ada Paket Terbit (Buat di Kalkulator HPP) --"]);
+    } catch (e) {
+      console.error(e);
+      setFilterOptions(["Semua Paket Keberangkatan"]);
+    }
+  }, []);
 
   const filteredCustomers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -47,7 +62,7 @@ export function CustomerList({ customers }: CustomerListProps) {
     return customers.filter((customer) => {
       const searchable = `${customer.name} ${customer.phone} ${customer.email} ${customer.city} ${customer.groupName} ${customer.status}`.toLowerCase();
       const matchesQuery = normalizedQuery.length === 0 || searchable.includes(normalizedQuery);
-      const matchesGroup = selectedGroup === "Semua Grup Keberangkatan" || customer.groupName === selectedGroup;
+      const matchesGroup = selectedGroup === "Semua Paket Keberangkatan" || customer.groupName === selectedGroup;
 
       let matchesPill = true;
       if (selectedCategoryPill === "Bangka") matchesPill = customer.city.includes("Pangkal") || customer.groupName.includes("Bangka");
@@ -251,7 +266,7 @@ export function CustomerList({ customers }: CustomerListProps) {
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
               >
-                {groupOptions.map((opt) => (
+                {filterOptions.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>

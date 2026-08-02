@@ -339,6 +339,55 @@ export function AppShell({ children }: AppShellProps) {
     }
   }, [pathname, router]);
 
+  // Live Real-Time Date & Hijri state
+  const [liveDate, setLiveDate] = useState<{ gregorian: string; hijri: string }>({
+    gregorian: "",
+    hijri: ""
+  });
+
+  useEffect(() => {
+    const updateLiveDate = () => {
+      const now = new Date();
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      
+      const dayName = days[now.getDay()];
+      const monthName = months[now.getMonth()];
+      const dateNum = now.getDate();
+      const year = now.getFullYear();
+      
+      const suffix = (d: number) => {
+        if (d > 3 && d < 21) return 'th';
+        switch (d % 10) {
+          case 1:  return "st";
+          case 2:  return "nd";
+          case 3:  return "rd";
+          default: return "th";
+        }
+      };
+      
+      const gregorian = `${dayName}, ${monthName} ${dateNum}${suffix(dateNum)} ${year}`;
+
+      let hijri = "";
+      try {
+        const formatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        hijri = `${formatter.format(now)}H`;
+      } catch (e) {
+        hijri = "17 Safar 1448H";
+      }
+
+      setLiveDate({ gregorian, hijri });
+    };
+
+    updateLiveDate();
+    const interval = setInterval(updateLiveDate, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogout = () => {
     window.localStorage.removeItem("el-massa-session");
     setSessionUser(null);
@@ -501,9 +550,9 @@ export function AppShell({ children }: AppShellProps) {
             
             {/* 📅 Date & Accurate Hijri Date Pill */}
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[11px] font-medium text-stone-700 shadow-2xs">
-              <span className="font-semibold text-stone-900">Sat, Aug 1st 2026</span>
-              <span className="text-stone-300">•</span>
-              <span className="font-bold text-pink-600 font-mono">17 Safar 1448H</span>
+              <span className="font-semibold text-stone-900">{liveDate.gregorian}</span>
+              {liveDate.hijri ? <span className="text-stone-300">•</span> : null}
+              {liveDate.hijri ? <span className="font-bold text-pink-600 font-mono">{liveDate.hijri}</span> : null}
             </div>
             
             {/* 🔍 Global Live Search Input Container */}

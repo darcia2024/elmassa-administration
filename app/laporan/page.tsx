@@ -163,7 +163,13 @@ export default function ReportsPage() {
               <p className="text-xs font-semibold text-stone-500">Status Pelunasan</p>
               <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">42.1% Terbayar</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-700">
+              {filteredReceivables.length > 0 ? `${(
+                (filteredReceivables.reduce((acc, r) => acc + r.paid, 0) /
+                  filteredReceivables.reduce((acc, r) => acc + r.totalPrice, 1)) *
+                100
+              ).toFixed(1)}% Terbayar` : "0% Terbayar"}
+            </p>
             <p className="mt-1 text-[11px] text-stone-400">Rata-rata pelunasan rombongan</p>
           </article>
         </section>
