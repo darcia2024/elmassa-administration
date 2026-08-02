@@ -370,8 +370,9 @@ export default function PenerbitanUmrahmePage() {
       <div className="space-y-6 pb-12 font-sans">
 
         {/* 🚀 TOP HEADER HERO CARD */}
-        <section className="relative overflow-hidden rounded-3xl bg-[#be185d] p-6 sm:p-8 text-white shadow-xl border border-pink-700/40">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <section className="relative overflow-hidden rounded-3xl bg-[#be185d] p-6 sm:p-8 text-white shadow-xl border border-pink-700/40 space-y-6">
+          {/* Top Row: Title & Stat Box */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <img
                 src="/umrahme-logo.png"
@@ -386,41 +387,46 @@ export default function PenerbitanUmrahmePage() {
               </p>
             </div>
 
-            {/* Quick Actions & Stats */}
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0">
-              <a
-                href="https://umrahme-elmassa.vercel.app/login"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto h-11 px-5 rounded-2xl bg-white hover:bg-rose-50 text-stone-900 font-black text-xs flex items-center justify-center gap-2 shadow-xl border border-pink-200 transition active:scale-95 group cursor-pointer"
-              >
-                <Smartphone className="h-4 w-4 text-pink-600 group-hover:scale-110 transition-transform" />
-                <span>Buka App Jemaah (Uji Login) ↗</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={() => setIsBroadcastModalOpen(true)}
-                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
-              >
-                <Bell className="h-4 w-4" />
-                <span>Broadcast Pengumuman</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsExcelModalOpen(true)}
-                className="w-full sm:w-auto h-11 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
-              >
-                <FileSpreadsheet className="h-4 w-4" />
-                <span>Bulk Import Excel</span>
-              </button>
-
-              <div className="rounded-2xl bg-white/10 backdrop-blur-md p-3 px-4 border border-white/15 text-center min-w-[110px]">
-                <p className="text-xl font-black text-white leading-none">{accounts.length}</p>
-                <p className="text-[10px] uppercase font-bold text-pink-200 tracking-wider mt-1">Akun Diterbitkan</p>
+            {/* Stat Box (Top Right) */}
+            <div className="shrink-0 self-start">
+              <div className="rounded-2xl bg-white/10 backdrop-blur-md p-4 px-6 border border-white/20 text-center min-w-[130px] shadow-sm">
+                <p className="text-3xl font-black text-white leading-none">{accounts.length}</p>
+                <p className="text-[10px] uppercase font-extrabold text-pink-200 tracking-wider mt-1.5">
+                  Akun Diterbitkan
+                </p>
               </div>
             </div>
+          </div>
+
+          {/* Bottom Row: Action Buttons Toolbar */}
+          <div className="pt-4 border-t border-white/15 flex flex-wrap items-center gap-3">
+            <a
+              href="https://umrahme-elmassa.vercel.app/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-11 px-5 rounded-2xl bg-white hover:bg-rose-50 text-stone-900 font-black text-xs flex items-center justify-center gap-2 shadow-xl transition active:scale-95 group cursor-pointer border border-pink-200"
+            >
+              <Smartphone className="h-4 w-4 text-pink-600 group-hover:scale-110 transition-transform" />
+              <span>Buka App Jemaah (Uji Login) ↗</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setIsBroadcastModalOpen(true)}
+              className="h-11 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
+            >
+              <Bell className="h-4 w-4" />
+              <span>Broadcast Pengumuman</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsExcelModalOpen(true)}
+              className="h-11 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>Bulk Import Excel</span>
+            </button>
           </div>
         </section>
 
