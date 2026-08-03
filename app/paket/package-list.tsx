@@ -270,7 +270,9 @@ export function PackageList() {
         pkg.departuresDate.toLowerCase().includes(q);
 
       const matchesCat =
-        selectedCategory === "Semua" || pkg.category.includes(selectedCategory);
+        selectedCategory === "Semua" ||
+        pkg.category.toLowerCase().includes(selectedCategory.split(" ")[0].toLowerCase()) ||
+        selectedCategory.toLowerCase().includes(pkg.category.toLowerCase());
 
       return matchesSearch && matchesCat;
     });
@@ -335,7 +337,23 @@ export function PackageList() {
             </div>
 
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0 max-w-full">
-              {(["Semua", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember", "Ramadhan", "Spesial"] as const).map((cat) => (
+              {([
+                "Semua",
+                "Oktober 2026",
+                "November 2026",
+                "Desember 2026",
+                "Januari 2027",
+                "Februari 2027",
+                "Maret 2027",
+                "April 2027",
+                "Mei 2027",
+                "Juni 2027",
+                "Juli 2027",
+                "Agustus 2027",
+                "September 2027",
+                "Ramadhan 2027",
+                "Spesial",
+              ] as const).map((cat) => (
                 <button
                   key={cat}
                   type="button"
@@ -346,7 +364,7 @@ export function PackageList() {
                       : "text-stone-600 hover:bg-stone-50"
                   }`}
                 >
-                  {cat === "Semua" ? "Semua Paket" : cat === "Ramadhan" || cat === "Spesial" ? cat : `Bulan ${cat}`}
+                  {cat === "Semua" ? "Semua Paket" : cat}
                 </button>
               ))}
             </div>

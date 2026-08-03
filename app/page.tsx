@@ -176,8 +176,10 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [publishedPackages, setPublishedPackages] = useState<any[]>([]);
+  const [realBookings, setRealBookings] = useState<any[]>([]);
 
   useEffect(() => {
+    // 1. Fetch published packages
     fetch("/api/packages")
       .then((res) => res.json())
       .then((res) => {
@@ -192,10 +194,41 @@ export default function DashboardPage() {
         const saved = localStorage.getItem("el_massa_published_packages");
         if (saved) setPublishedPackages(JSON.parse(saved));
       });
+
+    // 2. Fetch real jamaah bookings
+    try {
+      const bStr = localStorage.getItem("el_massa_real_bookings");
+      if (bStr) {
+        const parsed = JSON.parse(bStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setRealBookings(parsed);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
+  const allBookings = useMemo(() => {
+    if (realBookings.length > 0) {
+      return realBookings.map((b) => ({
+        code: b.code || "BK-908709",
+        customer: b.customer || "Jamaah Terdaftar",
+        packageName: b.packageName || "Umrah Spesial El Massa",
+        departure: b.departure || "30 Sep 2026",
+        status: b.status || (b.remainingAmount <= 0 ? "Lunas" : b.paidAmount > 0 ? "DP" : "Belum Bayar"),
+        totalAmount: b.totalDisplay || `Rp ${(b.totalAmount || 33500000).toLocaleString("id-ID")}`,
+        paidAmount: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
+        umrahMeStatus: b.umrahMeStatus || "Aktif 🟢",
+        phone: b.phone || "0812-3456-7890",
+        participants: b.participants || 1,
+      }));
+    }
+    return dashboard.recentBookings;
+  }, [realBookings, dashboard.recentBookings]);
+
   const filteredBookings = useMemo(() => {
-    return dashboard.recentBookings.filter((booking) => {
+    return allBookings.filter((booking) => {
       const matchesFilter = activeFilter === "Semua" || booking.status === activeFilter;
       const matchesSearch =
         booking.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -203,14 +236,14 @@ export default function DashboardPage() {
         booking.packageName.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesFilter && matchesSearch;
     });
-  }, [dashboard.recentBookings, activeFilter, searchQuery]);
+  }, [allBookings, activeFilter, searchQuery]);
 
-  const bookingCount = dashboard.recentBookings.length;
-  const customerCount = dashboard.metrics.find((m) => m.key === "customers")?.value ?? 0;
+  const bookingCount = allBookings.length;
+  const customerCount = dashboard.metrics.find((m) => m.key === "customers")?.value ?? (allBookings.length > 0 ? allBookings.length : 0);
   const totalGrupTersedia = publishedPackages.length > 0 ? publishedPackages.length : 2;
   const totalRev = dashboard.metrics.find((m) => m.key === "revenue")?.value ?? 0;
 
-  const totalBookedSeats = dashboard.recentBookings.reduce((sum, b) => sum + (Number((b as any).participants) || 1), 0);
+  const totalBookedSeats = allBookings.reduce((sum, b) => sum + (Number((b as any).participants) || 1), 0);
   const totalTargetSeats = totalGrupTersedia * 45;
   const totalRemainingSeats = Math.max(0, totalTargetSeats - totalBookedSeats);
 
