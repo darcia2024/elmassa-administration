@@ -487,7 +487,7 @@ export function PackageList() {
                 </div>
 
                 <a
-                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(pkg.id)}&packageName=${encodeURIComponent(pkg.name)}&departure=${encodeURIComponent(pkg.departuresDate || pkg.departureDate || "")}&makkahHotel=${encodeURIComponent(pkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(pkg.madinahHotel || "")}&airline=${encodeURIComponent(pkg.airline || "")}`}
+                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(pkg.id)}&packageName=${encodeURIComponent(pkg.name)}&departure=${encodeURIComponent(pkg.departuresDate || (pkg as any).departureDate || "")}&makkahHotel=${encodeURIComponent(pkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(pkg.madinahHotel || "")}&airline=${encodeURIComponent(pkg.airline || "")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-1 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#2a170e] hover:bg-[#3d2417] text-[11px] font-bold text-amber-200 transition shadow-2xs cursor-pointer"
@@ -867,7 +867,7 @@ export function PackageList() {
                   <span>Update Seat Kuota ↗</span>
                 </Link>
                 <a
-                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(selectedPkg.id)}&packageName=${encodeURIComponent(selectedPkg.name)}&departure=${encodeURIComponent(selectedPkg.departuresDate || selectedPkg.departureDate || "")}&makkahHotel=${encodeURIComponent(selectedPkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(selectedPkg.madinahHotel || "")}&airline=${encodeURIComponent(selectedPkg.airline || "")}`}
+                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(selectedPkg.id)}&packageName=${encodeURIComponent(selectedPkg.name)}&departure=${encodeURIComponent(selectedPkg.departuresDate || (selectedPkg as any).departureDate || "")}&makkahHotel=${encodeURIComponent(selectedPkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(selectedPkg.madinahHotel || "")}&airline=${encodeURIComponent(selectedPkg.airline || "")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="h-9 px-3.5 rounded-xl bg-[#2a170e] hover:bg-[#3d2417] text-amber-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
