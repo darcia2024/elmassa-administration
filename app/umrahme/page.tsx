@@ -516,47 +516,67 @@ export default function PenerbitanUmrahmePage() {
           </div>
         </section>
 
-        {/* 🪙 WIDGET SALDO LISENSI UMRAHME (PREPAID CREDIT SYSTEM) */}
-        <section className="rounded-3xl border border-pink-200 bg-gradient-to-r from-stone-900 via-rose-950 to-stone-900 p-5 shadow-xl text-white">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="h-12 w-12 rounded-2xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0">
-                <CreditCard className="h-6 w-6" />
+        {/* 🪙 ELEGANT LUXURY SALDO LISENSI UMRAHME WIDGET */}
+        <section className="relative overflow-hidden rounded-3xl border border-stone-800 bg-stone-950 p-6 sm:p-7 text-white shadow-2xl">
+          {/* Ambient Subtle Background Pattern Glow */}
+          <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-gradient-to-br from-pink-600/30 via-rose-600/10 to-transparent blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-tr from-amber-500/20 via-amber-700/10 to-transparent blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Left Block: Icon & Credit Info */}
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="relative grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-stone-950 shadow-lg shadow-amber-500/20 shrink-0">
+                <CreditCard className="h-7 w-7 stroke-[2.2]" />
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400"></span>
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] uppercase font-extrabold tracking-widest text-pink-300">
-                    Saldo Lisensi UmrahMe (Travel License)
+
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] uppercase font-black tracking-widest text-stone-400">
+                    SALDO LISENSI AKUN UMRAHME
                   </span>
-                  <span className="bg-amber-400 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
-                    Rp 35.000 / Akun
+                  <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-amber-300 border border-white/15 backdrop-blur-md">
+                    <Sparkles className="h-3 w-3 text-amber-400" />
+                    <span>Rp 35.000 / Jemaah</span>
                   </span>
                 </div>
-                <div className="flex items-baseline gap-2 mt-0.5">
+
+                <div className="flex items-baseline gap-3">
                   <span
-                    className={`text-2xl sm:text-3xl font-black ${
+                    className={`font-display text-3xl sm:text-4xl font-black tracking-tight ${
                       licenseCredits <= 5 ? "text-rose-400 animate-pulse" : "text-white"
                     }`}
                   >
-                    {licenseCredits} Kuota
+                    {licenseCredits} <span className="text-xl sm:text-2xl text-stone-300 font-bold">Kuota</span>
                   </span>
-                  <span className="text-xs text-stone-300 font-medium">
-                    tersisa dari paket penerbitan jemaah
+                  <span className="text-xs text-stone-400 font-medium">
+                    tersisa untuk terbit akun digital
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              <div className="text-right hidden sm:block">
-                <p className="text-[10px] uppercase font-bold text-stone-400">Total Akun Terbit</p>
-                <p className="text-sm font-extrabold text-amber-300">{accounts.length} Jemaah</p>
+            {/* Right Block: Stats Pills & Gold Action CTA */}
+            <div className="flex flex-wrap items-center justify-between lg:justify-end gap-4 border-t lg:border-t-0 border-stone-800/80 pt-4 lg:pt-0">
+              <div className="flex items-center gap-6 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div>
+                  <p className="text-[9px] uppercase font-extrabold text-stone-400 tracking-wider">Terbit Resmi</p>
+                  <p className="text-sm font-black text-amber-300">{accounts.length} Jemaah</p>
+                </div>
+                <div className="h-7 w-px bg-white/15" />
+                <div>
+                  <p className="text-[9px] uppercase font-extrabold text-stone-400 tracking-wider">Nilai Saldo</p>
+                  <p className="text-sm font-black text-emerald-400">Rp {(licenseCredits * 35000).toLocaleString("id-ID")}</p>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsTopUpModalOpen(true)}
-                className="h-11 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer shrink-0 border border-amber-200"
+                className="h-12 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-xl shadow-amber-500/10 hover:shadow-amber-500/25 transition-all duration-200 active:scale-95 cursor-pointer shrink-0 border border-amber-200"
               >
                 <Plus className="h-4 w-4 stroke-[3]" />
                 <span>Top Up Saldo Kuota</span>
@@ -565,7 +585,7 @@ export default function PenerbitanUmrahmePage() {
           </div>
 
           {licenseCredits <= 0 && (
-            <div className="mt-3.5 pt-3 border-t border-rose-500/30 flex items-center gap-2 text-rose-200 text-xs font-semibold">
+            <div className="mt-4 pt-3.5 border-t border-rose-500/30 flex items-center gap-2 text-rose-200 text-xs font-semibold">
               <AlertTriangle className="h-4 w-4 text-amber-300 shrink-0" />
               <span>
                 ⚠️ Saldo Kuota Lisensi Habis (0 Tersisa). Penerbitan akun jemaah baru terkunci secara otomatis hingga Anda melakukan Top Up.
