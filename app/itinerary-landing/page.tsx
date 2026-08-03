@@ -69,7 +69,7 @@ export default function ItineraryLandingPreviewPage() {
   const activePackage = packagesList.find((p) => p.id === selectedPkgId) || packagesList[0];
 
   return (
-    <AppShell title="Live Sync Standalone Web App (itinerary.elmassa-weld)">
+    <AppShell title="Live Sync Standalone Web App (itineraryelmassa-weld)">
       <div className="space-y-8 font-sans max-w-5xl mx-auto pb-12">
         
         {/* HERO BANNER SECTION - SOLID DEEP BROWN (#2A170E) */}
@@ -77,7 +77,7 @@ export default function ItineraryLandingPreviewPage() {
           <div className="relative z-10 space-y-4 max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#3d2417] border border-[#523221] px-4 py-1.5 text-xs font-bold text-amber-200">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Sinkron 100% Real-Time ke Standalone Web App (itinerary.elmassa-weld)</span>
+              <span>Sinkron 100% Real-Time ke Standalone Web App (itineraryelmassa-weld)</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
@@ -85,7 +85,7 @@ export default function ItineraryLandingPreviewPage() {
             </h1>
 
             <p className="text-xs sm:text-sm text-amber-100/80 leading-relaxed max-w-2xl">
-              Tampilan brosur &amp; itinerary interaktif yang tersinkronisasi 100% otomatis antara Web Admin Sistem dan Standalone Landing Page <strong>itinerary.elmassa-weld</strong>.
+              Tampilan brosur &amp; itinerary interaktif yang tersinkronisasi 100% otomatis antara Web Admin Sistem dan Standalone Landing Page <strong>itineraryelmassa-weld.vercel.app</strong>.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-3">
@@ -99,13 +99,13 @@ export default function ItineraryLandingPreviewPage() {
               </button>
 
               <a
-                href="https://itinerary.elmassa.weld.vercel.app/"
+                href="https://itineraryelmassa-weld.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="h-11 px-4 rounded-xl bg-[#3d2417] hover:bg-[#4d2d1d] border border-[#523221] text-xs font-bold text-amber-100 transition flex items-center gap-2 cursor-pointer shadow-sm"
               >
                 <ExternalLink className="h-4 w-4 text-amber-400" />
-                <span>Buka Standalone App (itinerary.elmassa.weld) ↗</span>
+                <span>Buka Standalone App (itineraryelmassa-weld.vercel.app) ↗</span>
               </a>
 
               <Link
@@ -164,7 +164,7 @@ export default function ItineraryLandingPreviewPage() {
                   : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
               }`}
             >
-              🌐 Live App Frame (itinerary.elmassa.weld)
+              🌐 Live App Frame (itineraryelmassa-weld)
             </button>
           </div>
         </div>
@@ -173,9 +173,9 @@ export default function ItineraryLandingPreviewPage() {
         {viewMode === "live" ? (
           <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm space-y-3 p-3">
             <div className="flex items-center justify-between px-2 text-xs">
-              <span className="font-bold text-stone-700">Live Web App Standalone: https://itinerary.elmassa.weld.vercel.app/</span>
+              <span className="font-bold text-stone-700">Live Web App Standalone: https://itineraryelmassa-weld.vercel.app/</span>
               <a
-                href="https://itinerary.elmassa.weld.vercel.app/"
+                href="https://itineraryelmassa-weld.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-brand-pink font-bold hover:underline"
@@ -184,7 +184,7 @@ export default function ItineraryLandingPreviewPage() {
               </a>
             </div>
             <iframe
-              src="https://itinerary.elmassa.weld.vercel.app/"
+              src="https://itineraryelmassa-weld.vercel.app/"
               className="w-full h-[700px] rounded-xl border border-stone-200 shadow-inner"
               title="Live Standalone Itinerary App"
             />
