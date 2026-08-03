@@ -67,7 +67,7 @@ export function PackageList() {
   const [userRole, setUserRole] = useState("Super Admin");
 
   useEffect(() => {
-    // 1. Fetch from Supabase PostgreSQL API
+    // 1. Fetch from Supabase PostgreSQL API & Auto-Migrate local packages
     fetch("/api/packages")
       .then((res) => res.json())
       .then((res) => {
@@ -77,8 +77,21 @@ export function PackageList() {
             localStorage.setItem("el_massa_published_packages", JSON.stringify(res.data));
           } catch (e) {}
         } else {
+          // If Supabase has no packages yet, push existing local packages to Supabase Cloud Database!
           const saved = localStorage.getItem("el_massa_published_packages");
-          if (saved) setCustomPackages(JSON.parse(saved));
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCustomPackages(parsed);
+              parsed.forEach((pkg: any) => {
+                fetch("/api/packages", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(pkg),
+                }).catch((e) => console.error("Migration error:", e));
+              });
+            }
+          }
         }
       })
       .catch(() => {
