@@ -417,10 +417,16 @@ export function FloatingRevisionNotes() {
             </div>
 
             {/* Footer Status Bar */}
-            <div className="border-t border-stone-200 bg-stone-50 px-4 py-3 text-center">
-              <p className="text-[10px] font-bold text-stone-500">
-                💡 Catatan revisi tersimpan otomatis ke Cloud Supabase & dapat diakses dari semua device.
+            <div className="border-t border-stone-200 bg-stone-50 px-4 py-3 flex items-center justify-between gap-2 text-[10px]">
+              <p className="font-bold text-stone-500 truncate">
+                💡 Tersimpan di Cloud Supabase
               </p>
+              <a
+                href="/pengaturan/catatan-revisi"
+                className="rounded-lg bg-stone-900 px-2.5 py-1 font-extrabold text-amber-300 hover:bg-black transition shrink-0"
+              >
+                📋 Full Review ↗
+              </a>
             </div>
 
           </div>
