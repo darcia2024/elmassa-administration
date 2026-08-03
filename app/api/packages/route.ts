@@ -3,7 +3,7 @@ import { Pool } from "pg";
 
 const connectionString =
   process.env.DATABASE_URL ||
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:9I1er0NtdwzcZ81H@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres";
+  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
 
 const pool = new Pool({
   connectionString,
