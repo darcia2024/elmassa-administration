@@ -40,8 +40,10 @@ async function ensureTable() {
         poster_img TEXT DEFAULT '/poster-el-massa.png',
         banner_img TEXT DEFAULT '/banner-el-massa.png',
         featured BOOLEAN DEFAULT true,
+        costing_data JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE published_packages ADD COLUMN IF NOT EXISTS costing_data JSONB DEFAULT '{}'::jsonb;
     `);
   } catch (err) {
     console.error("Error creating published_packages table:", err);
@@ -79,7 +81,8 @@ export async function GET() {
         excludes, 
         poster_img as "posterImg", 
         banner_img as "bannerImg", 
-        featured 
+        featured,
+        costing_data as "costingData"
        FROM published_packages 
        ORDER BY created_at DESC;`
     );
@@ -99,9 +102,9 @@ export async function POST(req: Request) {
     try {
       await client.query(
         `INSERT INTO published_packages (
-          id, name, category, duration, departures_date, departure_date, return_date, price, numeric_price, dp_minimum, makkah_hotel, madinah_hotel, airline, domestic_airline, international_airline, flight_route, start_point, program_umrah, itinerary, includes, excludes, poster_img, banner_img, featured
+          id, name, category, duration, departures_date, departure_date, return_date, price, numeric_price, dp_minimum, makkah_hotel, madinah_hotel, airline, domestic_airline, international_airline, flight_route, start_point, program_umrah, itinerary, includes, excludes, poster_img, banner_img, featured, costing_data
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           category = EXCLUDED.category,
@@ -125,7 +128,8 @@ export async function POST(req: Request) {
           excludes = EXCLUDED.excludes,
           poster_img = EXCLUDED.poster_img,
           banner_img = EXCLUDED.banner_img,
-          featured = EXCLUDED.featured;`,
+          featured = EXCLUDED.featured,
+          costing_data = EXCLUDED.costing_data;`,
         [
           pkg.id || `pkg-custom-${Date.now()}`,
           pkg.name || "Paket Umrah Kustom",
@@ -150,7 +154,8 @@ export async function POST(req: Request) {
           JSON.stringify(pkg.excludes || []),
           pkg.posterImg || "/poster-el-massa.png",
           pkg.bannerImg || "/banner-el-massa.png",
-          pkg.featured !== false,
+          pkg.featured !== undefined ? pkg.featured : true,
+          JSON.stringify(pkg.costingData || pkg.costing_data || pkg),
         ]
       );
 

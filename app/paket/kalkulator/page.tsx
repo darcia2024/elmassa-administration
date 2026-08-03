@@ -226,39 +226,58 @@ export default function PackageCalculatorPage() {
       if (editStr) {
         const pkg = JSON.parse(editStr);
         if (pkg) {
-          if (pkg.id) setEditingPackageId(pkg.id);
-          if (pkg.name) {
-            setPackageName(pkg.name);
-            setPubPackageName(pkg.name);
+          const cData = pkg.costingData || pkg.costing_data || pkg;
+          const targetId = pkg.id || cData.id;
+          if (targetId) setEditingPackageId(targetId);
+
+          const nameVal = cData.packageName || cData.name || pkg.name;
+          if (nameVal) {
+            setPackageName(nameVal);
+            setPubPackageName(nameVal);
           }
-          if (pkg.makkahHotel) setMakkahHotelName(pkg.makkahHotel);
-          if (pkg.madinahHotel) setMadinahHotelName(pkg.madinahHotel);
-          if (pkg.airline) setInternationalAirline(pkg.airline);
-          if (pkg.domesticAirline) setDomesticAirline(pkg.domesticAirline);
-          if (pkg.internationalAirline) setInternationalAirline(pkg.internationalAirline);
-          if (pkg.category) {
-            setCategoryName(pkg.category);
-            setPubCategory(pkg.category);
+
+          const makkahVal = cData.makkahHotelName || cData.makkahHotel || pkg.makkahHotel;
+          if (makkahVal) setMakkahHotelName(makkahVal);
+
+          const madinahVal = cData.madinahHotelName || cData.madinahHotel || pkg.madinahHotel;
+          if (madinahVal) setMadinahHotelName(madinahVal);
+
+          if (cData.domesticAirline || pkg.domesticAirline) setDomesticAirline(cData.domesticAirline || pkg.domesticAirline);
+          if (cData.internationalAirline || cData.airline || pkg.airline) setInternationalAirline(cData.internationalAirline || cData.airline || pkg.airline);
+          
+          const catVal = cData.categoryName || cData.category || pkg.category;
+          if (catVal) {
+            setCategoryName(catVal);
+            setPubCategory(catVal);
           }
-          if (pkg.departureDate) {
-            setDepartureDate(pkg.departureDate);
-            setPubDepartureDate(pkg.departureDate);
+
+          const depVal = cData.departureDate || pkg.departureDate;
+          if (depVal) {
+            setDepartureDate(depVal);
+            setPubDepartureDate(depVal);
           }
-          if (pkg.returnDate) setReturnDate(pkg.returnDate);
-          if (pkg.targetPax) setTargetPax(Number(pkg.targetPax));
-          if (pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(pkg.makkahRoomSarPerNight));
-          if (pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(pkg.madinahRoomSarPerNight));
-          if (pkg.flightCgkJed) setFlightCgkJed(Number(pkg.flightCgkJed));
-          if (pkg.flightPtkCgk) setFlightPtkCgk(Number(pkg.flightPtkCgk));
-          if (pkg.visaAndInsuranceSar) setVisaAndInsuranceSar(Number(pkg.visaAndInsuranceSar));
-          if (pkg.handlingJakartaCgkIdr) setHandlingJakartaCgkIdr(Number(pkg.handlingJakartaCgkIdr));
-          if (pkg.handlingSaudiSharedSar) setHandlingSaudiSharedSar(Number(pkg.handlingSaudiSharedSar));
-          if (pkg.feeMarketingIdr) setFeeMarketingIdr(Number(pkg.feeMarketingIdr));
-          if (pkg.marginNominalPerPax) setMarginNominalPerPax(Number(pkg.marginNominalPerPax));
-          if (pkg.triplePaxCount) setTriplePaxCount(Number(pkg.triplePaxCount));
-          if (pkg.doublePaxCount) setDoublePaxCount(Number(pkg.doublePaxCount));
-          if (pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0) {
-            setItineraryList(pkg.itinerary);
+
+          if (cData.returnDate || pkg.returnDate) setReturnDate(cData.returnDate || pkg.returnDate);
+          if (cData.targetPax || pkg.targetPax) setTargetPax(Number(cData.targetPax || pkg.targetPax));
+          if (cData.makkahRoomSarPerNight || pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(cData.makkahRoomSarPerNight || pkg.makkahRoomSarPerNight));
+          if (cData.madinahRoomSarPerNight || pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(cData.madinahRoomSarPerNight || pkg.madinahRoomSarPerNight));
+          if (cData.makkahNights) setMakkahNights(Number(cData.makkahNights));
+          if (cData.madinahNights) setMadinahNights(Number(cData.madinahNights));
+          if (cData.flightCgkJed || pkg.flightCgkJed) setFlightCgkJed(Number(cData.flightCgkJed || pkg.flightCgkJed));
+          if (cData.flightPtkCgk || pkg.flightPtkCgk) setFlightPtkCgk(Number(cData.flightPtkCgk || pkg.flightPtkCgk));
+          if (cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar) setVisaAndInsuranceSar(Number(cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar));
+          if (cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr) setHandlingJakartaCgkIdr(Number(cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr));
+          if (cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar) setHandlingSaudiSharedSar(Number(cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar));
+          if (cData.feeMarketingIdr || pkg.feeMarketingIdr) setFeeMarketingIdr(Number(cData.feeMarketingIdr || pkg.feeMarketingIdr));
+          if (cData.marginNominalPerPax || pkg.marginNominalPerPax) setMarginNominalPerPax(Number(cData.marginNominalPerPax || pkg.marginNominalPerPax));
+          if (cData.triplePaxCount || pkg.triplePaxCount) setTriplePaxCount(Number(cData.triplePaxCount || pkg.triplePaxCount));
+          if (cData.doublePaxCount || pkg.doublePaxCount) setDoublePaxCount(Number(cData.doublePaxCount || pkg.doublePaxCount));
+          if (cData.muthawwifFeeIdrTotal) setMuthawwifFeeIdrTotal(Number(cData.muthawwifFeeIdrTotal));
+          if (cData.tourLeaderFeeIdrTotal) setTourLeaderFeeIdrTotal(Number(cData.tourLeaderFeeIdrTotal));
+
+          const itinVal = cData.itineraryList || cData.itinerary || pkg.itinerary;
+          if (itinVal && Array.isArray(itinVal) && itinVal.length > 0) {
+            setItineraryList(itinVal);
           }
           localStorage.removeItem("el_massa_edit_hpp_package");
         }
@@ -511,6 +530,42 @@ export default function PackageCalculatorPage() {
       madinahRoomSarPerNight: madinahRoomSarPerNight,
       flightCgkJed: flightCgkJed,
       flightPtkCgk: flightPtkCgk,
+      visaAndInsuranceSar: visaAndInsuranceSar,
+      handlingJakartaCgkIdr: handlingJakartaCgkIdr,
+      handlingSaudiSharedSar: handlingSaudiSharedSar,
+      feeMarketingIdr: feeMarketingIdr,
+      marginNominalPerPax: marginNominalPerPax,
+      triplePaxCount: triplePaxCount,
+      doublePaxCount: doublePaxCount,
+      costingData: {
+        id: targetId,
+        packageName: pubPackageName || packageName,
+        categoryName: pubCategory || categoryName,
+        departureDate: pubDepartureDate || departureDate,
+        returnDate: returnDate,
+        makkahHotelName: makkahHotelName,
+        madinahHotelName: madinahHotelName,
+        domesticAirline: domesticAirline,
+        internationalAirline: internationalAirline,
+        flightRoute: flightRoute,
+        targetPax: targetPax,
+        makkahRoomSarPerNight: makkahRoomSarPerNight,
+        madinahRoomSarPerNight: madinahRoomSarPerNight,
+        makkahNights: makkahNights,
+        madinahNights: madinahNights,
+        flightCgkJed: flightCgkJed,
+        flightPtkCgk: flightPtkCgk,
+        visaAndInsuranceSar: visaAndInsuranceSar,
+        handlingJakartaCgkIdr: handlingJakartaCgkIdr,
+        handlingSaudiSharedSar: handlingSaudiSharedSar,
+        feeMarketingIdr: feeMarketingIdr,
+        marginNominalPerPax: marginNominalPerPax,
+        triplePaxCount: triplePaxCount,
+        doublePaxCount: doublePaxCount,
+        muthawwifFeeIdrTotal: muthawwifFeeIdrTotal,
+        tourLeaderFeeIdrTotal: tourLeaderFeeIdrTotal,
+        itineraryList: itineraryList,
+      },
       itinerary: itineraryList,
       bonusHighlights: [
         "Free City Tour Thaif & Pabrik Parfum",
