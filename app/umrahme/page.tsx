@@ -31,6 +31,7 @@ import {
   HeartPulse,
   ChevronDown,
   ChevronUp,
+  AlertTriangle,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { broadcastJamaahUpdateFromAdmin } from "@/lib/syncBridge";
@@ -62,6 +63,27 @@ const initialAccounts: DetailedIssuedAccount[] = [];
 export default function PenerbitanUmrahmePage() {
   const [accounts, setAccounts] = useState<DetailedIssuedAccount[]>(initialAccounts);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // License Quota States (Prepaid Saldo Lisensi Rp 35.000 / Jemaah)
+  const [licenseCredits, setLicenseCredits] = useState<number>(100);
+  const [isTopUpModalOpen, setIsTopUpModalOpen] = useState<boolean>(false);
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState<boolean>(false);
+  const [voucherCodeInput, setVoucherCodeInput] = useState<string>("");
+  const [voucherMessage, setVoucherMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedCredits = localStorage.getItem("el_massa_license_credits");
+      if (savedCredits !== null) {
+        setLicenseCredits(Number(savedCredits));
+      } else {
+        localStorage.setItem("el_massa_license_credits", "100");
+      }
+    } catch (e) {
+      console.error("Failed reading license credits:", e);
+    }
+  }, []);
+
   
   // Show detailed fields accordion in form
   const [showDetailFields, setShowDetailFields] = useState(false);
@@ -199,6 +221,11 @@ export default function PenerbitanUmrahmePage() {
     e.preventDefault();
     if (!inputNama.trim()) return;
 
+    if (licenseCredits <= 0) {
+      setIsQuotaModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
     setTimeout(() => {
       const yr = new Date().getFullYear();
@@ -229,6 +256,14 @@ export default function PenerbitanUmrahmePage() {
       };
 
       setAccounts((prev) => [newAcc, ...prev]);
+
+      // Deduct 1 Credit
+      const newCredits = Math.max(0, licenseCredits - 1);
+      setLicenseCredits(newCredits);
+      try {
+        localStorage.setItem("el_massa_license_credits", String(newCredits));
+      } catch (err) {}
+
       setSuccessModal({
         nama: inputNama.trim(),
         nomorJamaah: generatedId,
@@ -304,6 +339,14 @@ export default function PenerbitanUmrahmePage() {
   function handleConfirmExcelImport() {
     if (excelPreviewRows.length === 0) return;
 
+    if (excelPreviewRows.length > licenseCredits) {
+      alert(
+        `⚠️ Saldo Kuota Lisensi Anda (${licenseCredits} kuota tersisa) tidak mencukupi untuk mengimpor ${excelPreviewRows.length} jemaah sekaligus. Silakan Top Up saldo kuota terlebih dahulu.`
+      );
+      setIsQuotaModalOpen(true);
+      return;
+    }
+
     const yr = new Date().getFullYear();
     const mo = String(new Date().getMonth() + 1).padStart(2, "0");
 
@@ -334,10 +377,53 @@ export default function PenerbitanUmrahmePage() {
     });
 
     setAccounts((prev) => [...newBulkAccounts, ...prev]);
+
+    // Deduct bulk credits
+    const newCredits = Math.max(0, licenseCredits - excelPreviewRows.length);
+    setLicenseCredits(newCredits);
+    try {
+      localStorage.setItem("el_massa_license_credits", String(newCredits));
+    } catch (err) {}
+
     setIsExcelModalOpen(false);
     setExcelPreviewRows([]);
     setExcelFileName("");
-    alert(`🎉 ${newBulkAccounts.length} Akun Digital UmrahMe berhasil di-generate secara bulk via Excel!`);
+    alert(`🎉 ${newBulkAccounts.length} Akun Digital UmrahMe berhasil di-generate! (-${newBulkAccounts.length} kuota lisensi)`);
+  }
+
+  function handleRedeemVoucher(e: React.FormEvent) {
+    e.preventDefault();
+    const code = voucherCodeInput.trim().toUpperCase();
+    if (!code) return;
+
+    let addedCredits = 0;
+    if (code === "ELMASSA-TOPUP-100" || code === "TOPUP100") {
+      addedCredits = 100;
+    } else if (code === "ELMASSA-TOPUP-300" || code === "TOPUP300") {
+      addedCredits = 300;
+    } else if (code === "ELMASSA-TOPUP-50" || code === "TOPUP50") {
+      addedCredits = 50;
+    } else if (code === "DEVELOPER-TEST" || code === "DEV100") {
+      addedCredits = 100;
+    }
+
+    if (addedCredits > 0) {
+      const newCredits = licenseCredits + addedCredits;
+      setLicenseCredits(newCredits);
+      try {
+        localStorage.setItem("el_massa_license_credits", String(newCredits));
+      } catch (err) {}
+      setVoucherMessage({
+        type: "success",
+        text: `🎉 Berhasil! Kode lisensi dikonfirmasi. +${addedCredits} Kuota Lisensi ditambahkan ke saldo Anda.`,
+      });
+      setVoucherCodeInput("");
+    } else {
+      setVoucherMessage({
+        type: "error",
+        text: "❌ Kode voucher top up tidak valid atau sudah digunakan.",
+      });
+    }
   }
 
   // Download Excel Template
@@ -428,6 +514,64 @@ export default function PenerbitanUmrahmePage() {
               <span>Bulk Import Excel</span>
             </button>
           </div>
+        </section>
+
+        {/* 🪙 WIDGET SALDO LISENSI UMRAHME (PREPAID CREDIT SYSTEM) */}
+        <section className="rounded-3xl border border-pink-200 bg-gradient-to-r from-stone-900 via-rose-950 to-stone-900 p-5 shadow-xl text-white">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="h-12 w-12 rounded-2xl bg-amber-400/20 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] uppercase font-extrabold tracking-widest text-pink-300">
+                    Saldo Lisensi UmrahMe (Travel License)
+                  </span>
+                  <span className="bg-amber-400 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+                    Rp 35.000 / Akun
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span
+                    className={`text-2xl sm:text-3xl font-black ${
+                      licenseCredits <= 5 ? "text-rose-400 animate-pulse" : "text-white"
+                    }`}
+                  >
+                    {licenseCredits} Kuota
+                  </span>
+                  <span className="text-xs text-stone-300 font-medium">
+                    tersisa dari paket penerbitan jemaah
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 self-end md:self-auto">
+              <div className="text-right hidden sm:block">
+                <p className="text-[10px] uppercase font-bold text-stone-400">Total Akun Terbit</p>
+                <p className="text-sm font-extrabold text-amber-300">{accounts.length} Jemaah</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsTopUpModalOpen(true)}
+                className="h-11 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer shrink-0 border border-amber-200"
+              >
+                <Plus className="h-4 w-4 stroke-[3]" />
+                <span>Top Up Saldo Kuota</span>
+              </button>
+            </div>
+          </div>
+
+          {licenseCredits <= 0 && (
+            <div className="mt-3.5 pt-3 border-t border-rose-500/30 flex items-center gap-2 text-rose-200 text-xs font-semibold">
+              <AlertTriangle className="h-4 w-4 text-amber-300 shrink-0" />
+              <span>
+                ⚠️ Saldo Kuota Lisensi Habis (0 Tersisa). Penerbitan akun jemaah baru terkunci secara otomatis hingga Anda melakukan Top Up.
+              </span>
+            </div>
+          )}
         </section>
 
         {/* 🗂️ GRID 2 KOLOM: FORM PENERBITAN (KIRI) & PENGATURAN MODUL (KANAN) */}
@@ -1465,6 +1609,177 @@ export default function PenerbitanUmrahmePage() {
                 </div>
               )}
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 💳 MODAL TOP UP SALDO KUOTA LISENSI UMRAHME */}
+      {isTopUpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-6 animate-fade-up max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                  <CreditCard className="h-6 w-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-stone-900">Top Up Saldo Kuota Lisensi UmrahMe</h3>
+                  <p className="text-xs text-stone-500 font-medium">Beli paket lisensi akun jemaah (Tarif Resmi: Rp 35.000 / Akun Jemaah).</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTopUpModalOpen(false);
+                  setVoucherMessage(null);
+                }}
+                className="grid h-8 w-8 place-items-center rounded-full text-stone-400 hover:bg-stone-100 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Current Balance Banner */}
+            <div className="rounded-2xl bg-stone-900 text-white p-4 flex items-center justify-between border border-stone-800">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Saldo Kuota Saat Ini</p>
+                <p className="text-2xl font-black text-amber-400">{licenseCredits} Kuota Jemaah</p>
+              </div>
+              <span className="bg-amber-400/20 text-amber-300 text-xs font-extrabold px-3 py-1.5 rounded-xl border border-amber-400/30">
+                Rp 35.000 / Jemaah
+              </span>
+            </div>
+
+            {/* Package Cards */}
+            <div className="space-y-3">
+              <p className="text-xs uppercase font-extrabold tracking-wider text-stone-500">Pilih Paket Top Up Lisensi:</p>
+              <div className="grid sm:grid-cols-3 gap-3">
+                
+                {/* Package 1 */}
+                <div className="rounded-2xl border-2 border-stone-200 p-4 hover:border-pink-500 transition cursor-pointer bg-stone-50/50 space-y-2 text-center">
+                  <p className="text-xs font-bold text-stone-500 uppercase">Paket Star</p>
+                  <p className="text-xl font-black text-stone-900">50 Kuota</p>
+                  <p className="text-xs font-extrabold text-pink-600">Rp 1.750.000</p>
+                  <p className="text-[10px] text-stone-400 font-medium">Rp 35.000 / Jemaah</p>
+                </div>
+
+                {/* Package 2 (Popular) */}
+                <div className="rounded-2xl border-2 border-pink-500 bg-pink-50/30 p-4 transition cursor-pointer space-y-2 text-center relative shadow-sm">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-pink-600 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full">
+                    Terpopuler
+                  </span>
+                  <p className="text-xs font-bold text-pink-700 uppercase">Paket Pro</p>
+                  <p className="text-xl font-black text-stone-900">100 Kuota</p>
+                  <p className="text-xs font-extrabold text-pink-600">Rp 3.500.000</p>
+                  <p className="text-[10px] text-stone-400 font-medium">Rp 35.000 / Jemaah</p>
+                </div>
+
+                {/* Package 3 */}
+                <div className="rounded-2xl border-2 border-stone-200 p-4 hover:border-pink-500 transition cursor-pointer bg-stone-50/50 space-y-2 text-center">
+                  <p className="text-xs font-bold text-stone-500 uppercase">Paket Musim</p>
+                  <p className="text-xl font-black text-stone-900">300 Kuota</p>
+                  <p className="text-xs font-extrabold text-pink-600">Rp 10.500.000</p>
+                  <p className="text-[10px] text-stone-400 font-medium">Rp 35.000 / Jemaah</p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* WA Order Link */}
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 space-y-2 text-center">
+              <p className="text-xs font-bold text-emerald-900">
+                Pesan &amp; Ajukan Invoice Top Up Lisensi via Whatsapp Developer:
+              </p>
+              <a
+                href={`https://wa.me/6281249476778?text=${encodeURIComponent(
+                  `Halo Developer El Massa, saya ingin mengajukan Invoice Top Up Kuota Lisensi UmrahMe (Paket 100 Kuota - Rp 3.500.000).`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <Send className="h-4 w-4" />
+                <span>💬 Kirim Pengajuan Top Up &amp; Invoice via WhatsApp ↗</span>
+              </a>
+            </div>
+
+            {/* Voucher Code / Instant Approval Section */}
+            <form onSubmit={handleRedeemVoucher} className="space-y-3 pt-2 border-t border-stone-100">
+              <label className="text-xs font-bold text-stone-700 block">
+                Konfirmasi Kode Lisensi / Voucher Top Up (Developer / Master Approval):
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={voucherCodeInput}
+                  onChange={(e) => setVoucherCodeInput(e.target.value)}
+                  placeholder="Masukkan Kode Voucher (cth: TOPUP100)"
+                  className="flex-1 h-11 px-3 rounded-xl border border-stone-200 bg-stone-50 text-xs font-mono font-bold uppercase"
+                />
+                <button
+                  type="submit"
+                  className="h-11 px-5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                >
+                  Aktivasi Kode
+                </button>
+              </div>
+
+              {voucherMessage && (
+                <div
+                  className={`p-3 rounded-xl text-xs font-bold text-center border ${
+                    voucherMessage.type === "success"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-rose-50 text-rose-800 border-rose-200"
+                  }`}
+                >
+                  {voucherMessage.text}
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ MODAL QUOTA EXCEEDED WARNING */}
+      {isQuotaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 text-center animate-fade-up">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
+              <AlertTriangle className="h-8 w-8 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-stone-900">Saldo Kuota Lisensi Habis!</h3>
+              <p className="text-xs text-stone-600 leading-relaxed font-medium">
+                Penerbitan akun digital jemaah terkunci secara otomatis karena saldo kuota lisensi Anda telah habis (0 Kuota Tersisa).
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs font-bold text-amber-900">
+              Tarif Resmi Lisensi: <span className="text-pink-600 font-extrabold">Rp 35.000 / Akun Jemaah</span>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuotaModalOpen(false);
+                  setIsTopUpModalOpen(true);
+                }}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer border border-amber-200"
+              >
+                <Plus className="h-4 w-4 stroke-[3]" />
+                <span>Top Up Saldo Kuota Sekarang ↗</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsQuotaModalOpen(false)}
+                className="w-full h-10 rounded-xl border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50 transition"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}
