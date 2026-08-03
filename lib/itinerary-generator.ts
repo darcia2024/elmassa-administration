@@ -14,14 +14,14 @@ export interface ItineraryDayItem {
 
 export function generateDefaultItinerary(
   durationDays: number = 12,
-  departureDateStr: string = "2026-10-14",
+  departureDateStr: string = "2026-11-03",
   domesticAirline: string = "Garuda Indonesia",
   internationalAirline: string = "Saudia Airline",
   makkahHotel: string = "Grand Al Massa",
   madinahHotel: string = "Daar El Naeem"
 ): ItineraryDayItem[] {
-  const startDate = new Date(departureDateStr);
-  
+  const startDate = new Date(departureDateStr.includes("-") ? departureDateStr : "2026-11-03");
+
   const formatDate = (dateObj: Date) => {
     try {
       const day = dateObj.getDate().toString().padStart(2, "0");
@@ -42,188 +42,188 @@ export function generateDefaultItinerary(
 
   const itinerary: ItineraryDayItem[] = [];
 
-  // Day 1: PGK -> CGK -> JED
+  // H1: 03 Nov Pangkal Pinang - Jakarta
   itinerary.push({
     day: 1,
     date: getOffsetDate(0),
-    title: "Pangkal Pinang (PGK) – Jakarta (CGK) – Saudi",
-    location: "PGK → CGK → JED/MED",
+    title: "H1 03 Nov: Pangkal Pinang (PGK) – Jakarta (CGK)",
+    location: "Pangkal Pinang (PGK) → Jakarta (CGK)",
     highlight: "departure",
     activities: [
-      { time: "09:00 WIB", description: `Jemaah berkumpul di Bandara Depati Amir, Pangkal Pinang (PGK) untuk persiapan check-in (${domesticAirline})` },
-      { time: "12:25 WIB", description: `Take-off penerbangan feeder dari PGK menuju Jakarta (CGK)` },
-      { time: "13:55 WIB", description: "Tiba di Bandara Soekarno-Hatta (CGK). Istirahat di Lounge Bandara khusus Jemaah El Massa" },
-      { time: "19:30 WIB", description: `Berkumpul di Terminal 3 Internasional CGK untuk persiapan penerbangan utama (${internationalAirline})` },
+      { time: "09:00 WIB", description: `Jemaah berkumpul di Bandara Depati Amir Pangkal Pinang (PGK) untuk check-in penerbangan (${domesticAirline})` },
+      { time: "12:25 WIB", description: "Take-off penerbangan feeder menuju Jakarta (CGK)" },
+      { time: "13:55 WIB", description: "Tiba di Bandara Soekarno-Hatta Jakarta (CGK), istirahat di Lounge Bandara khusus Jemaah El Massa" },
+      { time: "19:30 WIB", description: "Pembagian paspor & pengarahan penerbangan internasional ke Arab Saudi" },
     ],
   });
 
-  // Day 2: Landing Saudi & Madinah Check-in
+  // H2: 04 Nov Jakarta - Jeddah - Madinah
   itinerary.push({
     day: 2,
     date: getOffsetDate(1),
-    title: "Landing Jeddah / Madinah – Check-in Hotel",
-    location: "Jeddah / Madinah",
+    title: "H2 04 Nov: Jakarta (CGK) – Jeddah (JED) – Madinah",
+    location: "Jakarta (CGK) → Jeddah (JED) → Madinah",
     highlight: "departure",
     activities: [
-      { time: "00:40 WIB", description: `Take-off menuju Saudi Arabia menggunakan pesawat ${internationalAirline}` },
-      { time: "06:40 LT", description: "Landing di Bandara Saudi. Proses imigrasi & pengambilan bagasi dibantu handling El Massa" },
-      { time: "09:00 LT", description: `Perjalanan bus AC menuju Hotel Madinah (${madinahHotel}). Check-in & istirahat` },
-      { time: "16:00 LT", description: "Shalat berjamaah di Masjid Nabawi & pengenalan area sekitar masjid" },
+      { time: "00:40 WIB", description: `Take-off menuju Jeddah menggunakan pesawat ${internationalAirline}` },
+      { time: "06:40 LT", description: "Landing di Bandara King Abdulaziz Jeddah (JED). Imigrasi & pengambilan bagasi dipandu handling El Massa" },
+      { time: "09:00 LT", description: `Perjalanan bus AC executive menuju Kota Madinah Al-Munawwarah & check-in Hotel (${madinahHotel})` },
+      { time: "16:00 LT", description: "Shalat berjamaah di Masjid Nabawi & orientasi seputar area hotel" },
     ],
   });
 
-  // Day 3: Madinah - Rawdhah & Ziarah Dalam
+  // H3: 05 Nov Madinah - Raudhoh
   itinerary.push({
     day: 3,
     date: getOffsetDate(2),
-    title: "Madinah – Ziarah Rawdhah & Raudhah Jemaah",
+    title: "H3 05 Nov: Madinah – Ziarah Raudhoh & Makam Rasulullah SAW",
     location: "Madinah Al-Munawwarah",
     highlight: "worship",
     activities: [
-      { time: "Subuh - 11:00", description: "Ziarah Rawdhah Jemaah Perempuan & Laki-laki sesuai jadwal Tasreh resmi KSA" },
-      { time: "11:00 - Isya", description: "Ziarah ke Makam Rasulullah SAW, Abu Bakar Ash-Shiddiq, Umar bin Khattab & Pemakaman Baqi" },
-      { time: "19:30 LT", description: "Tausiyah pemantapan ibadah & pembekalan Ziarah Luar Madinah" },
+      { time: "Pagi - Sore", description: "Masuk ke Raudhoh (Taman Surga) bagi jemaah Laki-laki & Perempuan sesuai jadwal Tasreh resmi KSA" },
+      { time: "16:00 LT", description: "Ziarah ke Makam Rasulullah SAW, Abu Bakar Ash-Shiddiq, Umar bin Khattab & Pemakaman Baqi" },
+      { time: "20:00 LT", description: "Tausiyah pemantapan ibadah Nabawi bersama Ustadz Pembimbing" },
     ],
   });
 
-  // Day 4: Tour Sejarah Madinah (Masjid Quba & Uhud)
+  // H4: 06 Nov Madinah - Perbanyak Ibadah Shalat Jumat
   itinerary.push({
     day: 4,
     date: getOffsetDate(3),
-    title: "Tour Sejarah Kota Madinah",
-    location: "Madinah & Sekitarnya",
-    highlight: "ziarah",
+    title: "H4 06 Nov: Madinah – Perbanyak Ibadah & Shalat Jumat",
+    location: "Madinah (Masjid Nabawi)",
+    highlight: "worship",
     activities: [
-      { time: "08:00 - 12:00", description: "Ziarah luar: Masjid Quba (Masjid pertama Islam), Jabal Uhud (Makam Syuhada Uhud), Kebun Kurma Madinah" },
-      { time: "12:00 - 15:00", description: "Shalat Dhuhur & makan siang di hotel" },
-      { time: "16:00 - 21:00", description: "Memperbanyak ibadah di Masjid Nabawi & iktikaf" },
+      { time: "09:00 LT", description: "Menuju Masjid Nabawi lebih awal untuk persiapan Shalat Jumat berjamaah di shaf terdepan" },
+      { time: "12:15 LT", description: "Pelaksanaan Shalat Jumat di Masjid Nabawi Madinah" },
+      { time: "Sore - Malam", description: "Memperbanyak iktikaf, zikir, membaca Al-Qur'an, dan shalat sunnah" },
     ],
   });
 
-  // Day 5: City Tour Madinah 2 & Manasik Umrah
+  // H5: 07 Nov Madinah - City Tour
   itinerary.push({
     day: 5,
     date: getOffsetDate(4),
-    title: "City Tour Madinah 2 & Pemantapan Manasik",
-    location: "Madinah Al-Munawwarah",
+    title: "H5 07 Nov: Madinah – City Tour Kota Madinah",
+    location: "Madinah & Sekitarnya",
     highlight: "ziarah",
     activities: [
-      { time: "08:00 - 11:30", description: "Kunjungan ke Percetakan Al-Qur'an Malik Fahd & Jabal Magnet (opsional)" },
-      { time: "16:00 - 18:00", description: "Pemantapan tata cara Niat, Ihram, Tawaf & Sa'i dibimbing Muthawwif" },
-      { time: "20:00 LT", description: "Persiapan koper & barang bawaan untuk keberangkatan ke Makkah esok hari" },
+      { time: "07:30 LT", description: "City tour luar kota Madinah: Ziarah Masjid Quba (Masjid Pertama Islam), Jabal Uhud (Makam Syuhada Uhud)" },
+      { time: "10:30 LT", description: "Kunjungan ke Kebun Kurma Madinah & Pasar Kurma Khas" },
+      { time: "16:00 LT", description: "Pemantapan tata cara Umrah Wajib, niat ihram & latihan tawaf/sa'i di hotel" },
     ],
   });
 
-  // Day 6: Madinah ke Makkah (Miqat Bir Ali & Umrah Wajib 1)
+  // H6: 08 Nov Madinah - Mekkah (Umrah Wajib 1)
   itinerary.push({
     day: 6,
     date: getOffsetDate(5),
-    title: "Madinah – Miqat Bir Ali – Makkah (Umrah Wajib 1)",
-    location: "Madinah → Bir Ali → Makkah",
+    title: "H6 08 Nov: Madinah – Miqat Bir Ali – Mekkah (Umrah Wajib 1)",
+    location: "Madinah → Bir Ali → Mekkah",
     highlight: "umrah",
     activities: [
-      { time: "09:00 LT", description: "Check-out hotel Madinah, mandi sunnah ihram & mengenakan pakaian ihram dari hotel" },
-      { time: "13:00 LT", description: "Singgah di Masjid Bir Ali (Dzulhulaifah) untuk Miqat & Pengambilan Niat Umrah dipandu Muthawwif" },
-      { time: "14:00 - 20:00", description: "Perjalanan Bus AC menuju Makkah sambil memperbanyak Talbiyah" },
+      { time: "09:00 LT", description: "Mandi sunnah ihram & mengenakan pakaian ihram dari Hotel Madinah" },
+      { time: "13:00 LT", description: "Singgah di Masjid Bir Ali (Dzulhulaifah) untuk Miqat & Niat Umrah dipandu Muthawwif" },
+      { time: "14:00 - 20:00", description: "Perjalanan bus executive ke Makkah Al-Mukarramah sambil melantunkan Talbiyah" },
       { time: "21:00 LT", description: `Check-in Hotel Makkah (${makkahHotel}) & makan malam` },
       { time: "22:30 LT", description: "Melaksanakan Rukun Umrah Wajib (Tawaf, Sa'i, Tahallul) di Masjidil Haram" },
     ],
   });
 
-  // Day 7: Ibadah di Masjidil Haram & Istirahat
+  // H7: 09 Nov Mekkah - Perbanyak Ibadah
   itinerary.push({
     day: 7,
     date: getOffsetDate(6),
-    title: "Memperbanyak Ibadah di Masjidil Haram",
-    location: "Makkah Al-Mukarramah",
+    title: "H7 09 Nov: Mekkah – Perbanyak Ibadah di Masjidil Haram",
+    location: "Mekkah Al-Mukarramah",
     highlight: "worship",
     activities: [
-      { time: "Seharian", description: "Ibadah mandiri & iktikaf di Masjidil Haram: Shalat berjamaah, Tawaf Sunnah, membaca Al-Qur'an" },
-      { time: "20:00 LT", description: "Kajian rohani malam & evaluasi ibadah jamaah bersama Tour Leader" },
+      { time: "Seharian", description: "Ibadah mandiri & iktikaf di depan Ka'bah Masjidil Haram: Tawaf Sunnah, membaca Al-Qur'an, shalat khusyuk" },
+      { time: "20:00 LT", description: "Kajian rohani malam & evaluasi ibadah jamaah" },
     ],
   });
 
-  // Day 8: Ziarah Sejarah Makkah & Umrah 2 (Ji'ranah)
+  // H8: 10 Nov Mekkah City Tour
   itinerary.push({
     day: 8,
     date: getOffsetDate(7),
-    title: "Ziarah Kota Makkah & Umrah Ke-2 (Miqat Ji'ranah)",
-    location: "Makkah & Sekitarnya",
+    title: "H8 10 Nov: Mekkah – City Tour Kota Mekkah",
+    location: "Mekkah & Sekitarnya",
     highlight: "ziarah",
     activities: [
-      { time: "08:00 - 12:00", description: "Ziarah sejarah Makkah: Jabal Tsur, Padang Arafah, Jabal Rahmah, Muzdalifah, Mina, Jabal Nur" },
-      { time: "12:00 LT", description: "Singgah di Masjid Ji'ranah untuk mengambil Niat Umrah Ke-2 (Opsional)" },
-      { time: "15:00 LT", description: "Pelaksanaan Umrah Ke-2 di Masjidil Haram bagi yang mengambil Miqat" },
+      { time: "07:30 LT", description: "City tour kota Makkah: Jabal Tsur, Padang Arafah, Jabal Rahmah, Muzdalifah, Mina, & Jabal Nur" },
+      { time: "11:30 LT", description: "Singgah di Masjid Ji'ranah untuk Pengambilan Niat Umrah Ke-2 (Opsional)" },
+      { time: "15:00 LT", description: "Pelaksanaan Tawaf & Sa'i Umrah Ke-2 di Masjidil Haram" },
     ],
   });
 
-  // Day 9: City Tour Kota Thaif (Bonus Gratis!)
+  // H9: 11 Nov Mekkah Perbanyak Ibadah
   itinerary.push({
     day: 9,
     date: getOffsetDate(8),
-    title: "City Tour Kota Thaif (Bonus Special El Massa)",
-    location: "Makkah → Kota Thaif → Makkah",
-    highlight: "travel",
+    title: "H9 11 Nov: Mekkah – Perbanyak Ibadah di Masjidil Haram",
+    location: "Mekkah Al-Mukarramah",
+    highlight: "worship",
     activities: [
-      { time: "08:00 LT", description: "Berangkat ke Kota Sejuk Thaif menggunakan Bus AC Pariwisata" },
-      { time: "10:00 - 16:00", description: "Ziarah Masjid Abdullah Ibn Abbas, Masjid Addas, Kebun Mawar & Pabrik Parfum Thaif, Kuliner Khas KSA" },
-      { time: "17:00 LT", description: "Kembali ke Makkah & singgah Miqat di Qarnul Manazil (Umrah Ke-3 Opsional)" },
+      { time: "Seharian", description: "Fokus memperbanyak ibadah sunnah, berzikir, berdoa di Multazam & Hijir Ismail (kondisional)" },
+      { time: "19:30 LT", description: "Persiapan koper & briefing agenda perjalanan ke Kota Thaif esok hari" },
     ],
   });
 
-  // Day 10: Agenda Bebas & Tawaf Sunnah
+  // H10: 12 Nov Mekkah - Tour Thaif
   itinerary.push({
     day: 10,
     date: getOffsetDate(9),
-    title: "Agenda Bebas Makkah & Kuliner KSA",
-    location: "Makkah Al-Mukarramah",
-    highlight: "worship",
+    title: "H10 12 Nov: Mekkah – Tour Kota Thaif (Bonus Spesial)",
+    location: "Mekkah → Kota Thaif → Mekkah",
+    highlight: "travel",
     activities: [
-      { time: "Seharian", description: "Agenda bebas: Memperbanyak ibadah di Ka'bah, berbelanja oleh-oleh di Zamzam Tower & Pasar Kakiyah" },
-      { time: "20:00 LT", description: "Persiapan koper utama dipacking rapi untuk penimbangan bagasi" },
+      { time: "07:30 LT", description: "Perjalanan bus ke Kota Sejuk Thaif melalui pegunungan Al-Hada" },
+      { time: "09:30 - 15:30", description: "Ziarah Masjid Abdullah Ibn Abbas, Kebun Mawar & Pabrik Parfum Thaif, Nikmati Kuliner Khas KSA & Kereta Gantung" },
+      { time: "17:00 LT", description: "Kembali ke Makkah, singgah di Miqat Qarnul Manazil (Umrah Ke-3 Opsional)" },
     ],
   });
 
-  // Day 11: Tawaf Wada' & Check-out menuju Jeddah
+  // H11: 13 Nov Mekkah JED CGK
   itinerary.push({
     day: 11,
     date: getOffsetDate(10),
-    title: "Tawaf Wada' (Pamitan Ka'bah) – City Tour Jeddah",
-    location: "Makkah → Jeddah",
+    title: "H11 13 Nov: Mekkah – Tawaf Wada' – Jeddah (JED) – Jakarta (CGK)",
+    location: "Mekkah → Jeddah → CGK",
     highlight: "departure",
     activities: [
-      { time: "05:00 LT", description: "Melaksanakan Tawaf Wada' (Tawaf Perpisahan) di Masjidil Haram bersama Muthawwif" },
-      { time: "09:00 LT", description: "Check-out dari Hotel Makkah, perjalanan bus menuju Kota Jeddah" },
-      { time: "11:00 - 15:00", description: "City tour Jeddah: Laut Merah, Masjid Terapung Al-Rahmah, Shopping Corniche Al-Balad & Makan Siang Albaik" },
-      { time: "17:00 LT", description: "Tiba di Bandara Jeddah (JED), proses check-in & pembagian Air Zamzam 5L per jemaah" },
+      { time: "05:00 LT", description: "Pelaksanaan Tawaf Wada' (Tawaf Perpisahan Ka'bah) di Masjidil Haram bersama Muthawwif" },
+      { time: "09:00 LT", description: "Check-out Hotel Makkah & perjalanan bus ke Kota Jeddah" },
+      { time: "11:00 LT", description: "City tour Jeddah: Laut Merah, Masjid Terapung Al-Rahmah, Shopping Corniche Al-Balad & Makan Siang Albaik" },
+      { time: "17:00 LT", description: `Tiba di Bandara Jeddah (JED), check-in pesawat (${internationalAirline}) & penerimaan Air Zamzam 5L` },
+      { time: "20:30 LT", description: "Take-off penerbangan internasional menuju Jakarta (CGK)" },
     ],
   });
 
-  // Day 12: Flight Return to Jakarta & Pangkal Pinang (PGK)
+  // H12: 14 Nov CGK PGK
   itinerary.push({
     day: 12,
     date: getOffsetDate(11),
-    title: "Terbang Kembali ke Jakarta (CGK) & Pangkal Pinang (PGK)",
-    location: "Jeddah → CGK → PGK",
+    title: "H12 14 Nov: Jakarta (CGK) – Pangkal Pinang (PGK)",
+    location: "CGK → Pangkal Pinang (PGK)",
     highlight: "departure",
     activities: [
-      { time: "20:30 LT", description: `Take-off penerbangan internasional kembali ke Indonesia (${internationalAirline})` },
       { time: "10:30 WIB", description: "Landing di Bandara Soekarno-Hatta Jakarta (CGK)" },
-      { time: "14:00 WIB", description: `Take-off penerbangan feeder menuju Bandara Depati Amir, Pangkal Pinang (${domesticAirline})` },
-      { time: "15:20 WIB", description: "Tiba di Pangkal Pinang (PGK). Seluruh rangkaian ibadah Umrah Spesial El Massa selesai dengan selamat & mabrur" },
+      { time: "14:00 WIB", description: `Take-off penerbangan feeder menuju Pangkal Pinang (${domesticAirline})` },
+      { time: "15:20 WIB", description: "Tiba di Bandara Depati Amir Pangkal Pinang (PGK). Seluruh rangkaian ibadah Umrah Spesial November El Massa selesai dengan mabrur" },
     ],
   });
 
-  // If durationDays > 12, pad extra worship/free days seamlessly
+  // If durationDays > 12, pad extra days
   for (let i = 13; i <= durationDays; i++) {
     itinerary.splice(itinerary.length - 1, 0, {
       day: i,
       date: getOffsetDate(i - 1),
-      title: `Program Tambahan Hari ke-${i}: Memperbanyak Ibadah`,
-      location: "Makkah / Madinah",
+      title: `H${i}: Program Tambahan Hari ke-${i}`,
+      location: "Mekkah / Madinah",
       highlight: "worship",
       activities: [
-        { time: "Seharian", description: "Acara bebas & memperbanyak ibadah sunnah, zikir, dan iktikaf" },
+        { time: "Seharian", description: "Acara bebas & memperbanyak ibadah sunnah di Tanah Suci" },
       ],
     });
     itinerary[itinerary.length - 1].day = durationDays;

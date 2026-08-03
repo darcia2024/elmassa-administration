@@ -42,10 +42,10 @@ import { generateDefaultItinerary, ItineraryDayItem } from "@/lib/itinerary-gene
 
 export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
-  const [packageName, setPackageName] = useState("Umrah Spesial Musim Baru 12 Hari");
-  const [departureDate, setDepartureDate] = useState("2026-10-15");
-  const [returnDate, setReturnDate] = useState("2026-10-26");
-  const [categoryName, setCategoryName] = useState("Oktober");
+  const [packageName, setPackageName] = useState("Umrah Spesial November 12 Hari");
+  const [departureDate, setDepartureDate] = useState("2026-11-03");
+  const [returnDate, setReturnDate] = useState("2026-11-14");
+  const [categoryName, setCategoryName] = useState("November");
   const [domesticAirline, setDomesticAirline] = useState("Garuda Indonesia (Feeder PGK ⇄ CGK)");
   const [internationalAirline, setInternationalAirline] = useState("Saudia Airlines (SV-815)");
   const [flightRoute, setFlightRoute] = useState("PGK ➔ CGK ➔ JED (Pangkal Pinang - Jakarta - Jeddah)");
@@ -217,8 +217,8 @@ export default function PackageCalculatorPage() {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [pubPackageName, setPubPackageName] = useState("");
-  const [pubCategory, setPubCategory] = useState("Umrah Spesial");
-  const [pubDepartureDate, setPubDepartureDate] = useState("15 November 2026");
+  const [pubCategory, setPubCategory] = useState("November");
+  const [pubDepartureDate, setPubDepartureDate] = useState("03 November 2026 s/d 14 November 2026");
   const [pubDpMinimum, setPubDpMinimum] = useState("Rp 5.000.000");
 
   // Load package from localStorage if returning to Kalkulator HPP for editing
