@@ -58,7 +58,7 @@ const corsHeaders = {
 };
 
 export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+  return new Response(null, { status: 204, headers: corsHeaders });
 }
 
 // GET: Fetch all published packages from Supabase
