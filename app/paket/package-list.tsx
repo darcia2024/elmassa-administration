@@ -67,11 +67,26 @@ export function PackageList() {
   const [userRole, setUserRole] = useState("Super Admin");
 
   useEffect(() => {
+    // 1. Fetch from Supabase PostgreSQL API
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          setCustomPackages(res.data);
+          try {
+            localStorage.setItem("el_massa_published_packages", JSON.stringify(res.data));
+          } catch (e) {}
+        } else {
+          const saved = localStorage.getItem("el_massa_published_packages");
+          if (saved) setCustomPackages(JSON.parse(saved));
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem("el_massa_published_packages");
+        if (saved) setCustomPackages(JSON.parse(saved));
+      });
+
     try {
-      const saved = localStorage.getItem("el_massa_published_packages");
-      if (saved) {
-        setCustomPackages(JSON.parse(saved));
-      }
       const savedRole = localStorage.getItem("el_massa_user_role");
       if (savedRole) {
         setUserRole(savedRole);
@@ -105,6 +120,11 @@ export function PackageList() {
     setCustomPackages(updatedList);
     try {
       localStorage.setItem("el_massa_published_packages", JSON.stringify(updatedList));
+
+      // Delete from Supabase PostgreSQL Cloud Database
+      fetch(`/api/packages?id=${encodeURIComponent(deletingPkg.id)}`, {
+        method: "DELETE",
+      }).catch((e) => console.error("Supabase package delete error:", e));
 
       // Cascade delete: automatically purge bookings linked to this deleted package
       const savedBookingsStr = localStorage.getItem("el_massa_real_bookings");

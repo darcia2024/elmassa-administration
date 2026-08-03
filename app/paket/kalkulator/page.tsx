@@ -484,6 +484,13 @@ export default function PackageCalculatorPage() {
       const updated = [newPackage, ...existing];
       localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
 
+      // Sync live to Supabase PostgreSQL Cloud Database
+      fetch("/api/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPackage),
+      }).catch((e) => console.error("Supabase package sync error:", e));
+
       // Push real live notification to Bell Notification Center
       const newNotif = {
         id: `notif-${Date.now()}`,
