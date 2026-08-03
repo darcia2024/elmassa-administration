@@ -547,7 +547,7 @@ export function PackageList() {
                   <Gift className="h-3.5 w-3.5 text-amber-700" strokeWidth={1.5} /> Bonus Spesial Paket:
                 </p>
                 <ul className="space-y-1 text-[11px] font-medium text-amber-950">
-                  {pkg.bonusHighlights.map((bonus, bIdx) => (
+                  {(pkg.bonusHighlights || ["Free City Tour Thaif", "Kereta Cepat Haramain", "Air Zamzam 5L Free"]).map((bonus, bIdx) => (
                     <li key={bIdx} className="flex items-center gap-1.5">
                       <CheckCircle2 className="h-3 w-3 text-amber-600 shrink-0" />
                       <span>{bonus}</span>
@@ -892,7 +892,7 @@ export function PackageList() {
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Fasilitas Sudah Termasuk (Include):
                 </h4>
                 <ul className="space-y-1.5 text-stone-700">
-                  {selectedPkg.includes.map((inc, iIdx) => (
+                  {(selectedPkg.includes || ["Tiket Pesawat PP", "Hotel Makkah & Madinah Fullboard", "Visa Umrah & Asuransi", "Bus AC Executive", "Muthawwif Berpengalaman"]).map((inc, iIdx) => (
                     <li key={iIdx} className="flex items-start gap-1.5">
                       <span className="text-emerald-600 font-bold">•</span>
                       <span>{inc}</span>
@@ -907,7 +907,7 @@ export function PackageList() {
                   <ShieldAlert className="h-4 w-4 text-stone-500" /> Belum Termasuk (Exclude):
                 </h4>
                 <ul className="space-y-1.5 text-stone-600">
-                  {selectedPkg.excludes.map((exc, eIdx) => (
+                  {(selectedPkg.excludes || ["Paspor RI", "Suntik Meningitis", "Pengeluaran Pribadi"]).map((exc, eIdx) => (
                     <li key={eIdx} className="flex items-start gap-1.5">
                       <span className="text-stone-400 font-bold">•</span>
                       <span>{exc}</span>
@@ -942,7 +942,7 @@ export function PackageList() {
                       </div>
 
                       <div className="space-y-1 pl-8">
-                        {dayItem.activities.map((act, aIdx) => (
+                        {(dayItem.activities || []).map((act, aIdx) => (
                           <div key={aIdx} className="flex items-start gap-2">
                             {act.time && (
                               <span className="font-bold text-stone-500 text-[10px] shrink-0 bg-stone-100 px-1.5 py-0.5 rounded">
