@@ -42,9 +42,15 @@ export function CustomerList({ customers }: CustomerListProps) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const customNames = parsed.map((pkg: any) =>
-            `${pkg.name || pkg.packageName} (${pkg.departuresDate || pkg.departureDate || "Keberangkatan"})`
-          );
+          const customNames = parsed.map((pkg: any) => {
+            const rawName = pkg.name || pkg.packageName || "Paket Umrah";
+            const cleanName = rawName.split("—")[0].split("(")[0].trim();
+            const rawDate = pkg.departureDate || pkg.departuresDate || "";
+            const cleanDate = rawDate.includes("s/d")
+              ? rawDate.split("s/d")[0].trim()
+              : rawDate.split("(")[0].trim() || "Terjadwal";
+            return `${cleanName} (${cleanDate})`;
+          });
           setFilterOptions(["Semua Paket Keberangkatan", ...customNames]);
           return;
         }

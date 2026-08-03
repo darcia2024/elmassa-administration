@@ -30,15 +30,31 @@ export default function BookingFormPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const customFormatted = parsed.map((pkg: any) => ({
-            id: pkg.id || `custom-${Math.random()}`,
-            name: pkg.name || pkg.packageName || "Paket Umrah Kustom",
-            price: pkg.numericPrice || Number(String(pkg.price || "").replace(/\D/g, "")) || 30000000,
-            date: `${pkg.departuresDate || pkg.departureDate || "Keberangkatan"} (${pkg.airline || "Airline"})`,
-          }));
+          const customFormatted = parsed.map((pkg: any) => {
+            // Clean short name
+            const rawName = pkg.name || pkg.packageName || "Paket Umrah";
+            const cleanName = rawName.split("—")[0].split("(")[0].trim();
 
-          setPackagesList([...customFormatted, ...defaultPackagesOptions]);
+            // Clean short date
+            const rawDate = pkg.departureDate || pkg.departuresDate || "";
+            const cleanDate = rawDate.includes("s/d")
+              ? rawDate.split("s/d")[0].trim()
+              : rawDate.split("(")[0].trim() || "Terjadwal";
+
+            const numericPrice = pkg.numericPrice || Number(String(pkg.price || "").replace(/\D/g, "")) || 30000000;
+
+            return {
+              id: pkg.id || `custom-${Math.random()}`,
+              name: cleanName,
+              date: cleanDate,
+              price: numericPrice,
+            };
+          });
+
+          // Show ONLY user's created packages when present!
+          setPackagesList(customFormatted);
           setSelectedPkgId(customFormatted[0].id);
+          return;
         }
       }
     } catch (e) {
@@ -234,7 +250,7 @@ export default function BookingFormPage() {
                 >
                   {packagesList.map((pkg) => (
                     <option key={pkg.id} value={pkg.id}>
-                      {pkg.name} — {pkg.date} — Rp {pkg.price.toLocaleString("id-ID")} / Pax
+                      {pkg.name} ({pkg.date}) — Rp {pkg.price.toLocaleString("id-ID")} / Pax
                     </option>
                   ))}
                 </select>
