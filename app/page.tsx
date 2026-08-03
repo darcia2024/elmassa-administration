@@ -210,22 +210,19 @@ export default function DashboardPage() {
   }, []);
 
   const allBookings = useMemo(() => {
-    if (realBookings.length > 0) {
-      return realBookings.map((b) => ({
-        code: b.code || "BK-908709",
-        customer: b.customer || "Jamaah Terdaftar",
-        packageName: b.packageName || "Umrah Spesial El Massa",
-        departure: b.departure || "30 Sep 2026",
-        status: b.status || (b.remainingAmount <= 0 ? "Lunas" : b.paidAmount > 0 ? "DP" : "Belum Bayar"),
-        totalAmount: b.totalDisplay || `Rp ${(b.totalAmount || 33500000).toLocaleString("id-ID")}`,
-        paidAmount: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
-        umrahMeStatus: b.umrahMeStatus || "Aktif 🟢",
-        phone: b.phone || "0812-3456-7890",
-        participants: b.participants || 1,
-      }));
-    }
-    return dashboard.recentBookings;
-  }, [realBookings, dashboard.recentBookings]);
+    return realBookings.map((b) => ({
+      code: b.code || "BK-908709",
+      customer: b.customer || "Jamaah Terdaftar",
+      packageName: b.packageName || "Umrah Spesial El Massa",
+      departure: b.departure || "30 Sep 2026",
+      status: b.status || (b.remainingAmount <= 0 ? "Lunas" : b.paidAmount > 0 ? "DP" : "Belum Bayar"),
+      totalAmount: b.totalDisplay || `Rp ${(b.totalAmount || 33500000).toLocaleString("id-ID")}`,
+      paidAmount: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
+      umrahMeStatus: b.umrahMeStatus || "Aktif 🟢",
+      phone: b.phone || "0812-3456-7890",
+      participants: b.participants || 1,
+    }));
+  }, [realBookings]);
 
   const filteredBookings = useMemo(() => {
     return allBookings.filter((booking) => {
