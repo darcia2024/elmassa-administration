@@ -321,6 +321,11 @@ export function AppShell({ children }: AppShellProps) {
   }, [isMobileNavOpen]);
 
   useEffect(() => {
+    if (pathname.startsWith("/pengaturan/lisensi-master") || pathname.startsWith("/lisensi-master")) {
+      setIsAuthChecked(true);
+      return;
+    }
+
     const rawSession = window.localStorage.getItem("el-massa-session");
     if (!rawSession) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
