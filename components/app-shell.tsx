@@ -39,7 +39,7 @@ const navGroups = [
     label: "Utama",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", aliases: ["/"] },
-      { label: "Paket Wisata", icon: Plane, href: "/paket" },
+      { label: "Paket Tersedia", icon: Plane, href: "/paket" },
       { label: "Kalkulator HPP Paket", icon: Calculator, href: "/paket/kalkulator" },
       { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
       { label: "Pelanggan", icon: Users, href: "/pelanggan" },
