@@ -359,30 +359,31 @@ export function PackageList() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={handleResetAllData}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shrink-0 cursor-pointer active:scale-95"
-                title="Hapus seluruh data paket & booking di semua device & database cloud"
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-stone-200/90 bg-stone-50 px-3 text-xs font-bold text-stone-500 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition shrink-0 cursor-pointer active:scale-95"
+                title="Hapus & Reset seluruh data paket & booking di Supabase Cloud"
               >
-                <Trash2 className="h-3.5 w-3.5 text-rose-600" />
-                <span>Hapus Semua Data</span>
+                <Trash2 className="h-4 w-4 text-stone-400 group-hover:text-rose-600" />
+                <span className="hidden lg:inline text-[11px]">Reset Data</span>
               </button>
 
               <Link
+                href="/booking/form"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-4 text-xs font-extrabold text-stone-700 hover:bg-stone-100 hover:border-stone-300 transition shrink-0 shadow-2xs"
+              >
+                <Plus className="h-4 w-4 text-stone-500" strokeWidth={2} />
+                <span>Daftar / Booking</span>
+              </Link>
+
+              <Link
                 href="/paket/kalkulator"
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-4 text-xs font-black text-white shadow-md shadow-pink-500/25 hover:from-pink-700 hover:to-rose-700 active:scale-95 transition-all shrink-0 border border-pink-500/30"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-brand-pink px-4 text-xs font-black text-white shadow-md shadow-pink-500/20 hover:shadow-lg hover:shadow-pink-500/30 hover:brightness-110 active:scale-95 transition-all shrink-0 border border-pink-400/30"
               >
                 <Sparkles className="h-4 w-4 text-white animate-pulse" />
-                <span>+ Hitung HPP & Buat Paket Wisata</span>
-              </Link>
-              <Link
-                href="/booking/form"
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-bold text-stone-700 hover:bg-stone-100 transition shrink-0"
-              >
-                <Plus className="h-4 w-4 text-stone-500" strokeWidth={1.5} />
-                <span>Daftar Jamaah / Booking</span>
+                <span>+ Hitung HPP & Buat Paket</span>
               </Link>
             </div>
           </div>
