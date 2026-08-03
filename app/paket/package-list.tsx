@@ -473,14 +473,27 @@ export function PackageList() {
                   </div>
                 </div>
 
+                {/* Information Update Seat Kuota */}
+                <div className="rounded-xl border border-stone-200/80 bg-stone-50/80 p-2.5 flex items-center justify-between text-xs font-sans">
+                  <div className="flex items-center gap-1.5 font-bold text-stone-900">
+                    <span className="text-stone-500 font-semibold">Seat Kuota:</span>
+                    <span className="text-brand-pink font-extrabold bg-rose-50 border border-brand-pink/20 px-2 py-0.5 rounded-md">
+                      {Math.max(0, 45 - (customPackages.find((c) => c.id === pkg.id) ? 0 : 0))} Seat Tersedia
+                    </span>
+                  </div>
+                  <Link href="/paket/seat" className="text-[11px] font-extrabold text-stone-700 hover:text-brand-pink underline">
+                    Update Seat 💺
+                  </Link>
+                </div>
+
                 <a
-                  href="https://itineraryelmassa-weld.vercel.app/"
+                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(pkg.id)}&packageName=${encodeURIComponent(pkg.name)}&departure=${encodeURIComponent(pkg.departuresDate || pkg.departureDate || "")}&makkahHotel=${encodeURIComponent(pkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(pkg.madinahHotel || "")}&airline=${encodeURIComponent(pkg.airline || "")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-1 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#2a170e] hover:bg-[#3d2417] text-[11px] font-bold text-amber-200 transition shadow-2xs cursor-pointer"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Lihat Live Web App Itinerary (itineraryelmassa-weld) ↗</span>
+                  <span>Lihat Live Web App Itinerary Grup Ini ↗</span>
                 </a>
               </div>
 
@@ -833,6 +846,37 @@ export function PackageList() {
                 </div>
               </div>
             )}
+
+            {/* 💺 INFORMASI MONITORING SEAT & KUOTA */}
+            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-amber-100 text-amber-900">
+                  <Armchair className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-stone-900">Monitoring Kuota Seat Grup</p>
+                  <p className="text-[11px] font-medium text-stone-600">Sisa Kuota: <strong className="text-pink-600 font-extrabold text-sm">45 Seat Ready</strong></p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/paket/seat"
+                  className="h-9 px-3.5 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-bold transition flex items-center gap-1.5"
+                >
+                  <Armchair className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Update Seat Kuota ↗</span>
+                </Link>
+                <a
+                  href={`https://itineraryelmassa-weld.vercel.app/?packageId=${encodeURIComponent(selectedPkg.id)}&packageName=${encodeURIComponent(selectedPkg.name)}&departure=${encodeURIComponent(selectedPkg.departuresDate || selectedPkg.departureDate || "")}&makkahHotel=${encodeURIComponent(selectedPkg.makkahHotel || "")}&madinahHotel=${encodeURIComponent(selectedPkg.madinahHotel || "")}&airline=${encodeURIComponent(selectedPkg.airline || "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-9 px-3.5 rounded-xl bg-[#2a170e] hover:bg-[#3d2417] text-amber-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Buka Live Itinerary ↗</span>
+                </a>
+              </div>
+            </div>
 
             {/* Modal Footer Actions */}
             <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4">

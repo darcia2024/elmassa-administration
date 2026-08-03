@@ -58,6 +58,8 @@ export default function PackageCalculatorPage() {
   const [targetPax, setTargetPax] = useState(45);
   const [sarExchangeRate, setSarExchangeRate] = useState(4300); // 1 SAR = Rp 4.300
 
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
+
   // Load package from localStorage if returning to Kalkulator HPP for editing
   useEffect(() => {
     try {
@@ -65,6 +67,7 @@ export default function PackageCalculatorPage() {
       if (editStr) {
         const pkg = JSON.parse(editStr);
         if (pkg) {
+          if (pkg.id) setEditingPackageId(pkg.id);
           if (pkg.name) setPackageName(pkg.name);
           if (pkg.makkahHotel) setMakkahHotelName(pkg.makkahHotel);
           if (pkg.madinahHotel) setMadinahHotelName(pkg.madinahHotel);
@@ -72,6 +75,11 @@ export default function PackageCalculatorPage() {
           if (pkg.category) setCategoryName(pkg.category);
           if (pkg.departureDate) setDepartureDate(pkg.departureDate);
           if (pkg.returnDate) setReturnDate(pkg.returnDate);
+          if (pkg.targetPax) setTargetPax(Number(pkg.targetPax));
+          if (pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(pkg.makkahRoomSarPerNight));
+          if (pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(pkg.madinahRoomSarPerNight));
+          if (pkg.flightCgkJed) setFlightCgkJed(Number(pkg.flightCgkJed));
+          if (pkg.flightPtkCgk) setFlightPtkCgk(Number(pkg.flightPtkCgk));
           if (pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0) {
             setItineraryList(pkg.itinerary);
           }
@@ -457,8 +465,10 @@ export default function PackageCalculatorPage() {
 
   const handleConfirmPublish = () => {
     const totalDays = (makkahNights || 5) + (madinahNights || 4);
+    const targetId = editingPackageId || `pkg-${categoryName.toLowerCase()}-${Date.now()}`;
+
     const newPackage = {
-      id: `pkg-custom-${Date.now()}`,
+      id: targetId,
       name: pubPackageName || packageName || `Umrah Spesial ${totalDays} Hari`,
       category: pubCategory || categoryName,
       duration: `${totalDays} Hari`,
@@ -476,6 +486,11 @@ export default function PackageCalculatorPage() {
       flightRoute: flightRoute,
       startPoint: "Start Pangkal Pinang (PGK)",
       programUmrah: `Program Umrah ${totalDays} Hari + Fullboard Hotel`,
+      targetPax: targetPax,
+      makkahRoomSarPerNight: makkahRoomSarPerNight,
+      madinahRoomSarPerNight: madinahRoomSarPerNight,
+      flightCgkJed: flightCgkJed,
+      flightPtkCgk: flightPtkCgk,
       itinerary: itineraryList,
       bonusHighlights: [
         "Free City Tour Thaif & Pabrik Parfum",
@@ -506,7 +521,14 @@ export default function PackageCalculatorPage() {
     try {
       const existingStr = localStorage.getItem("el_massa_published_packages");
       const existing = existingStr ? JSON.parse(existingStr) : [];
-      const updated = [newPackage, ...existing];
+      
+      let updated: any[] = [];
+      if (editingPackageId && existing.some((item: any) => item.id === editingPackageId)) {
+        updated = existing.map((item: any) => (item.id === editingPackageId ? newPackage : item));
+      } else {
+        updated = [newPackage, ...existing.filter((item: any) => item.id !== targetId)];
+      }
+
       localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
 
       // Sync live to Supabase PostgreSQL Cloud Database
