@@ -83,35 +83,31 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingItem[]>([]);
 
   useEffect(() => {
+    let localBookings: BookingItem[] = [];
     try {
-      const savedBookingsStr = localStorage.getItem("el_massa_real_bookings");
-      const savedPackagesStr = localStorage.getItem("el_massa_published_packages");
+      const savedStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedStr) localBookings = JSON.parse(savedStr);
+    } catch (e) {}
 
-      let currentBookings: BookingItem[] = savedBookingsStr ? JSON.parse(savedBookingsStr) : [];
-      let activePackages: any[] = savedPackagesStr ? JSON.parse(savedPackagesStr) : [];
-
-      if (Array.isArray(currentBookings)) {
-        if (Array.isArray(activePackages)) {
-          const activeNames = activePackages.map((p: any) =>
-            (p.name || p.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase()
-          );
-
-          // If active packages list is empty, or a package was deleted, filter out orphan bookings
-          if (activePackages.length === 0) {
-            currentBookings = [];
-          } else {
-            currentBookings = currentBookings.filter((b) => {
-              const bName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
-              return activeNames.some((pName) => bName.includes(pName) || pName.includes(bName));
-            });
-          }
-          localStorage.setItem("el_massa_real_bookings", JSON.stringify(currentBookings));
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data)) {
+          const mergedMap = new Map<string, BookingItem>();
+          res.data.forEach((b: BookingItem) => mergedMap.set(b.code, b));
+          localBookings.forEach((b: BookingItem) => mergedMap.set(b.code, b));
+          const finalBookings = Array.from(mergedMap.values());
+          setBookings(finalBookings);
+          try {
+            localStorage.setItem("el_massa_real_bookings", JSON.stringify(finalBookings));
+          } catch (e) {}
+        } else if (localBookings.length > 0) {
+          setBookings(localBookings);
         }
-        setBookings(currentBookings);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      })
+      .catch(() => {
+        if (localBookings.length > 0) setBookings(localBookings);
+      });
   }, []);
 
   const handleDeleteBooking = (code: string) => {
@@ -123,6 +119,10 @@ export default function BookingsPage() {
     } catch (e) {
       console.error(e);
     }
+
+    fetch(`/api/bookings?code=${encodeURIComponent(code)}`, {
+      method: "DELETE",
+    }).catch((e) => console.error("Cloud delete booking error:", e));
   };
 
   const filteredBookings = useMemo(() => {

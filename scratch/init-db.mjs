@@ -12,6 +12,7 @@ const pool = new Pool({
 async function main() {
   const client = await pool.connect();
   try {
+    // 1. Revision Notes
     await client.query(`
       CREATE TABLE IF NOT EXISTS page_revision_notes (
         id VARCHAR(100) PRIMARY KEY,
@@ -26,6 +27,7 @@ async function main() {
       );
     `);
 
+    // 2. Published Packages
     await client.query(`
       CREATE TABLE IF NOT EXISTS published_packages (
         id VARCHAR(100) PRIMARY KEY,
@@ -57,7 +59,42 @@ async function main() {
       );
     `);
 
-    console.log("✅ SUPABASE CLOUD TABLES CREATED 100% SUCCESSFULLY");
+    // 3. Real Bookings Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS real_bookings (
+        code VARCHAR(100) PRIMARY KEY,
+        customer_name TEXT NOT NULL,
+        phone TEXT DEFAULT '',
+        nik TEXT DEFAULT '',
+        package_id TEXT DEFAULT '',
+        package_name TEXT NOT NULL,
+        departure TEXT DEFAULT '',
+        room_type TEXT DEFAULT 'Quad (4 Orang)',
+        participants INT DEFAULT 1,
+        total_amount NUMERIC DEFAULT 0,
+        paid_amount NUMERIC DEFAULT 0,
+        remaining_amount NUMERIC DEFAULT 0,
+        status TEXT DEFAULT 'Belum Bayar',
+        umrah_me_status TEXT DEFAULT 'Aktif 🟢',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
+    // 4. Real Customers Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS real_customers (
+        id VARCHAR(100) PRIMARY KEY,
+        name TEXT NOT NULL,
+        phone TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        nik TEXT DEFAULT '',
+        passport_number TEXT DEFAULT '',
+        city TEXT DEFAULT '',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
+    console.log("✅ ALL SUPABASE CLOUD TABLES CREATED & AUDITED 100% SUCCESSFULLY");
   } catch (e) {
     console.error("Initialization error:", e);
   } finally {

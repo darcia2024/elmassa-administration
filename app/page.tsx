@@ -195,18 +195,28 @@ export default function DashboardPage() {
         if (saved) setPublishedPackages(JSON.parse(saved));
       });
 
-    // 2. Fetch real jamaah bookings
+    // 2. Fetch real jamaah bookings from Supabase Cloud DB
+    let localBookings: any[] = [];
     try {
       const bStr = localStorage.getItem("el_massa_real_bookings");
-      if (bStr) {
-        const parsed = JSON.parse(bStr);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setRealBookings(parsed);
+      if (bStr) localBookings = JSON.parse(bStr);
+    } catch (e) {}
+
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data)) {
+          const mergedMap = new Map<string, any>();
+          res.data.forEach((b: any) => mergedMap.set(b.code, b));
+          localBookings.forEach((b: any) => mergedMap.set(b.code, b));
+          setRealBookings(Array.from(mergedMap.values()));
+        } else if (localBookings.length > 0) {
+          setRealBookings(localBookings);
         }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      })
+      .catch(() => {
+        if (localBookings.length > 0) setRealBookings(localBookings);
+      });
   }, []);
 
   const allBookings = useMemo(() => {

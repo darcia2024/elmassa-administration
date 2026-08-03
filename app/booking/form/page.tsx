@@ -127,6 +127,13 @@ export default function BookingFormPage() {
       const existing = existingStr ? JSON.parse(existingStr) : [];
       localStorage.setItem("el_massa_real_bookings", JSON.stringify([newBooking, ...existing]));
 
+      // Save directly to Supabase Cloud Database
+      fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newBooking),
+      }).catch((err) => console.error("Cloud DB save error:", err));
+
       // Push real live notification
       const newNotif = {
         id: `notif-${Date.now()}`,

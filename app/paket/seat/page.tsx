@@ -41,56 +41,56 @@ export default function UpdateSeatPage() {
   const [tempSeatsInput, setTempSeatsInput] = useState<number>(45);
 
   useEffect(() => {
-    // 1. Fetch real packages
-    fetch("/api/packages")
-      .then((res) => res.json())
-      .then((res) => {
-        let rawPkgs: any[] = [];
-        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          rawPkgs = res.data;
-        } else {
-          const savedStr = localStorage.getItem("el_massa_published_packages");
-          if (savedStr) rawPkgs = JSON.parse(savedStr);
-        }
+    // 1. Fetch real packages & real bookings concurrently from Supabase Cloud DB
+    Promise.all([
+      fetch("/api/packages").then((r) => r.json()).catch(() => ({ ok: false })),
+      fetch("/api/bookings").then((r) => r.json()).catch(() => ({ ok: false })),
+    ]).then(([pkgRes, bookRes]) => {
+      let rawPkgs: any[] = [];
+      if (pkgRes.ok && Array.isArray(pkgRes.data) && pkgRes.data.length > 0) {
+        rawPkgs = pkgRes.data;
+      } else {
+        const savedStr = localStorage.getItem("el_massa_published_packages");
+        if (savedStr) rawPkgs = JSON.parse(savedStr);
+      }
 
-
-
-        // 2. Fetch real bookings count per package
-        let realBookings: any[] = [];
+      let realBookings: any[] = [];
+      if (bookRes.ok && Array.isArray(bookRes.data)) {
+        realBookings = bookRes.data;
+      } else {
         try {
           const bStr = localStorage.getItem("el_massa_real_bookings");
           if (bStr) realBookings = JSON.parse(bStr);
         } catch (e) {}
+      }
 
-        const mapped: SeatPackageItem[] = rawPkgs.map((pkg: any) => {
-          const pkgNameClean = (pkg.name || "").split("—")[0].split("(")[0].trim().toLowerCase();
-          
-          // Sum participants from real bookings matching this package
-          const matchingBookings = realBookings.filter((b) => {
-            const bPkgName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
-            return bPkgName.includes(pkgNameClean) || pkgNameClean.includes(bPkgName);
-          });
-
-          const totalBooked = matchingBookings.reduce((sum, b) => sum + (Number(b.participants) || 1), 0);
-
-          return {
-            id: pkg.id || `pkg-${Date.now()}`,
-            name: pkg.name || "Paket Umrah El Massa",
-            category: pkg.category || "Oktober",
-            departureDate: pkg.departureDate || pkg.departuresDate || "Terjadwal 2026",
-            price: pkg.price || "Rp 33.500.000",
-            makkahHotel: pkg.makkahHotel || "Grand Al Massa",
-            madinahHotel: pkg.madinahHotel || "Daar El Naeem",
-            airline: pkg.airline || "Saudia / Garuda",
-            totalSeats: Number(pkg.totalSeats) || 45,
-            bookedSeats: totalBooked,
-            posterImg: pkg.posterImg,
-          };
+      const mapped: SeatPackageItem[] = rawPkgs.map((pkg: any) => {
+        const pkgNameClean = (pkg.name || "").split("—")[0].split("(")[0].trim().toLowerCase();
+        
+        const matchingBookings = realBookings.filter((b) => {
+          const bPkgName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
+          return bPkgName.includes(pkgNameClean) || pkgNameClean.includes(bPkgName);
         });
 
-        setPackages(mapped);
-      })
-      .catch((err) => console.error("Error loading seat packages:", err));
+        const totalBooked = matchingBookings.reduce((sum, b) => sum + (Number(b.participants) || 1), 0);
+
+        return {
+          id: pkg.id || `pkg-${Date.now()}`,
+          name: pkg.name || "Paket Umrah El Massa",
+          category: pkg.category || "Oktober",
+          departureDate: pkg.departureDate || pkg.departuresDate || "Terjadwal 2026",
+          price: pkg.price || "Rp 33.500.000",
+          makkahHotel: pkg.makkahHotel || "Grand Al Massa",
+          madinahHotel: pkg.madinahHotel || "Daar El Naeem",
+          airline: pkg.airline || "Saudia / Garuda",
+          totalSeats: Number(pkg.totalSeats || pkg.targetPax) || 45,
+          bookedSeats: totalBooked,
+          posterImg: pkg.posterImg,
+        };
+      });
+
+      setPackages(mapped);
+    });
   }, []);
 
   // Update target seat quota
