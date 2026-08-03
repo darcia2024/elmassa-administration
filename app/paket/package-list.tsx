@@ -100,7 +100,7 @@ export function PackageList() {
 
   const executeDeletePackage = () => {
     if (!deletingPkg) return;
-    const deletingPkgName = (deletingPkg.name || deletingPkg.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
+    const deletingPkgName = (deletingPkg.name || (deletingPkg as any).packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
     const updatedList = customPackages.filter((item) => item.id !== deletingPkg.id);
     setCustomPackages(updatedList);
     try {
