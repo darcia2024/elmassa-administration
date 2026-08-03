@@ -30,7 +30,7 @@ import {
   Sparkles,
   Star,
   TrendingUp,
-  UserCheck,
+  Armchair,
   Users,
   Wallet,
 } from "lucide-react";
@@ -210,6 +210,10 @@ export default function DashboardPage() {
   const totalGrupTersedia = publishedPackages.length > 0 ? publishedPackages.length : 2;
   const totalRev = dashboard.metrics.find((m) => m.key === "revenue")?.value ?? 0;
 
+  const totalBookedSeats = dashboard.recentBookings.reduce((sum, b) => sum + (Number((b as any).participants) || 1), 0);
+  const totalTargetSeats = totalGrupTersedia * 45;
+  const totalRemainingSeats = Math.max(0, totalTargetSeats - totalBookedSeats);
+
   const revenueBars = [
     { day: "Su", amount: 0, height: 10, active: false },
     { day: "Mo", amount: 0, height: 10, active: false },
@@ -232,6 +236,20 @@ export default function DashboardPage() {
       iconBg: "bg-rose-50/80 border-brand-pink/20",
       solidBar: "bg-brand-pink",
       progress: 100,
+      href: "/paket",
+    },
+    {
+      key: "update_seat",
+      title: "Update Seat",
+      value: `${totalRemainingSeats} Seat`,
+      subtext: `Sisa seat kuota dari ${totalGrupTersedia} grup paket`,
+      trend: "Ready",
+      icon: Armchair,
+      iconColor: "text-amber-700",
+      iconBg: "bg-amber-50/80 border-amber-200/60",
+      solidBar: "bg-amber-500",
+      progress: Math.min(100, Math.round((totalBookedSeats / (totalTargetSeats || 1)) * 100)),
+      href: "/paket/seat",
     },
     {
       key: "customers",
@@ -244,18 +262,7 @@ export default function DashboardPage() {
       iconBg: "bg-emerald-50/80 border-emerald-200/60",
       solidBar: "bg-emerald-600",
       progress: customerCount > 0 ? 100 : 0,
-    },
-    {
-      key: "bookings",
-      title: "Total Transaksi Booking",
-      value: String(bookingCount),
-      subtext: bookingCount > 0 ? `${dashboard.recentBookings.filter((b) => b.status !== "Lunas").length} perlu tindak lanjut` : "0 transaksi booking",
-      trend: bookingCount > 0 ? "+12.4%" : "0%",
-      icon: ClipboardList,
-      iconColor: "text-stone-700",
-      iconBg: "bg-stone-100 border-stone-200",
-      solidBar: "bg-stone-800",
-      progress: bookingCount > 0 ? 78 : 0,
+      href: "/pelanggan",
     },
     {
       key: "revenue",
@@ -264,10 +271,11 @@ export default function DashboardPage() {
       subtext: "Total pembayaran lunas & DP",
       trend: "+15.2%",
       icon: Wallet,
-      iconColor: "text-amber-700",
-      iconBg: "bg-amber-50/80 border-amber-200/60",
-      solidBar: "bg-amber-500",
+      iconColor: "text-stone-700",
+      iconBg: "bg-stone-100 border-stone-200",
+      solidBar: "bg-stone-800",
       progress: totalRev > 0 ? 85 : 0,
+      href: "/pembayaran",
     },
   ];
 
@@ -316,42 +324,41 @@ export default function DashboardPage() {
             {metricsConfig.map((stat) => {
               const Icon = stat.icon;
               return (
-                <article
-                  key={stat.key}
-                  className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs flex flex-col justify-between h-full transition hover:border-stone-300"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className={`grid h-9 w-9 place-items-center rounded-xl border ${stat.iconBg} ${stat.iconColor}`}>
-                        <Icon className="h-4.5 w-4.5" strokeWidth={1.5} />
-                      </span>
+                <Link key={stat.key} href={stat.href} className="block group">
+                  <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs flex flex-col justify-between h-full transition group-hover:border-pink-300 group-hover:shadow-xs cursor-pointer">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className={`grid h-9 w-9 place-items-center rounded-xl border ${stat.iconBg} ${stat.iconColor}`}>
+                          <Icon className="h-4.5 w-4.5" strokeWidth={1.5} />
+                        </span>
 
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50/80 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
-                        <TrendingUp className="h-3 w-3" strokeWidth={1.5} />
-                        {stat.trend}
-                      </span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50/80 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
+                          <TrendingUp className="h-3 w-3" strokeWidth={1.5} />
+                          {stat.trend}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 space-y-1">
+                        <p className="text-xs font-semibold text-stone-500">{stat.title}</p>
+                        <p className="text-2xl font-bold tracking-tight text-brand-cocoa group-hover:text-brand-pink transition">{stat.value}</p>
+                        <p className="text-[11px] text-stone-400 font-normal">{stat.subtext}</p>
+                      </div>
                     </div>
 
-                    <div className="mt-4 space-y-1">
-                      <p className="text-xs font-semibold text-stone-500">{stat.title}</p>
-                      <p className="text-2xl font-bold tracking-tight text-brand-cocoa">{stat.value}</p>
-                      <p className="text-[11px] text-stone-400 font-normal">{stat.subtext}</p>
+                    <div className="mt-5 pt-3 border-t border-stone-100">
+                      <div className="flex items-center justify-between text-[10px] font-semibold text-stone-400 mb-1.5">
+                        <span>Progres Operasional</span>
+                        <span className="font-bold text-stone-700">{stat.progress}%</span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+                        <div
+                          className={`h-full rounded-full ${stat.solidBar} transition-all duration-500`}
+                          style={{ width: `${stat.progress}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-stone-100">
-                    <div className="flex items-center justify-between text-[10px] font-semibold text-stone-400 mb-1.5">
-                      <span>Progres Operasional</span>
-                      <span className="font-bold text-stone-700">{stat.progress}%</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
-                      <div
-                        className={`h-full rounded-full ${stat.solidBar} transition-all duration-500`}
-                        style={{ width: `${stat.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               );
             })}
           </section>
