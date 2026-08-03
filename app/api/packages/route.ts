@@ -168,12 +168,19 @@ export async function POST(req: Request) {
   }
 }
 
-// DELETE: Remove package from Supabase
+// DELETE: Remove package or wipe all packages from Supabase
 export async function DELETE(req: Request) {
   try {
     await ensureTable();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const wipeAll = searchParams.get("all") === "true" || searchParams.get("clearAll") === "true" || id === "ALL";
+
+    if (wipeAll) {
+      await pool.query("TRUNCATE TABLE published_packages;");
+      return NextResponse.json({ ok: true, message: "All packages wiped from Supabase Cloud Database" });
+    }
+
     if (!id) return NextResponse.json({ ok: false, error: "ID required" }, { status: 400 });
 
     await pool.query("DELETE FROM published_packages WHERE id = $1;", [id]);

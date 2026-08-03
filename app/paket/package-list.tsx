@@ -310,6 +310,30 @@ export function PackageList() {
     });
   }, [allPackages, searchQuery, selectedCategory]);
 
+  const handleResetAllData = async () => {
+    if (!confirm("⚠️ PERINGATAN:\nApakah kamu yakin ingin MENGHAPUS SEMUA DATA PAKET & BOOKING di SEMUA DEVICE & Supabase Cloud Database?\n\nSeluruh data buatan akan dibersihkan 100% dari semua HP / Komputer.")) {
+      return;
+    }
+
+    try {
+      await fetch("/api/reset-all-data", { method: "POST" });
+      await fetch("/api/packages?all=true", { method: "DELETE" });
+
+      localStorage.removeItem("el_massa_published_packages");
+      localStorage.removeItem("el_massa_real_bookings");
+      localStorage.removeItem("el_massa_edit_hpp_package");
+
+      alert("✅ SELURUH DATA DI SEMUA DEVICE & DATABASE CLOUD TELAH DIBERSIHKAN TOTAL 100%!");
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+      localStorage.removeItem("el_massa_published_packages");
+      localStorage.removeItem("el_massa_real_bookings");
+      localStorage.removeItem("el_massa_edit_hpp_package");
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="space-y-6 font-sans">
       
@@ -335,7 +359,17 @@ export function PackageList() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleResetAllData}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shrink-0 cursor-pointer active:scale-95"
+                title="Hapus seluruh data paket & booking di semua device & database cloud"
+              >
+                <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                <span>Hapus Semua Data</span>
+              </button>
+
               <Link
                 href="/paket/kalkulator"
                 className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 px-4 text-xs font-black text-white shadow-md shadow-pink-500/25 hover:from-pink-700 hover:to-rose-700 active:scale-95 transition-all shrink-0 border border-pink-500/30"
