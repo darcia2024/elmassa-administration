@@ -26,7 +26,7 @@ export default function LisensiMasterPage() {
   const [pinError, setPinError] = useState("");
 
   // Master Developer PIN
-  const MASTER_PIN = "8899";
+  const MASTER_PIN = "120426050900260402";
 
   // License Control States
   const [currentCredits, setCurrentCredits] = useState<number>(100);
@@ -143,12 +143,12 @@ export default function LisensiMasterPage() {
                 <div className="relative">
                   <input
                     type="password"
-                    maxLength={6}
+                    maxLength={32}
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
-                    placeholder="••••"
+                    placeholder="••••••••••••••••••"
                     autoFocus
-                    className="w-full h-14 rounded-2xl border-2 border-stone-200 bg-stone-50 text-center text-2xl font-mono font-black tracking-[0.5em] focus:border-stone-900 focus:outline-none focus:bg-white"
+                    className="w-full h-14 rounded-2xl border-2 border-stone-200 bg-stone-50 text-center text-lg font-mono font-black tracking-widest focus:border-stone-900 focus:outline-none focus:bg-white"
                   />
                   <KeyRound className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
                 </div>
@@ -169,7 +169,7 @@ export default function LisensiMasterPage() {
             </form>
 
             <p className="text-[11px] text-stone-400 font-semibold">
-              🔒 Standard Security PIN: <code className="bg-stone-100 px-2 py-1 rounded text-stone-800 font-mono">8899</code>
+              🔒 Protected by Master Developer Secret Security Key
             </p>
           </div>
         </div>
