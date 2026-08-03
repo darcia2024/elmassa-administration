@@ -236,12 +236,12 @@ export default function DashboardPage() {
   }, [allBookings, activeFilter, searchQuery]);
 
   const bookingCount = allBookings.length;
-  const customerCount = dashboard.metrics.find((m) => m.key === "customers")?.value ?? (allBookings.length > 0 ? allBookings.length : 0);
-  const totalGrupTersedia = publishedPackages.length > 0 ? publishedPackages.length : 2;
-  const totalRev = dashboard.metrics.find((m) => m.key === "revenue")?.value ?? 0;
+  const customerCount = allBookings.length;
+  const totalGrupTersedia = publishedPackages.length;
+  const totalRev = 0;
 
   const totalBookedSeats = allBookings.reduce((sum, b) => sum + (Number((b as any).participants) || 1), 0);
-  const totalTargetSeats = totalGrupTersedia * 45;
+  const totalTargetSeats = publishedPackages.length > 0 ? publishedPackages.reduce((sum, p) => sum + (Number(p.targetPax) || 45), 0) : 0;
   const totalRemainingSeats = Math.max(0, totalTargetSeats - totalBookedSeats);
 
   const revenueBars = [

@@ -53,33 +53,7 @@ export default function UpdateSeatPage() {
           if (savedStr) rawPkgs = JSON.parse(savedStr);
         }
 
-        // Default packages if empty
-        if (rawPkgs.length === 0) {
-          rawPkgs = [
-            {
-              id: "pkg-oktober-2026",
-              name: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
-              category: "Oktober",
-              departureDate: "30 September 2026",
-              price: "Rp 33.500.000",
-              makkahHotel: "Grand Al Massa (★★★★★)",
-              madinahHotel: "Daar El Naeem (★★★★)",
-              airline: "Saudia Airlines (SV-815)",
-              totalSeats: 45,
-            },
-            {
-              id: "pkg-november-2026",
-              name: "Umrah Berkah Spesial November",
-              category: "November",
-              departureDate: "15 November 2026",
-              price: "Rp 35.500.000",
-              makkahHotel: "Grand Al Massa (★★★★★)",
-              madinahHotel: "Daar El Naeem (★★★★)",
-              airline: "Garuda Indonesia (GA-980)",
-              totalSeats: 45,
-            },
-          ];
-        }
+
 
         // 2. Fetch real bookings count per package
         let realBookings: any[] = [];
@@ -247,8 +221,30 @@ export default function UpdateSeatPage() {
         </div>
 
         {/* 📋 LIST GRUP PAKET & MONITORING SEAT */}
-        <div className="grid gap-5 md:grid-cols-2">
-          {filteredPackages.map((pkg) => {
+        {filteredPackages.length === 0 ? (
+          <div className="rounded-2xl border border-stone-200/90 bg-white p-10 text-center space-y-4 shadow-2xs">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-2xl shadow-inner border border-amber-100">
+              💺
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-extrabold text-stone-900">
+                Belum ada grup paket umrah aktif
+              </h3>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Monitoring kuota seat akan tampil otomatis begitu kamu membuat paket baru dari Kalkulator HPP.
+              </p>
+            </div>
+            <Link
+              href="/paket/kalkulator"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-5 text-xs font-extrabold text-white shadow-xs hover:bg-brand-pinkHover active:scale-95 transition cursor-pointer"
+            >
+              <Plus className="h-4 w-4 text-white" />
+              <span>+ Hitung HPP & Buat Paket Wisata</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {filteredPackages.map((pkg) => {
             const remaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
             const percentageUsed = Math.min(100, Math.round((pkg.bookedSeats / pkg.totalSeats) * 100));
 
@@ -393,6 +389,7 @@ export default function UpdateSeatPage() {
             );
           })}
         </div>
+      )}
       </div>
     </AppShell>
   );
