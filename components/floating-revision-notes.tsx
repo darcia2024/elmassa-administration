@@ -42,32 +42,24 @@ export function FloatingRevisionNotes() {
   const [author, setAuthor] = useState("Klien El Massa");
   const [submitting, setSubmitting] = useState(false);
 
-  // Load notes from Supabase & LocalStorage
+  // Load notes directly from Supabase Cloud Database (Single Source of Truth)
   const loadNotes = async () => {
     setLoading(true);
-    let localData: RevisionNoteItem[] = [];
-    try {
-      const saved = localStorage.getItem("el_massa_revision_notes");
-      if (saved) localData = JSON.parse(saved);
-    } catch (e) {}
-
     try {
       const res = await fetch("/api/revision-notes");
       const json = await res.json();
       if (json.ok && Array.isArray(json.data)) {
-        const mergedMap = new Map<string, RevisionNoteItem>();
-        json.data.forEach((n: RevisionNoteItem) => mergedMap.set(n.id, n));
-        localData.forEach((n: RevisionNoteItem) => mergedMap.set(n.id, n));
-        const finalArr = Array.from(mergedMap.values());
-        setNotes(finalArr);
+        setNotes(json.data);
         try {
-          localStorage.setItem("el_massa_revision_notes", JSON.stringify(finalArr));
+          localStorage.setItem("el_massa_revision_notes", JSON.stringify(json.data));
         } catch (e) {}
-      } else if (localData.length > 0) {
-        setNotes(localData);
+      } else {
+        const saved = localStorage.getItem("el_massa_revision_notes");
+        if (saved) setNotes(JSON.parse(saved));
       }
     } catch (e) {
-      if (localData.length > 0) setNotes(localData);
+      const saved = localStorage.getItem("el_massa_revision_notes");
+      if (saved) setNotes(JSON.parse(saved));
     } finally {
       setLoading(false);
     }
@@ -75,6 +67,10 @@ export function FloatingRevisionNotes() {
 
   useEffect(() => {
     loadNotes();
+    const interval = setInterval(() => {
+      loadNotes();
+    }, 10000);
+    return () => clearInterval(interval);
   }, [pathname]);
 
   const currentPageNotes = useMemo(() => {
