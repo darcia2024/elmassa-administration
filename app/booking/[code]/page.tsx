@@ -37,49 +37,20 @@ type BookingDetail = {
   payments: PaymentHistory[];
 };
 
-const bookingDatabase: Record<string, BookingDetail> = {
-  "BK-2407-001": {
-    code: "BK-2407-001",
-    customer: "Siti Rahma",
-    phone: "0812-4455-7788",
-    packageName: "Umrah Reguler 12 Hari",
-    departure: "08-18 Jul 2026",
-    groupName: "Rombongan Bangka Belitung 08 Jul 2026",
-    status: "Lunas",
-    totalDisplay: "Rp 97.500.000",
-    paidDisplay: "Rp 97.500.000",
-    remainingDisplay: "Rp 0",
-    remainingAmount: 0,
-    participants: [
-      { name: "Siti Rahma", passport: "C1234567", contact: "0812-4455-7788", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-      { name: "Ahmad Subagyo", passport: "C7654321", contact: "0812-4455-7789", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-      { name: "Rina Marlina", passport: "C8899001", contact: "0812-4455-7790", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-    ],
-    payments: [
-      { receipt: "KW-2407-044", date: "25 Jul 2026", amountDisplay: "Rp 97.500.000", account: "BCA El Massa (534-567-8901)", staff: "Azri" },
-    ],
-  },
-};
-
-const fallbackBooking: BookingDetail = {
-  code: "BK-2407-001",
-  customer: "Jamaah Terdaftar",
-  phone: "0812-7199-1001",
-  packageName: "Umrah Spesial Musim Baru",
-  departure: "Terjadwal 2026",
-  groupName: "Rombongan Jamaah El Massa",
-  status: "DP",
-  totalDisplay: "Rp 64.485.778",
-  paidDisplay: "Rp 500.000.000",
+const emptyBooking: BookingDetail = {
+  code: "-",
+  customer: "-",
+  phone: "-",
+  packageName: "-",
+  departure: "-",
+  groupName: "-",
+  status: "Belum Bayar",
+  totalDisplay: "Rp 0",
+  paidDisplay: "Rp 0",
   remainingDisplay: "Rp 0",
   remainingAmount: 0,
-  participants: [
-    { name: "H. Rusli Suparman", passport: "C9824101", contact: "0812-7199-1001", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-    { name: "Hj. Zubaidah Mansur", passport: "C9824102", contact: "0812-7199-1002", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-  ],
-  payments: [
-    { receipt: "KW-2407-001", date: "Hari ini", amountDisplay: "Rp 500.000.000", account: "BCA El Massa", staff: "Admin" },
-  ],
+  participants: [],
+  payments: [],
 };
 
 function StatusBadge({ status }: { status: "Lunas" | "DP" | "Belum Bayar" }) {
@@ -108,7 +79,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
   const decodedCode = decodeURIComponent(resolvedParams.code);
 
   const [booking, setBooking] = useState<BookingDetail>(() => {
-    return bookingDatabase[decodedCode] ?? { ...fallbackBooking, code: decodedCode };
+    return { ...emptyBooking, code: decodedCode };
   });
 
   useEffect(() => {
@@ -116,28 +87,28 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
       const savedStr = localStorage.getItem("el_massa_real_bookings");
       if (savedStr) {
         const savedBookings = JSON.parse(savedStr);
-        if (Array.isArray(savedBookings)) {
+        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
           const found = savedBookings.find((b: any) => b.code === decodedCode) || savedBookings[0];
           if (found) {
             setBooking({
               code: found.code || decodedCode,
-              customer: found.customer || "Jamaah Terdaftar",
-              phone: found.phone || "0812-7199-1001",
-              packageName: found.packageName || "Umrah Spesial Musim Baru",
-              departure: found.departure || "Terjadwal 2026",
-              groupName: found.groupName || "Rombongan Jamaah El Massa",
+              customer: found.customer || "-",
+              phone: found.phone || "-",
+              packageName: found.packageName || "-",
+              departure: found.departure || "-",
+              groupName: found.groupName || "-",
               status: found.status || "DP",
-              totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 64485778).toLocaleString("id-ID")}`,
-              paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 500000000).toLocaleString("id-ID")}`,
+              totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 0).toLocaleString("id-ID")}`,
+              paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 0).toLocaleString("id-ID")}`,
               remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
               remainingAmount: found.remainingAmount ?? 0,
               participants: Array.isArray(found.participantsList) && found.participantsList.length > 0
                 ? found.participantsList
                 : [
-                    { name: found.customer || "Jamaah Peserta 1", passport: "C9824101", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
+                    { name: found.customer || "Peserta 1", passport: "-", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
                   ],
               payments: [
-                { receipt: `KW-${found.code || "2407"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 50.000.000", account: "BCA El Massa", staff: "Admin" }
+                { receipt: `KW-${found.code || "001"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 0", account: "BCA El Massa", staff: "Admin" }
               ]
             });
           }
