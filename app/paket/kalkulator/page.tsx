@@ -223,6 +223,8 @@ export default function PackageCalculatorPage() {
   const [pubDepartureDate, setPubDepartureDate] = useState("03 November 2026 s/d 14 November 2026");
   const [pubDpMinimum, setPubDpMinimum] = useState("Rp 5.000.000");
 
+  const [originalCatalogPrice, setOriginalCatalogPrice] = useState("");
+
   // Load package from localStorage if returning to Kalkulator HPP for editing
   useEffect(() => {
     try {
@@ -233,98 +235,114 @@ export default function PackageCalculatorPage() {
           const cData = pkg.costingData || pkg.costing_data || pkg;
           const targetId = pkg.id || cData.id;
           if (targetId) setEditingPackageId(targetId);
+          if (pkg.price) setOriginalCatalogPrice(pkg.price);
 
-          const nameVal = cData.packageName || cData.name || pkg.name;
+          const readVal = (camelKey: string, snakeKey: string) => {
+            if (cData && cData[camelKey] !== undefined && cData[camelKey] !== null) return cData[camelKey];
+            if (cData && cData[snakeKey] !== undefined && cData[snakeKey] !== null) return cData[snakeKey];
+            if (pkg && pkg[camelKey] !== undefined && pkg[camelKey] !== null) return pkg[camelKey];
+            if (pkg && pkg[snakeKey] !== undefined && pkg[snakeKey] !== null) return pkg[snakeKey];
+            return undefined;
+          };
+
+          const nameVal = readVal("packageName", "package_name") || readVal("name", "name");
           if (nameVal) {
             setPackageName(nameVal);
             setPubPackageName(nameVal);
           }
 
-          const makkahVal = cData.makkahHotelName || cData.makkahHotel || pkg.makkahHotel;
+          const makkahVal = readVal("makkahHotelName", "makkah_hotel_name") || readVal("makkahHotel", "makkah_hotel");
           if (makkahVal) setMakkahHotelName(makkahVal);
 
-          const madinahVal = cData.madinahHotelName || cData.madinahHotel || pkg.madinahHotel;
+          const madinahVal = readVal("madinahHotelName", "madinah_hotel_name") || readVal("madinahHotel", "madinah_hotel");
           if (madinahVal) setMadinahHotelName(madinahVal);
 
-          if (cData.domesticAirline || pkg.domesticAirline) setDomesticAirline(cData.domesticAirline || pkg.domesticAirline);
-          if (cData.internationalAirline || cData.airline || pkg.airline) setInternationalAirline(cData.internationalAirline || cData.airline || pkg.airline);
-          
-          const catVal = cData.categoryName || cData.category || pkg.category;
+          const domAir = readVal("domesticAirline", "domestic_airline");
+          if (domAir) setDomesticAirline(domAir);
+
+          const intAir = readVal("internationalAirline", "international_airline") || readVal("airline", "airline");
+          if (intAir) setInternationalAirline(intAir);
+
+          const catVal = readVal("categoryName", "category_name") || readVal("category", "category");
           if (catVal) {
             setCategoryName(catVal);
             setPubCategory(catVal);
           }
 
-          const depVal = cData.departureDate || pkg.departureDate;
+          const depVal = readVal("departureDate", "departure_date");
           if (depVal) {
             setDepartureDate(depVal);
             setPubDepartureDate(depVal);
           }
 
-          if (cData.returnDate || pkg.returnDate) setReturnDate(cData.returnDate || pkg.returnDate);
-          if (cData.targetPax || pkg.targetPax) setTargetPax(Number(cData.targetPax || pkg.targetPax));
-          if (cData.makkahRoomSarPerNight || pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(cData.makkahRoomSarPerNight || pkg.makkahRoomSarPerNight));
-          if (cData.madinahRoomSarPerNight || pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(cData.madinahRoomSarPerNight || pkg.madinahRoomSarPerNight));
-          if (cData.makkahNights) setMakkahNights(Number(cData.makkahNights));
-          if (cData.madinahNights) setMadinahNights(Number(cData.madinahNights));
-          if (cData.flightCgkJed || pkg.flightCgkJed) setFlightCgkJed(Number(cData.flightCgkJed || pkg.flightCgkJed));
-          if (cData.flightPtkCgk || pkg.flightPtkCgk) setFlightPtkCgk(Number(cData.flightPtkCgk || pkg.flightPtkCgk));
-          if (cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar) setVisaAndInsuranceSar(Number(cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar));
-          if (cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr) setHandlingJakartaCgkIdr(Number(cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr));
-          if (cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar) setHandlingSaudiSharedSar(Number(cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar));
-          if (cData.hotelTransitLoungeIdr) setHotelTransitLoungeIdr(Number(cData.hotelTransitLoungeIdr));
-          if (cData.feeMarketingIdr || pkg.feeMarketingIdr) setFeeMarketingIdr(Number(cData.feeMarketingIdr || pkg.feeMarketingIdr));
-          if (cData.nasiBoxJakartaQty) setNasiBoxJakartaQty(Number(cData.nasiBoxJakartaQty));
-          if (cData.nasiBoxJakartaPriceIdr) setNasiBoxJakartaPriceIdr(Number(cData.nasiBoxJakartaPriceIdr));
-          if (cData.nasiBoxSaudiQty) setNasiBoxSaudiQty(Number(cData.nasiBoxSaudiQty));
-          if (cData.nasiBoxSaudiPriceSar) setNasiBoxSaudiPriceSar(Number(cData.nasiBoxSaudiPriceSar));
-          if (cData.muthawwifFeeIdrTotal) setMuthawwifFeeIdrTotal(Number(cData.muthawwifFeeIdrTotal));
-          if (cData.tourLeaderFeeIdrTotal) setTourLeaderFeeIdrTotal(Number(cData.tourLeaderFeeIdrTotal));
-          if (cData.biayaManasikIdr) setBiayaManasikIdr(Number(cData.biayaManasikIdr));
-          if (cData.biayaOperasionalKantorIdr) setBiayaOperasionalKantorIdr(Number(cData.biayaOperasionalKantorIdr));
-          if (cData.biayaAsuransiSiskopatuhIdr) setBiayaAsuransiSiskopatuhIdr(Number(cData.biayaAsuransiSiskopatuhIdr));
+          const retVal = readVal("returnDate", "return_date");
+          if (retVal) setReturnDate(retVal);
 
-          // Men Equipment
-          if (cData.equipMenKoperBagasi) setEquipMenKoperBagasi(Number(cData.equipMenKoperBagasi));
-          if (cData.equipMenIhram) setEquipMenIhram(Number(cData.equipMenIhram));
-          if (cData.equipMenKainBaju) setEquipMenKainBaju(Number(cData.equipMenKainBaju));
-          if (cData.equipMenRansel) setEquipMenRansel(Number(cData.equipMenRansel));
-          if (cData.equipMenTasSerut) setEquipMenTasSerut(Number(cData.equipMenTasSerut));
-          if (cData.equipMenSarungKoper) setEquipMenSarungKoper(Number(cData.equipMenSarungKoper));
-          if (cData.equipMenTagBagasi) setEquipMenTagBagasi(Number(cData.equipMenTagBagasi));
-          if (cData.equipMenBukuDoa) setEquipMenBukuDoa(Number(cData.equipMenBukuDoa));
-          if (cData.equipMenSajadahSyal) setEquipMenSajadahSyal(Number(cData.equipMenSajadahSyal));
-          if (cData.equipMenBantalLeher) setEquipMenBantalLeher(Number(cData.equipMenBantalLeher));
-          if (cData.equipMenLanyard) setEquipMenLanyard(Number(cData.equipMenLanyard));
+          const pax = readVal("targetPax", "target_pax");
+          if (pax !== undefined) setTargetPax(Number(pax));
 
-          // Women Equipment
-          if (cData.equipWomenKoperBagasi) setEquipWomenKoperBagasi(Number(cData.equipWomenKoperBagasi));
-          if (cData.equipWomenKainBaju) setEquipWomenKainBaju(Number(cData.equipWomenKainBaju));
-          if (cData.equipWomenKerudung) setEquipWomenKerudung(Number(cData.equipWomenKerudung));
-          if (cData.equipWomenRansel) setEquipWomenRansel(Number(cData.equipWomenRansel));
-          if (cData.equipWomenTasSerut) setEquipWomenTasSerut(Number(cData.equipWomenTasSerut));
-          if (cData.equipWomenSarungKoper) setEquipWomenSarungKoper(Number(cData.equipWomenSarungKoper));
-          if (cData.equipWomenTagBagasi) setEquipWomenTagBagasi(Number(cData.equipWomenTagBagasi));
-          if (cData.equipWomenBukuDoa) setEquipWomenBukuDoa(Number(cData.equipWomenBukuDoa));
-          if (cData.equipWomenSyalSajadah) setEquipWomenSyalSajadah(Number(cData.equipWomenSyalSajadah));
-          if (cData.equipWomenMukenaTravel) setEquipWomenMukenaTravel(Number(cData.equipWomenMukenaTravel));
-          if (cData.equipWomenBantalLeher) setEquipWomenBantalLeher(Number(cData.equipWomenBantalLeher));
-          if (cData.equipWomenLanyard) setEquipWomenLanyard(Number(cData.equipWomenLanyard));
+          const mRoom = readVal("makkahRoomSarPerNight", "makkah_room_sar_per_night");
+          if (mRoom !== undefined) setMakkahRoomSarPerNight(Number(mRoom));
 
-          // Bonus & Margins
-          if (cData.bonusCityTourThaifIdr) setBonusCityTourThaifIdr(Number(cData.bonusCityTourThaifIdr));
-          if (cData.miscEmergencyIdr) setMiscEmergencyIdr(Number(cData.miscEmergencyIdr));
-          if (cData.sarExchangeRate) setSarExchangeRate(Number(cData.sarExchangeRate));
-          if (cData.marginType) setMarginType(cData.marginType);
-          if (cData.marginNominalPerPax || pkg.marginNominalPerPax) setMarginNominalPerPax(Number(cData.marginNominalPerPax || pkg.marginNominalPerPax));
-          if (cData.marginPercent) setMarginPercent(Number(cData.marginPercent));
-          if (cData.triplePaxCount || pkg.triplePaxCount) setTriplePaxCount(Number(cData.triplePaxCount || pkg.triplePaxCount));
-          if (cData.doublePaxCount || pkg.doublePaxCount) setDoublePaxCount(Number(cData.doublePaxCount || pkg.doublePaxCount));
+          const mdRoom = readVal("madinahRoomSarPerNight", "madinah_room_sar_per_night");
+          if (mdRoom !== undefined) setMadinahRoomSarPerNight(Number(mdRoom));
 
-          const itinVal = cData.itineraryList || cData.itinerary || pkg.itinerary;
+          const mNights = readVal("makkahNights", "makkah_nights");
+          if (mNights !== undefined) setMakkahNights(Number(mNights));
+
+          const mdNights = readVal("madinahNights", "madinah_nights");
+          if (mdNights !== undefined) setMadinahNights(Number(mdNights));
+
+          const fCgk = readVal("flightCgkJed", "flight_cgk_jed");
+          if (fCgk !== undefined) setFlightCgkJed(Number(fCgk));
+
+          const fPtk = readVal("flightPtkCgk", "flight_ptk_cgk");
+          if (fPtk !== undefined) setFlightPtkCgk(Number(fPtk));
+
+          const visa = readVal("visaAndInsuranceSar", "visa_and_insurance_sar");
+          if (visa !== undefined) setVisaAndInsuranceSar(Number(visa));
+
+          const hCgk = readVal("handlingJakartaCgkIdr", "handling_jakarta_cgk_idr");
+          if (hCgk !== undefined) setHandlingJakartaCgkIdr(Number(hCgk));
+
+          const hSaudi = readVal("handlingSaudiSharedSar", "handling_saudi_shared_sar");
+          if (hSaudi !== undefined) setHandlingSaudiSharedSar(Number(hSaudi));
+
+          const hTransit = readVal("hotelTransitLoungeIdr", "hotel_transit_lounge_idr");
+          if (hTransit !== undefined) setHotelTransitLoungeIdr(Number(hTransit));
+
+          const fMkt = readVal("feeMarketingIdr", "fee_marketing_idr");
+          if (fMkt !== undefined) setFeeMarketingIdr(Number(fMkt));
+
+          const muth = readVal("muthawwifFeeIdrTotal", "muthawwif_fee_idr_total");
+          if (muth !== undefined) setMuthawwifFeeIdrTotal(Number(muth));
+
+          const tl = readVal("tourLeaderFeeIdrTotal", "tour_leader_fee_idr_total");
+          if (tl !== undefined) setTourLeaderFeeIdrTotal(Number(tl));
+
+          const bManasik = readVal("biayaManasikIdr", "biaya_manasik_idr");
+          if (bManasik !== undefined) setBiayaManasikIdr(Number(bManasik));
+
+          const bOps = readVal("biayaOperasionalKantorIdr", "biaya_operasional_kantor_idr");
+          if (bOps !== undefined) setBiayaOperasionalKantorIdr(Number(bOps));
+
+          const bSisko = readVal("biayaAsuransiSiskopatuhIdr", "biaya_asuransi_siskopatuh_idr");
+          if (bSisko !== undefined) setBiayaAsuransiSiskopatuhIdr(Number(bSisko));
+
+          const mMargin = readVal("marginNominalPerPax", "margin_nominal_per_pax");
+          if (mMargin !== undefined) setMarginNominalPerPax(Number(mMargin));
+
+          const tripCount = readVal("triplePaxCount", "triple_pax_count");
+          if (tripCount !== undefined) setTriplePaxCount(Number(tripCount));
+
+          const dblCount = readVal("doublePaxCount", "double_pax_count");
+          if (dblCount !== undefined) setDoublePaxCount(Number(dblCount));
+
+          const itinVal = readVal("itineraryList", "itinerary_list") || readVal("itinerary", "itinerary");
           if (itinVal && Array.isArray(itinVal) && itinVal.length > 0) {
             setItineraryList(itinVal);
           }
+
           localStorage.removeItem("el_massa_edit_hpp_package");
         }
       }
@@ -748,9 +766,16 @@ export default function PackageCalculatorPage() {
                   <span>✏️ MODE EDIT HPP PAKET:</span>
                   <span className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-lg border border-white/30 font-black">{packageName}</span>
                 </h3>
-                <p className="text-xs text-white/90 mt-0.5">
-                  Seluruh rincian biaya HPP, hotel, maskapai, perlengkapan, & itinerary dimuat 100% dari data paket ini!
-                </p>
+                <div className="text-xs text-white/90 mt-1 space-y-0.5">
+                  <p>Seluruh rincian biaya HPP, hotel ({makkahHotelName} & {madinahHotelName}), maskapai, & perlengkapan dimuat 100% dari data paket ini!</p>
+                  {originalCatalogPrice && (
+                    <p className="font-bold text-amber-100 flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span>Harga Katalog Saat Ini: <u className="no-underline bg-white/20 px-2 py-0.5 rounded">{originalCatalogPrice}</u></span>
+                      <span>➔</span>
+                      <span>Kalkulasi Ulang HPP Live: <u className="no-underline bg-white text-stone-900 px-2 py-0.5 rounded font-black">{formatRupiah(calculations.sellingPriceQuad)}</u></span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
             <button
