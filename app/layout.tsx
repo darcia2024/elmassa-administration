@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "Dashboard operasional El Massa Tour & Travel",
 };
 
+import { FloatingRevisionNotes } from "@/components/floating-revision-notes";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,6 +25,7 @@ export default function RootLayout({
     <html lang="id" className={manrope.variable} suppressHydrationWarning>
       <body className={`${manrope.className} font-sans antialiased`} suppressHydrationWarning>
         {children}
+        <FloatingRevisionNotes />
       </body>
     </html>
   );
