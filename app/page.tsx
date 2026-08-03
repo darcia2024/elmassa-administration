@@ -178,14 +178,20 @@ export default function DashboardPage() {
   const [publishedPackages, setPublishedPackages] = useState<any[]>([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("el_massa_published_packages");
-      if (saved) {
-        setPublishedPackages(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          setPublishedPackages(res.data);
+        } else {
+          const saved = localStorage.getItem("el_massa_published_packages");
+          if (saved) setPublishedPackages(JSON.parse(saved));
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem("el_massa_published_packages");
+        if (saved) setPublishedPackages(JSON.parse(saved));
+      });
   }, []);
 
   const filteredBookings = useMemo(() => {
@@ -201,7 +207,7 @@ export default function DashboardPage() {
 
   const bookingCount = dashboard.recentBookings.length;
   const customerCount = dashboard.metrics.find((m) => m.key === "customers")?.value ?? 0;
-  const packageCount = dashboard.metrics.find((m) => m.key === "packages")?.value ?? 0;
+  const totalGrupTersedia = publishedPackages.length > 0 ? publishedPackages.length : 2;
   const totalRev = dashboard.metrics.find((m) => m.key === "revenue")?.value ?? 0;
 
   const revenueBars = [
@@ -216,16 +222,16 @@ export default function DashboardPage() {
 
   const metricsConfig = [
     {
-      key: "bookings",
-      title: "Total Booking",
-      value: String(bookingCount),
-      subtext: bookingCount > 0 ? `${dashboard.recentBookings.filter((b) => b.status !== "Lunas").length} perlu tindak lanjut` : "0 transaksi booking",
-      trend: bookingCount > 0 ? "+12.4%" : "0%",
-      icon: ClipboardList,
+      key: "grup_tersedia",
+      title: "Total Grup Tersedia",
+      value: `${totalGrupTersedia} Grup`,
+      subtext: `${totalGrupTersedia} grup aktif di Paket Tersedia`,
+      trend: "Live",
+      icon: Plane,
       iconColor: "text-brand-pink",
       iconBg: "bg-rose-50/80 border-brand-pink/20",
       solidBar: "bg-brand-pink",
-      progress: bookingCount > 0 ? 78 : 0,
+      progress: 100,
     },
     {
       key: "customers",
@@ -240,16 +246,16 @@ export default function DashboardPage() {
       progress: customerCount > 0 ? 100 : 0,
     },
     {
-      key: "packages",
-      title: "Paket Wisata",
-      value: String(packageCount),
-      subtext: "Katalog Umrah & Tour aktif",
-      trend: "Aktif",
-      icon: Plane,
+      key: "bookings",
+      title: "Total Transaksi Booking",
+      value: String(bookingCount),
+      subtext: bookingCount > 0 ? `${dashboard.recentBookings.filter((b) => b.status !== "Lunas").length} perlu tindak lanjut` : "0 transaksi booking",
+      trend: bookingCount > 0 ? "+12.4%" : "0%",
+      icon: ClipboardList,
       iconColor: "text-stone-700",
       iconBg: "bg-stone-100 border-stone-200",
       solidBar: "bg-stone-800",
-      progress: packageCount > 0 ? 100 : 0,
+      progress: bookingCount > 0 ? 78 : 0,
     },
     {
       key: "revenue",
@@ -258,10 +264,10 @@ export default function DashboardPage() {
       subtext: "Total pembayaran lunas & DP",
       trend: "+15.2%",
       icon: Wallet,
-      iconColor: "text-emerald-700",
-      iconBg: "bg-emerald-50/80 border-emerald-200/60",
-      solidBar: "bg-emerald-600",
-      progress: totalRev > 0 ? 100 : 0,
+      iconColor: "text-amber-700",
+      iconBg: "bg-amber-50/80 border-amber-200/60",
+      solidBar: "bg-amber-500",
+      progress: totalRev > 0 ? 85 : 0,
     },
   ];
 
