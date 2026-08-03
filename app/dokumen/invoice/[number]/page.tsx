@@ -31,102 +31,25 @@ type InvoiceItemDetail = {
   totalDueDisplay: string;
 };
 
-const invoiceDatabase: Record<string, InvoiceItemDetail> = {
-  "INV-2407-001": {
-    number: "INV-2407-001",
-    bookingCode: "BK-2407-001",
-    customer: "SITI RAHMA",
-    phone: "0812-4455-7788",
-    address: "Selindung Baru, Pangkalpinang",
-    issueDate: "01 Oktober 2026",
-    dueDate: "20 Oktober 2026",
-    status: "Lunas",
-    packageName: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
-    packagePrice: "Rp 33.500.000",
-    paxQty: 1,
-    roomUpgrade: "Quad Standard (Rp 0)",
-    packageTotal: "Rp 33.500.000",
-    historyLogs: [
-      {
-        date: "01/08/2026",
-        description: "Pembayaran DP Awal Booking",
-        nominal: "Rp 10.000.000",
-        notes: "Transfer BCA (Terverifikasi Kasir)",
-        remainingTotal: "Rp 23.500.000",
-      },
-      {
-        date: "15/09/2026",
-        description: "Pelunasan Tahap Akhir (H-15)",
-        nominal: "Rp 23.500.000",
-        notes: "Transfer BTN (Terverifikasi Kasir)",
-        remainingTotal: "Rp 0 (LUNAS)",
-      },
-    ],
-    discountDisplay: "Rp 0",
-    totalPaidDisplay: "Rp 33.500.000",
-    totalDueDisplay: "Rp 0",
-  },
-  "INV-2407-002": {
-    number: "INV-2407-002",
-    bookingCode: "BK-2407-002",
-    customer: "H. RUSLI SUPARMAN",
-    phone: "0813-8899-1122",
-    address: "Tanjung Pandan, Belitung",
-    issueDate: "15 Agustus 2026",
-    dueDate: "08 Oktober 2026",
-    status: "Sebagian",
-    packageName: "Umrah Berkah Spesial November",
-    packagePrice: "Rp 35.500.000",
-    paxQty: 1,
-    roomUpgrade: "Quad Standard (Rp 0)",
-    packageTotal: "Rp 35.500.000",
-    historyLogs: [
-      {
-        date: "15/08/2026",
-        description: "Pembayaran DP Awal Booking",
-        nominal: "Rp 10.000.000",
-        notes: "Transfer Bank BTN (Terverifikasi)",
-        remainingTotal: "Rp 25.500.000",
-      },
-    ],
-    discountDisplay: "Rp 0",
-    totalPaidDisplay: "Rp 10.000.000",
-    totalDueDisplay: "Rp 25.500.000",
-  },
-};
+import React, { useEffect, useState } from "react";
 
-const fallbackInvoice: InvoiceItemDetail = {
-  number: "INV-2407-001",
-  bookingCode: "BK-2407-001",
-  customer: "SITI RAHMA",
-  phone: "0812-4455-7788",
-  address: "Selindung Baru, Pangkalpinang",
-  issueDate: "01 Oktober 2026",
-  dueDate: "20 Oktober 2026",
-  status: "Lunas",
-  packageName: "Umrah Spesial Oktober (Dapat 2x Jum'at)",
-  packagePrice: "Rp 33.500.000",
+const emptyInvoice: InvoiceItemDetail = {
+  number: "INV-0000-00",
+  bookingCode: "-",
+  customer: "- (Belum Ada Data)",
+  phone: "-",
+  address: "Bangka Belitung",
+  issueDate: "Hari ini",
+  dueDate: "Terjadwal",
+  status: "Belum Bayar",
+  packageName: "-",
+  packagePrice: "Rp 0",
   paxQty: 1,
   roomUpgrade: "Quad Standard (Rp 0)",
-  packageTotal: "Rp 33.500.000",
-  historyLogs: [
-    {
-      date: "01/08/2026",
-      description: "Pembayaran DP Awal Booking",
-      nominal: "Rp 10.000.000",
-      notes: "Transfer BCA (Terverifikasi)",
-      remainingTotal: "Rp 23.500.000",
-    },
-    {
-      date: "15/09/2026",
-      description: "Pelunasan Tahap Akhir",
-      nominal: "Rp 23.500.000",
-      notes: "Transfer BTN (Terverifikasi)",
-      remainingTotal: "Rp 0 (LUNAS)",
-    },
-  ],
+  packageTotal: "Rp 0",
+  historyLogs: [],
   discountDisplay: "Rp 0",
-  totalPaidDisplay: "Rp 33.500.000",
+  totalPaidDisplay: "Rp 0",
   totalDueDisplay: "Rp 0",
 };
 
@@ -140,10 +63,88 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
   const resolvedParams = use(params);
   const decodedNumber = decodeURIComponent(resolvedParams.number);
 
-  const invoice = invoiceDatabase[decodedNumber] ?? {
-    ...fallbackInvoice,
-    number: decodedNumber,
-  };
+  const [invoice, setInvoice] = useState<InvoiceItemDetail>(() => ({
+    ...emptyInvoice,
+    number: decodedNumber.startsWith("INV-") ? decodedNumber : `INV-${decodedNumber}`,
+    bookingCode: decodedNumber,
+  }));
+
+  useEffect(() => {
+    try {
+      const savedStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedStr) {
+        const savedBookings = JSON.parse(savedStr);
+        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
+          const found =
+            savedBookings.find(
+              (b: any) =>
+                b.code === decodedNumber ||
+                `INV-${b.code}` === decodedNumber ||
+                decodedNumber.includes(b.code) ||
+                b.code.includes(decodedNumber)
+            ) || savedBookings[0];
+
+          if (found) {
+            const pax = found.participants || 1;
+            const total = found.totalAmount || 0;
+            const pricePerPax = Math.round(total / pax);
+            const paid = found.paidAmount || 0;
+            const remaining = found.remainingAmount ?? Math.max(0, total - paid);
+
+            const logs: InvoiceItemDetail["historyLogs"] = [];
+            if (paid > 0) {
+              logs.push({
+                date: found.createdDate || "Hari ini",
+                description: "Pembayaran DP / Cicilan Booking",
+                nominal: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
+                notes: "Transfer Bank El Massa (Terverifikasi Kasir)",
+                remainingTotal: remaining <= 0 ? "Rp 0 (LUNAS)" : `Rp ${remaining.toLocaleString("id-ID")}`,
+              });
+            }
+            if (remaining <= 0 && paid > 0) {
+              logs.push({
+                date: found.createdDate || "Hari ini",
+                description: "Pelunasan Tahap Akhir",
+                nominal: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
+                notes: "Verifikasi Tim Keuangan (Lunas 100%)",
+                remainingTotal: "Rp 0 (LUNAS)",
+              });
+            }
+
+            setInvoice({
+              number: `INV-${found.code}`,
+              bookingCode: found.code,
+              customer: found.customer || "Jamaah Terdaftar",
+              phone: found.phone || "-",
+              address: found.address || "Selindung Baru, Pangkalpinang",
+              issueDate: found.createdDate || new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
+              dueDate: found.departure || "Terjadwal 2026",
+              status: remaining <= 0 ? "Lunas" : paid > 0 ? "Sebagian" : "Belum Bayar",
+              packageName: found.packageName || "Umrah Spesial El Massa",
+              packagePrice: `Rp ${pricePerPax.toLocaleString("id-ID")}`,
+              paxQty: pax,
+              roomUpgrade: "Quad Standard (Rp 0)",
+              packageTotal: found.totalDisplay || `Rp ${total.toLocaleString("id-ID")}`,
+              historyLogs: logs.length > 0 ? logs : [
+                {
+                  date: found.createdDate || "Hari ini",
+                  description: "Registrasi Booking Baru",
+                  nominal: "Rp 0",
+                  notes: "Belum Pembayaran",
+                  remainingTotal: found.totalDisplay || `Rp ${total.toLocaleString("id-ID")}`,
+                }
+              ],
+              discountDisplay: "Rp 0",
+              totalPaidDisplay: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
+              totalDueDisplay: found.remainingDisplay || `Rp ${remaining.toLocaleString("id-ID")}`,
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed loading invoice from real bookings:", e);
+    }
+  }, [decodedNumber]);
 
   return (
     <AppShell eyebrow="Dokumen Keuangan" title={`Invoice ${invoice.number}`}>

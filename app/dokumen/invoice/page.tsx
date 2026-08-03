@@ -49,6 +49,36 @@ export default function FastInvoicePage() {
   const [customTotal, setCustomTotal] = useState("");
   const [customDueDate, setCustomDueDate] = useState("28 Agustus 2026");
 
+  // Load real-time invoices dynamically from localStorage
+  useEffect(() => {
+    try {
+      const savedStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedStr) {
+        const savedBookings = JSON.parse(savedStr);
+        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
+          const dynamicInvoices: InvoiceItem[] = savedBookings.map((b: any) => ({
+            number: `INV-${b.code}`,
+            bookingCode: b.code,
+            customer: b.customer || "Jamaah Terdaftar",
+            phone: b.phone || "-",
+            packageName: b.packageName || "Umrah Spesial El Massa",
+            issueDate: b.createdDate || "Hari ini",
+            dueDate: b.departure || "Terjadwal 2026",
+            totalDisplay: b.totalDisplay || `Rp ${(b.totalAmount || 0).toLocaleString("id-ID")}`,
+            paidDisplay: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
+            remainingDisplay: b.remainingDisplay || `Rp ${(b.remainingAmount || 0).toLocaleString("id-ID")}`,
+            remainingAmount: b.remainingAmount ?? 0,
+            status: b.remainingAmount <= 0 ? "Lunas" : b.paidAmount > 0 ? "Sebagian" : "Belum Bayar",
+          }));
+
+          setInvoices(dynamicInvoices);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
       const q = searchQuery.toLowerCase();

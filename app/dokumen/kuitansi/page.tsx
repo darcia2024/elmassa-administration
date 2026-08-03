@@ -20,10 +20,46 @@ type ReceiptItem = {
   status: string;
 };
 
-const receipts: ReceiptItem[] = [];
+import { useEffect } from "react";
 
 export default function ReceiptPage() {
-  const [selectedReceiptNumber, setSelectedReceiptNumber] = useState(receipts[0]?.number || "");
+  const [receipts, setReceipts] = useState<ReceiptItem[]>([]);
+  const [selectedReceiptNumber, setSelectedReceiptNumber] = useState("");
+
+  useEffect(() => {
+    try {
+      const savedStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedStr) {
+        const savedBookings = JSON.parse(savedStr);
+        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
+          const dynamicReceipts: ReceiptItem[] = savedBookings
+            .filter((b: any) => (b.paidAmount || 0) > 0)
+            .map((b: any) => ({
+              number: `KW-${b.code}`,
+              date: b.createdDate || "Hari ini",
+              bookingCode: b.code,
+              receivedFrom: b.customer || "Jamaah Terdaftar",
+              amountDisplay: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
+              amountWords: `${b.paidDisplay || "Uang Muka/Pelunasan"} (Terbayar Sah)`,
+              paymentFor: `Pembayaran DP / Pelunasan Paket ${b.packageName || "Umrah Spesial"}`,
+              paymentMethod: "Transfer Bank",
+              account: "BCA El Massa",
+              staff: "Kasir Admin",
+              customerPhone: b.phone || "-",
+              status: b.status || "DP",
+            }));
+
+          setReceipts(dynamicReceipts);
+          if (dynamicReceipts.length > 0) {
+            setSelectedReceiptNumber(dynamicReceipts[0].number);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const receipt = receipts.find((item) => item.number === selectedReceiptNumber) ?? receipts[0];
   const handlePrint = () => window.print();
 
