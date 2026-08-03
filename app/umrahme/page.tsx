@@ -72,11 +72,26 @@ export default function PenerbitanUmrahmePage() {
   const [voucherMessage, setVoucherMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
+    // 1. Fetch from Supabase PostgreSQL API
+    fetch("/api/umrahme/accounts")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          setAccounts(res.data);
+          try {
+            localStorage.setItem("el_massa_issued_accounts", JSON.stringify(res.data));
+          } catch (e) {}
+        } else {
+          const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
+          if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
+        }
+      })
+      .catch(() => {
+        const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
+        if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
+      });
+
     try {
-      const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
-      if (savedAccounts) {
-        setAccounts(JSON.parse(savedAccounts));
-      }
       const savedCredits = localStorage.getItem("el_massa_license_credits");
       if (savedCredits !== null) {
         setLicenseCredits(Number(savedCredits));
@@ -267,6 +282,13 @@ export default function PenerbitanUmrahmePage() {
         return updated;
       });
 
+      // Sync to Supabase PostgreSQL DB
+      fetch("/api/umrahme/accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAcc),
+      }).catch((e) => console.error("Supabase sync error:", e));
+
       // Deduct 1 Credit
       const newCredits = Math.max(0, licenseCredits - 1);
       setLicenseCredits(newCredits);
@@ -393,6 +415,13 @@ export default function PenerbitanUmrahmePage() {
       } catch (err) {}
       return updated;
     });
+
+    // Sync bulk accounts to Supabase PostgreSQL DB
+    fetch("/api/umrahme/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newBulkAccounts),
+    }).catch((e) => console.error("Supabase bulk sync error:", e));
 
     // Deduct bulk credits
     const newCredits = Math.max(0, licenseCredits - excelPreviewRows.length);
