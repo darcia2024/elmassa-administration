@@ -270,14 +270,54 @@ export default function PackageCalculatorPage() {
           if (cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar) setVisaAndInsuranceSar(Number(cData.visaAndInsuranceSar || pkg.visaAndInsuranceSar));
           if (cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr) setHandlingJakartaCgkIdr(Number(cData.handlingJakartaCgkIdr || pkg.handlingJakartaCgkIdr));
           if (cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar) setHandlingSaudiSharedSar(Number(cData.handlingSaudiSharedSar || pkg.handlingSaudiSharedSar));
+          if (cData.hotelTransitLoungeIdr) setHotelTransitLoungeIdr(Number(cData.hotelTransitLoungeIdr));
           if (cData.feeMarketingIdr || pkg.feeMarketingIdr) setFeeMarketingIdr(Number(cData.feeMarketingIdr || pkg.feeMarketingIdr));
-          if (cData.marginNominalPerPax || pkg.marginNominalPerPax) setMarginNominalPerPax(Number(cData.marginNominalPerPax || pkg.marginNominalPerPax));
-          if (cData.triplePaxCount || pkg.triplePaxCount) setTriplePaxCount(Number(cData.triplePaxCount || pkg.triplePaxCount));
-          if (cData.doublePaxCount || pkg.doublePaxCount) setDoublePaxCount(Number(cData.doublePaxCount || pkg.doublePaxCount));
+          if (cData.nasiBoxJakartaQty) setNasiBoxJakartaQty(Number(cData.nasiBoxJakartaQty));
+          if (cData.nasiBoxJakartaPriceIdr) setNasiBoxJakartaPriceIdr(Number(cData.nasiBoxJakartaPriceIdr));
+          if (cData.nasiBoxSaudiQty) setNasiBoxSaudiQty(Number(cData.nasiBoxSaudiQty));
+          if (cData.nasiBoxSaudiPriceSar) setNasiBoxSaudiPriceSar(Number(cData.nasiBoxSaudiPriceSar));
           if (cData.muthawwifFeeIdrTotal) setMuthawwifFeeIdrTotal(Number(cData.muthawwifFeeIdrTotal));
           if (cData.tourLeaderFeeIdrTotal) setTourLeaderFeeIdrTotal(Number(cData.tourLeaderFeeIdrTotal));
+          if (cData.biayaManasikIdr) setBiayaManasikIdr(Number(cData.biayaManasikIdr));
+          if (cData.biayaOperasionalKantorIdr) setBiayaOperasionalKantorIdr(Number(cData.biayaOperasionalKantorIdr));
+          if (cData.biayaAsuransiSiskopatuhIdr) setBiayaAsuransiSiskopatuhIdr(Number(cData.biayaAsuransiSiskopatuhIdr));
+
+          // Men Equipment
           if (cData.equipMenKoperBagasi) setEquipMenKoperBagasi(Number(cData.equipMenKoperBagasi));
+          if (cData.equipMenIhram) setEquipMenIhram(Number(cData.equipMenIhram));
+          if (cData.equipMenKainBaju) setEquipMenKainBaju(Number(cData.equipMenKainBaju));
+          if (cData.equipMenRansel) setEquipMenRansel(Number(cData.equipMenRansel));
+          if (cData.equipMenTasSerut) setEquipMenTasSerut(Number(cData.equipMenTasSerut));
+          if (cData.equipMenSarungKoper) setEquipMenSarungKoper(Number(cData.equipMenSarungKoper));
+          if (cData.equipMenTagBagasi) setEquipMenTagBagasi(Number(cData.equipMenTagBagasi));
+          if (cData.equipMenBukuDoa) setEquipMenBukuDoa(Number(cData.equipMenBukuDoa));
+          if (cData.equipMenSajadahSyal) setEquipMenSajadahSyal(Number(cData.equipMenSajadahSyal));
+          if (cData.equipMenBantalLeher) setEquipMenBantalLeher(Number(cData.equipMenBantalLeher));
+          if (cData.equipMenLanyard) setEquipMenLanyard(Number(cData.equipMenLanyard));
+
+          // Women Equipment
           if (cData.equipWomenKoperBagasi) setEquipWomenKoperBagasi(Number(cData.equipWomenKoperBagasi));
+          if (cData.equipWomenKainBaju) setEquipWomenKainBaju(Number(cData.equipWomenKainBaju));
+          if (cData.equipWomenKerudung) setEquipWomenKerudung(Number(cData.equipWomenKerudung));
+          if (cData.equipWomenRansel) setEquipWomenRansel(Number(cData.equipWomenRansel));
+          if (cData.equipWomenTasSerut) setEquipWomenTasSerut(Number(cData.equipWomenTasSerut));
+          if (cData.equipWomenSarungKoper) setEquipWomenSarungKoper(Number(cData.equipWomenSarungKoper));
+          if (cData.equipWomenTagBagasi) setEquipWomenTagBagasi(Number(cData.equipWomenTagBagasi));
+          if (cData.equipWomenBukuDoa) setEquipWomenBukuDoa(Number(cData.equipWomenBukuDoa));
+          if (cData.equipWomenSyalSajadah) setEquipWomenSyalSajadah(Number(cData.equipWomenSyalSajadah));
+          if (cData.equipWomenMukenaTravel) setEquipWomenMukenaTravel(Number(cData.equipWomenMukenaTravel));
+          if (cData.equipWomenBantalLeher) setEquipWomenBantalLeher(Number(cData.equipWomenBantalLeher));
+          if (cData.equipWomenLanyard) setEquipWomenLanyard(Number(cData.equipWomenLanyard));
+
+          // Bonus & Margins
+          if (cData.bonusCityTourThaifIdr) setBonusCityTourThaifIdr(Number(cData.bonusCityTourThaifIdr));
+          if (cData.miscEmergencyIdr) setMiscEmergencyIdr(Number(cData.miscEmergencyIdr));
+          if (cData.sarExchangeRate) setSarExchangeRate(Number(cData.sarExchangeRate));
+          if (cData.marginType) setMarginType(cData.marginType);
+          if (cData.marginNominalPerPax || pkg.marginNominalPerPax) setMarginNominalPerPax(Number(cData.marginNominalPerPax || pkg.marginNominalPerPax));
+          if (cData.marginPercent) setMarginPercent(Number(cData.marginPercent));
+          if (cData.triplePaxCount || pkg.triplePaxCount) setTriplePaxCount(Number(cData.triplePaxCount || pkg.triplePaxCount));
+          if (cData.doublePaxCount || pkg.doublePaxCount) setDoublePaxCount(Number(cData.doublePaxCount || pkg.doublePaxCount));
 
           const itinVal = cData.itineraryList || cData.itinerary || pkg.itinerary;
           if (itinVal && Array.isArray(itinVal) && itinVal.length > 0) {
@@ -566,12 +606,48 @@ export default function PackageCalculatorPage() {
         visaAndInsuranceSar: visaAndInsuranceSar,
         handlingJakartaCgkIdr: handlingJakartaCgkIdr,
         handlingSaudiSharedSar: handlingSaudiSharedSar,
+        hotelTransitLoungeIdr: hotelTransitLoungeIdr,
         feeMarketingIdr: feeMarketingIdr,
-        marginNominalPerPax: marginNominalPerPax,
-        triplePaxCount: triplePaxCount,
-        doublePaxCount: doublePaxCount,
+        nasiBoxJakartaQty: nasiBoxJakartaQty,
+        nasiBoxJakartaPriceIdr: nasiBoxJakartaPriceIdr,
+        nasiBoxSaudiQty: nasiBoxSaudiQty,
+        nasiBoxSaudiPriceSar: nasiBoxSaudiPriceSar,
         muthawwifFeeIdrTotal: muthawwifFeeIdrTotal,
         tourLeaderFeeIdrTotal: tourLeaderFeeIdrTotal,
+        biayaManasikIdr: biayaManasikIdr,
+        biayaOperasionalKantorIdr: biayaOperasionalKantorIdr,
+        biayaAsuransiSiskopatuhIdr: biayaAsuransiSiskopatuhIdr,
+        equipMenKoperBagasi: equipMenKoperBagasi,
+        equipMenIhram: equipMenIhram,
+        equipMenKainBaju: equipMenKainBaju,
+        equipMenRansel: equipMenRansel,
+        equipMenTasSerut: equipMenTasSerut,
+        equipMenSarungKoper: equipMenSarungKoper,
+        equipMenTagBagasi: equipMenTagBagasi,
+        equipMenBukuDoa: equipMenBukuDoa,
+        equipMenSajadahSyal: equipMenSajadahSyal,
+        equipMenBantalLeher: equipMenBantalLeher,
+        equipMenLanyard: equipMenLanyard,
+        equipWomenKoperBagasi: equipWomenKoperBagasi,
+        equipWomenKainBaju: equipWomenKainBaju,
+        equipWomenKerudung: equipWomenKerudung,
+        equipWomenRansel: equipWomenRansel,
+        equipWomenTasSerut: equipWomenTasSerut,
+        equipWomenSarungKoper: equipWomenSarungKoper,
+        equipWomenTagBagasi: equipWomenTagBagasi,
+        equipWomenBukuDoa: equipWomenBukuDoa,
+        equipWomenSyalSajadah: equipWomenSyalSajadah,
+        equipWomenMukenaTravel: equipWomenMukenaTravel,
+        equipWomenBantalLeher: equipWomenBantalLeher,
+        equipWomenLanyard: equipWomenLanyard,
+        bonusCityTourThaifIdr: bonusCityTourThaifIdr,
+        miscEmergencyIdr: miscEmergencyIdr,
+        sarExchangeRate: sarExchangeRate,
+        marginType: marginType,
+        marginNominalPerPax: marginNominalPerPax,
+        marginPercent: marginPercent,
+        triplePaxCount: triplePaxCount,
+        doublePaxCount: doublePaxCount,
         itineraryList: itineraryList,
       },
       itinerary: itineraryList,
@@ -642,9 +718,49 @@ export default function PackageCalculatorPage() {
     setIsSuccessModalOpen(true);
   };
 
+  const handleCancelEditPackage = () => {
+    setEditingPackageId("");
+    setPackageName("Umrah Spesial November 12 Hari");
+    setCategoryName("November");
+    setDepartureDate("2026-11-03");
+    setReturnDate("2026-11-14");
+    setMakkahHotelName("Grand Al Massa");
+    setMadinahHotelName("Daar El Naeem");
+    setPubPackageName("");
+    localStorage.removeItem("el_massa_edit_hpp_package");
+  };
+
   return (
     <AppShell eyebrow="Manajemen Keuangan & HPP" title="Kalkulator Perancangan HPP Paket Umrah">
       <div className="space-y-6">
+
+        {/* ✏️ EDIT PACKAGE MODE ACTIVE BANNER */}
+        {editingPackageId && (
+          <section className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-500 via-rose-600 to-pink-600 p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30">
+                <Edit3 className="h-5 w-5 text-white animate-bounce" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                  <span>✏️ MODE EDIT HPP PAKET:</span>
+                  <span className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-lg border border-white/30 font-black">{packageName}</span>
+                </h3>
+                <p className="text-xs text-white/90 mt-0.5">
+                  Seluruh rincian biaya HPP, hotel, maskapai, perlengkapan, & itinerary dimuat 100% dari data paket ini!
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleCancelEditPackage}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white text-stone-900 px-4 text-xs font-black shadow-md hover:bg-stone-100 transition cursor-pointer active:scale-95 shrink-0"
+            >
+              <X className="h-4 w-4 text-stone-600" />
+              <span>Batal Edit (Buat Paket Baru)</span>
+            </button>
+          </section>
+        )}
         
         {/* Header Title Banner */}
         <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
