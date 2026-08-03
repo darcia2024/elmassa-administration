@@ -73,6 +73,10 @@ export default function PenerbitanUmrahmePage() {
 
   useEffect(() => {
     try {
+      const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
+      if (savedAccounts) {
+        setAccounts(JSON.parse(savedAccounts));
+      }
       const savedCredits = localStorage.getItem("el_massa_license_credits");
       if (savedCredits !== null) {
         setLicenseCredits(Number(savedCredits));
@@ -80,7 +84,7 @@ export default function PenerbitanUmrahmePage() {
         localStorage.setItem("el_massa_license_credits", "100");
       }
     } catch (e) {
-      console.error("Failed reading license credits:", e);
+      console.error("Failed reading initial storage:", e);
     }
   }, []);
 
@@ -255,7 +259,13 @@ export default function PenerbitanUmrahmePage() {
         tanggalTerbit: "Hari ini",
       };
 
-      setAccounts((prev) => [newAcc, ...prev]);
+      setAccounts((prev) => {
+        const updated = [newAcc, ...prev];
+        try {
+          localStorage.setItem("el_massa_issued_accounts", JSON.stringify(updated));
+        } catch (err) {}
+        return updated;
+      });
 
       // Deduct 1 Credit
       const newCredits = Math.max(0, licenseCredits - 1);
@@ -376,7 +386,13 @@ export default function PenerbitanUmrahmePage() {
       };
     });
 
-    setAccounts((prev) => [...newBulkAccounts, ...prev]);
+    setAccounts((prev) => {
+      const updated = [...newBulkAccounts, ...prev];
+      try {
+        localStorage.setItem("el_massa_issued_accounts", JSON.stringify(updated));
+      } catch (err) {}
+      return updated;
+    });
 
     // Deduct bulk credits
     const newCredits = Math.max(0, licenseCredits - excelPreviewRows.length);
@@ -1186,9 +1202,13 @@ export default function PenerbitanUmrahmePage() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  setAccounts((prev) =>
-                    prev.map((acc) => (acc.id === editingForm.id ? editingForm : acc))
-                  );
+                  setAccounts((prev) => {
+                    const updated = prev.map((acc) => (acc.id === editingForm.id ? editingForm : acc));
+                    try {
+                      localStorage.setItem("el_massa_issued_accounts", JSON.stringify(updated));
+                    } catch (err) {}
+                    return updated;
+                  });
                   broadcastJamaahUpdateFromAdmin({
                     id: editingForm.id,
                     nomorJamaah: editingForm.nomorJamaah,
