@@ -160,7 +160,8 @@ export default function PackageCalculatorPage() {
   const [nasiBoxSaudiQty, setNasiBoxSaudiQty] = useState(2); // 2x Makan Nasi Box Transit Bandara Saudi (JED/MED)
   const [nasiBoxSaudiPriceSar, setNasiBoxSaudiPriceSar] = useState(25); // 25 SAR / box
 
-  // Equipment Itemized Prices - Men (10 Items)
+  // Equipment Itemized Prices - Men (11 Items)
+  const [equipMenKoperBagasi, setEquipMenKoperBagasi] = useState(450000); // Koper Utama Bagasi 24/26 Inch
   const [equipMenIhram, setEquipMenIhram] = useState(250000);
   const [equipMenKainBaju, setEquipMenKainBaju] = useState(180000);
   const [equipMenRansel, setEquipMenRansel] = useState(150000);
@@ -172,7 +173,8 @@ export default function PackageCalculatorPage() {
   const [equipMenBantalLeher, setEquipMenBantalLeher] = useState(65000);
   const [equipMenLanyard, setEquipMenLanyard] = useState(25000);
 
-  // Equipment Itemized Prices - Women (11 Items)
+  // Equipment Itemized Prices - Women (12 Items)
+  const [equipWomenKoperBagasi, setEquipWomenKoperBagasi] = useState(450000); // Koper Utama Bagasi 24/26 Inch
   const [equipWomenKainBaju, setEquipWomenKainBaju] = useState(180000);
   const [equipWomenKerudung, setEquipWomenKerudung] = useState(120000);
   const [equipWomenRansel, setEquipWomenRansel] = useState(150000);
@@ -274,6 +276,8 @@ export default function PackageCalculatorPage() {
           if (cData.doublePaxCount || pkg.doublePaxCount) setDoublePaxCount(Number(cData.doublePaxCount || pkg.doublePaxCount));
           if (cData.muthawwifFeeIdrTotal) setMuthawwifFeeIdrTotal(Number(cData.muthawwifFeeIdrTotal));
           if (cData.tourLeaderFeeIdrTotal) setTourLeaderFeeIdrTotal(Number(cData.tourLeaderFeeIdrTotal));
+          if (cData.equipMenKoperBagasi) setEquipMenKoperBagasi(Number(cData.equipMenKoperBagasi));
+          if (cData.equipWomenKoperBagasi) setEquipWomenKoperBagasi(Number(cData.equipWomenKoperBagasi));
 
           const itinVal = cData.itineraryList || cData.itinerary || pkg.itinerary;
           if (itinVal && Array.isArray(itinVal) && itinVal.length > 0) {
@@ -332,6 +336,7 @@ export default function PackageCalculatorPage() {
 
     // 9. Equipment Rincian Total per Pax (Itemized Sum per Gender)
     const menEquipTotal =
+      equipMenKoperBagasi +
       equipMenIhram +
       equipMenKainBaju +
       equipMenRansel +
@@ -344,6 +349,7 @@ export default function PackageCalculatorPage() {
       equipMenLanyard;
 
     const womenEquipTotal =
+      equipWomenKoperBagasi +
       equipWomenKainBaju +
       equipWomenKerudung +
       equipWomenRansel +
@@ -461,6 +467,7 @@ export default function PackageCalculatorPage() {
     biayaOperasionalKantorIdr,
     biayaAsuransiSiskopatuhIdr,
     targetPax,
+    equipMenKoperBagasi,
     equipMenIhram,
     equipMenKainBaju,
     equipMenRansel,
@@ -471,6 +478,7 @@ export default function PackageCalculatorPage() {
     equipMenSajadahSyal,
     equipMenBantalLeher,
     equipMenLanyard,
+    equipWomenKoperBagasi,
     equipWomenKainBaju,
     equipWomenKerudung,
     equipWomenRansel,
@@ -1361,11 +1369,11 @@ export default function PackageCalculatorPage() {
 
               <div className="grid gap-4 md:grid-cols-2 text-xs">
                 
-                {/* PAKET LAKI-LAKI (10 ITEM EDITABLE) */}
+                {/* PAKET LAKI-LAKI (11 ITEM EDITABLE) */}
                 <div className="rounded-xl border border-sky-200/80 bg-sky-50/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between border-b border-sky-100 pb-2">
                     <span className="font-extrabold text-sky-950 flex items-center gap-1.5 text-xs">
-                      <span>👨 Paket Laki-Laki (10 Item)</span>
+                      <span>👨 Paket Laki-Laki (11 Item)</span>
                     </span>
                     <span className="rounded-md bg-sky-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
                       Total {formatRupiah(calculations.menEquipTotal)}
@@ -1374,7 +1382,17 @@ export default function PackageCalculatorPage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">1. Ihram Kualitas Premium</label>
+                      <label className="text-[11px] font-bold text-sky-900 truncate">1. Koper Bagasi Hardcase (24-26 inch)</label>
+                      <input
+                        type="number"
+                        value={equipMenKoperBagasi}
+                        onChange={(e) => setEquipMenKoperBagasi(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-sky-300 bg-white px-2 text-xs font-bold text-sky-950 text-right focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Ihram Kualitas Premium</label>
                       <input
                         type="number"
                         value={equipMenIhram}
@@ -1384,7 +1402,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Kain Baju Halus 2,5m</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Kain Baju Halus 2,5m</label>
                       <input
                         type="number"
                         value={equipMenKainBaju}
@@ -1394,7 +1412,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Ransel Travel</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Ransel Travel</label>
                       <input
                         type="number"
                         value={equipMenRansel}
@@ -1404,7 +1422,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Tas Serut</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Tas Serut</label>
                       <input
                         type="number"
                         value={equipMenTasSerut}
@@ -1414,7 +1432,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Sarung Koper 26 inc</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Sarung Koper 26 inc</label>
                       <input
                         type="number"
                         value={equipMenSarungKoper}
@@ -1424,7 +1442,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Tag Bagasi (2 buah)</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Tag Bagasi (2 buah)</label>
                       <input
                         type="number"
                         value={equipMenTagBagasi}
@@ -1434,7 +1452,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Buku Doa & Manasik</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Buku Doa & Manasik</label>
                       <input
                         type="number"
                         value={equipMenBukuDoa}
@@ -1444,7 +1462,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Sajadah Syal</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Sajadah Syal</label>
                       <input
                         type="number"
                         value={equipMenSajadahSyal}
@@ -1454,7 +1472,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Bantal Leher Ergonomis</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Bantal Leher Ergonomis</label>
                       <input
                         type="number"
                         value={equipMenBantalLeher}
@@ -1464,7 +1482,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Lanyard ID Card Tag</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">11. Lanyard ID Card Tag</label>
                       <input
                         type="number"
                         value={equipMenLanyard}
@@ -1475,11 +1493,11 @@ export default function PackageCalculatorPage() {
                   </div>
                 </div>
 
-                {/* PAKET PEREMPUAN (11 ITEM EDITABLE) */}
+                {/* PAKET PEREMPUAN (12 ITEM EDITABLE) */}
                 <div className="rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between border-b border-rose-100 pb-2">
                     <span className="font-extrabold text-rose-950 flex items-center gap-1.5 text-xs">
-                      <span>👩 Paket Perempuan (11 Item)</span>
+                      <span>👩 Paket Perempuan (12 Item)</span>
                     </span>
                     <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
                       Total {formatRupiah(calculations.womenEquipTotal)}
@@ -1488,7 +1506,17 @@ export default function PackageCalculatorPage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">1. Kain Baju Halus 2,5m</label>
+                      <label className="text-[11px] font-bold text-rose-900 truncate">1. Koper Bagasi Hardcase (24-26 inch)</label>
+                      <input
+                        type="number"
+                        value={equipWomenKoperBagasi}
+                        onChange={(e) => setEquipWomenKoperBagasi(Number(e.target.value))}
+                        className="w-28 h-7 rounded-lg border border-rose-300 bg-white px-2 text-xs font-bold text-rose-950 text-right focus:border-rose-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Kain Baju Halus 2,5m</label>
                       <input
                         type="number"
                         value={equipWomenKainBaju}
@@ -1498,7 +1526,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">2. Kerudung Syar'i Resmi</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Kerudung Syar'i Resmi</label>
                       <input
                         type="number"
                         value={equipWomenKerudung}
@@ -1508,7 +1536,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Ransel Kecil Travel</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Ransel Kecil Travel</label>
                       <input
                         type="number"
                         value={equipWomenRansel}
@@ -1518,7 +1546,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">4. Tas Serut</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Tas Serut</label>
                       <input
                         type="number"
                         value={equipWomenTasSerut}
@@ -1528,7 +1556,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">5. Sarung Koper 26 inc</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Sarung Koper 26 inc</label>
                       <input
                         type="number"
                         value={equipWomenSarungKoper}
@@ -1538,7 +1566,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">6. Tag Bagasi (2 buah)</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Tag Bagasi (2 buah)</label>
                       <input
                         type="number"
                         value={equipWomenTagBagasi}
@@ -1548,7 +1576,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">7. Buku Doa & Manasik</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Buku Doa & Manasik</label>
                       <input
                         type="number"
                         value={equipWomenBukuDoa}
@@ -1558,7 +1586,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">8. Syal Sajadah</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Syal Sajadah</label>
                       <input
                         type="number"
                         value={equipWomenSyalSajadah}
@@ -1568,7 +1596,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">9. Mukena Travel Ringkas</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Mukena Travel Ringkas</label>
                       <input
                         type="number"
                         value={equipWomenMukenaTravel}
@@ -1578,7 +1606,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">10. Bantal Leher Ergonomis</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">11. Bantal Leher Ergonomis</label>
                       <input
                         type="number"
                         value={equipWomenBantalLeher}
@@ -1588,7 +1616,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">11. Lanyard ID Card Tag</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">12. Lanyard ID Card Tag</label>
                       <input
                         type="number"
                         value={equipWomenLanyard}
