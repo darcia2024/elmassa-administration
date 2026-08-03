@@ -848,9 +848,9 @@ export default function DashboardPage() {
 
             <div className="space-y-2.5">
               {filteredBookings.slice(0, 3).map((booking) => {
-                const initials = booking.customer
+                const initials = (booking.customer || "Jamaah")
                   .split(" ")
-                  .map((n) => n[0])
+                  .map((n: string) => n[0])
                   .slice(0, 2)
                   .join("")
                   .toUpperCase();
