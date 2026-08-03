@@ -246,6 +246,15 @@ export function PackageList() {
     }
   };
 
+  const handleReturnToCalculator = (pkg: PackageCardItem) => {
+    try {
+      localStorage.setItem("el_massa_edit_hpp_package", JSON.stringify(pkg));
+    } catch (e) {
+      console.error(e);
+    }
+    window.location.href = "/paket/kalkulator";
+  };
+
   const allPackages = useMemo(() => {
     return [...customPackages, ...officialPackages];
   }, [customPackages]);
@@ -436,14 +445,63 @@ export function PackageList() {
                 </ul>
               </div>
 
+              {/* Rincian Itinerary & Standalone Web App Link */}
+              <div className="rounded-xl border border-rose-200/80 bg-gradient-to-r from-rose-50/40 via-amber-50/30 to-rose-50/20 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-stone-900 flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5 text-brand-pink" />
+                    <span>Rincian Itinerary (12 Hari Program)</span>
+                  </p>
+                </div>
+
+                <div className="space-y-1 text-[11px] font-medium">
+                  <div className="flex items-center gap-2 text-stone-800">
+                    <span className="bg-brand-pink text-white text-[9px] font-black px-1.5 py-0.5 rounded-xs shrink-0">H1</span>
+                    <span className="truncate">Pangkalpinang (PGK) ➔ Jakarta (CGK) ➔ Transit Airport Lounge</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-stone-800">
+                    <span className="bg-brand-pink text-white text-[9px] font-black px-1.5 py-0.5 rounded-xs shrink-0">H2</span>
+                    <span className="truncate">Jakarta ➔ Jeddah ➔ Madinah (Check-in Hotel {pkg.madinahHotel || "Madinah"})</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-stone-800">
+                    <span className="bg-brand-pink text-white text-[9px] font-black px-1.5 py-0.5 rounded-xs shrink-0">H3</span>
+                    <span className="truncate">Madinah – Ziarah Raudhah Tasreh & Makam Rasulullah SAW</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-stone-800">
+                    <span className="bg-[#2a170e] text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded-xs shrink-0">H6</span>
+                    <span className="truncate">Madinah ➔ Miqat Bir Ali ➔ Makkah (Pelaksanaan Umrah 1)</span>
+                  </div>
+                </div>
+
+                <a
+                  href="https://itineraryelmassa-weld.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#2a170e] hover:bg-[#3d2417] text-[11px] font-bold text-amber-200 transition shadow-2xs cursor-pointer"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Lihat Live Web App Itinerary (itineraryelmassa-weld) ↗</span>
+                </a>
+              </div>
+
               {/* Action Buttons */}
-              <div className="pt-2 flex items-center gap-2">
+              <div className="pt-2 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedPkg(pkg)}
-                  className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
+                  className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition min-w-[90px]"
                 >
                   Lihat Detail
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleReturnToCalculator(pkg)}
+                  className="h-9 px-3 rounded-xl border border-emerald-300 bg-emerald-50 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1 shrink-0 cursor-pointer"
+                  title="Return & Edit HPP Paket di Kalkulator HPP"
+                >
+                  <Calculator className="h-3.5 w-3.5 text-emerald-700" />
+                  <span>Edit HPP</span>
                 </button>
 
                 {canEditPackage && (
@@ -451,10 +509,10 @@ export function PackageList() {
                     type="button"
                     onClick={() => openEditModal(pkg)}
                     className="h-9 px-3 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-800 hover:bg-amber-100 transition flex items-center gap-1 shrink-0"
-                    title="Edit Paket (Khusus Staff Authorized)"
+                    title="Edit Quick Meta"
                   >
                     <Edit3 className="h-3.5 w-3.5 text-amber-700" />
-                    <span>Edit</span>
+                    <span>Quick Edit</span>
                   </button>
                 )}
 
@@ -463,7 +521,7 @@ export function PackageList() {
                     type="button"
                     onClick={() => confirmDeletePackage(pkg)}
                     className="h-9 px-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition flex items-center gap-1 shrink-0"
-                    title="Hapus Paket (Khusus Akun Master)"
+                    title="Hapus Paket"
                   >
                     <Trash2 className="h-3.5 w-3.5 text-rose-600" />
                   </button>
@@ -471,7 +529,7 @@ export function PackageList() {
 
                 <Link
                   href="/booking/form"
-                  className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1"
+                  className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1 min-w-[120px]"
                 >
                   <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
                   <span>Daftar / Booking</span>

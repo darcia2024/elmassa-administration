@@ -58,6 +58,31 @@ export default function PackageCalculatorPage() {
   const [targetPax, setTargetPax] = useState(45);
   const [sarExchangeRate, setSarExchangeRate] = useState(4300); // 1 SAR = Rp 4.300
 
+  // Load package from localStorage if returning to Kalkulator HPP for editing
+  useEffect(() => {
+    try {
+      const editStr = localStorage.getItem("el_massa_edit_hpp_package");
+      if (editStr) {
+        const pkg = JSON.parse(editStr);
+        if (pkg) {
+          if (pkg.name) setPackageName(pkg.name);
+          if (pkg.makkahHotel) setMakkahHotelName(pkg.makkahHotel);
+          if (pkg.madinahHotel) setMadinahHotelName(pkg.madinahHotel);
+          if (pkg.airline) setInternationalAirline(pkg.airline);
+          if (pkg.category) setCategoryName(pkg.category);
+          if (pkg.departureDate) setDepartureDate(pkg.departureDate);
+          if (pkg.returnDate) setReturnDate(pkg.returnDate);
+          if (pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0) {
+            setItineraryList(pkg.itinerary);
+          }
+          localStorage.removeItem("el_massa_edit_hpp_package");
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   // Helper: Format YYYY-MM-DD to Indonesian Date String
   const formatIndoDate = (dateStr: string) => {
     if (!dateStr) return "";
