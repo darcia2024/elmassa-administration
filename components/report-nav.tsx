@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, FileText, Plane, TrendingUp, Users } from "lucide-react";
+import { BarChart3, FileText, Plane, ShieldCheck, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,6 +10,7 @@ const reportItems = [
   { label: "Pendapatan", href: "/laporan/pendapatan", icon: TrendingUp },
   { label: "Booking", href: "/laporan/booking", icon: Plane },
   { label: "Manifest", href: "/laporan/manifest", icon: Users },
+  { label: "Audit Log Staf", href: "/laporan/aktivitas-staf", icon: ShieldCheck },
 ];
 
 export function ReportNav() {
