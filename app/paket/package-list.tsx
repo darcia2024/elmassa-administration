@@ -68,36 +68,33 @@ export function PackageList() {
   const [userRole, setUserRole] = useState("Super Admin");
 
   useEffect(() => {
-    // 1. Fetch from Supabase PostgreSQL API & Auto-Migrate local packages
+    // 1. Fetch from Supabase PostgreSQL API & Merge with local packages dynamically
+    const savedLocalStr = localStorage.getItem("el_massa_published_packages");
+    let localPkgs: PackageCardItem[] = [];
+    if (savedLocalStr) {
+      try {
+        localPkgs = JSON.parse(savedLocalStr);
+      } catch (e) {}
+    }
+
     fetch("/api/packages")
       .then((res) => res.json())
       .then((res) => {
-        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          setCustomPackages(res.data);
+        if (res.ok && Array.isArray(res.data)) {
+          const mergedMap = new Map<string, PackageCardItem>();
+          res.data.forEach((p: PackageCardItem) => mergedMap.set(p.id, p));
+          localPkgs.forEach((p: PackageCardItem) => mergedMap.set(p.id, p));
+          const finalPackages = Array.from(mergedMap.values());
+          setCustomPackages(finalPackages);
           try {
-            localStorage.setItem("el_massa_published_packages", JSON.stringify(res.data));
+            localStorage.setItem("el_massa_published_packages", JSON.stringify(finalPackages));
           } catch (e) {}
-        } else {
-          // If Supabase has no packages yet, push existing local packages to Supabase Cloud Database!
-          const saved = localStorage.getItem("el_massa_published_packages");
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setCustomPackages(parsed);
-              parsed.forEach((pkg: any) => {
-                fetch("/api/packages", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(pkg),
-                }).catch((e) => console.error("Migration error:", e));
-              });
-            }
-          }
+        } else if (localPkgs.length > 0) {
+          setCustomPackages(localPkgs);
         }
       })
       .catch(() => {
-        const saved = localStorage.getItem("el_massa_published_packages");
-        if (saved) setCustomPackages(JSON.parse(saved));
+        if (localPkgs.length > 0) setCustomPackages(localPkgs);
       });
 
     try {
@@ -287,17 +284,27 @@ export function PackageList() {
 
   const filteredPackages = useMemo(() => {
     return allPackages.filter((pkg) => {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
+        !q ||
         pkg.name.toLowerCase().includes(q) ||
         pkg.makkahHotel.toLowerCase().includes(q) ||
         pkg.madinahHotel.toLowerCase().includes(q) ||
-        pkg.departuresDate.toLowerCase().includes(q);
+        pkg.departuresDate.toLowerCase().includes(q) ||
+        (pkg.category && pkg.category.toLowerCase().includes(q));
+
+      if (selectedCategory === "Semua" || selectedCategory === "Semua Paket") {
+        return matchesSearch;
+      }
+
+      const catLower = selectedCategory.toLowerCase();
+      const monthKeyword = selectedCategory.split(" ")[0].toLowerCase();
 
       const matchesCat =
-        selectedCategory === "Semua" ||
-        pkg.category.toLowerCase().includes(selectedCategory.split(" ")[0].toLowerCase()) ||
-        selectedCategory.toLowerCase().includes(pkg.category.toLowerCase());
+        pkg.category.toLowerCase().includes(catLower) ||
+        catLower.includes(pkg.category.toLowerCase()) ||
+        pkg.departuresDate.toLowerCase().includes(monthKeyword) ||
+        ((pkg as any).departureDate && (pkg as any).departureDate.toLowerCase().includes(monthKeyword));
 
       return matchesSearch && matchesCat;
     });
@@ -397,8 +404,33 @@ export function PackageList() {
         </section>
 
         {/* 📦 Paket Grid Cards - Desktop 2-Column Grid */}
-        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-          {filteredPackages.map((pkg) => (
+        {filteredPackages.length === 0 ? (
+          <div className="rounded-2xl border border-stone-200/90 bg-white p-10 text-center space-y-4 shadow-2xs">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-2xl shadow-inner border border-amber-100">
+              📦
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-extrabold text-stone-900">
+                Tidak ada paket di filter "{selectedCategory}"
+              </h3>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Paket yang baru saja kamu buat ada di pilihan bulan keberangkatannya (atau klik tombol di bawah untuk menampilkan <b>Semua Paket</b>).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory("Semua");
+                setSearchQuery("");
+              }}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-5 text-xs font-extrabold text-white shadow-xs hover:bg-brand-pinkHover active:scale-95 transition cursor-pointer"
+            >
+              <span>Lihat Semua Paket ({allPackages.length})</span>
+            </button>
+          </div>
+        ) : (
+          <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            {filteredPackages.map((pkg) => (
             <article
               key={pkg.id}
               className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs hover:shadow-md hover:border-brand-pink/40 transition-all duration-300 space-y-4"
@@ -595,6 +627,7 @@ export function PackageList() {
             </article>
           ))}
         </section>
+      )}
 
       </div>
 
