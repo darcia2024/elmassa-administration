@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -25,155 +25,51 @@ const openWA = (text: string) => {
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, "_blank");
 };
 
-export default function ItineraryLandingPreviewPage() {
-  const [selectedTab, setSelectedTab] = useState<"oktober" | "november" | "desember">("oktober");
-  const [viewMode, setViewMode] = useState<"detail" | "live">("detail");
+interface PackageItem {
+  id: string;
+  name: string;
+  category: string;
+  duration: string;
+  departuresDate?: string;
+  departureDate?: string;
+  price: string;
+  dpMinimum?: string;
+  makkahHotel?: string;
+  madinahHotel?: string;
+  airline?: string;
+  startPoint?: string;
+  programUmrah?: string;
+  itinerary?: Array<{
+    day: number;
+    title: string;
+    location?: string;
+    activities: Array<{ time?: string; description: string }>;
+  }>;
+}
 
-  const itineraryData = [
-    {
-      day: 1,
-      date: "30 Sep 2026",
-      title: "Pangkal Pinang – Jakarta",
-      location: "Pangkal Pinang (PGK) → Jakarta (CGK)",
-      highlight: "departure",
-      activities: [
-        { time: "09:00 WIB", description: "Jemaah berkumpul di Bandar Udara Internasional Depati Amir, Pangkal Pinang untuk persiapan keberangkatan" },
-        { time: "12:25 WIB", description: "Take-off menuju Jakarta (Garuda Indonesia GA137)" },
-        { time: "13:54 WIB", description: "Tiba di Bandara Jakarta. Jemaah disediakan lounge bandara untuk beristirahat sambil menunggu penerbangan ke Jeddah" },
-        { time: "19:30 WIB", description: "Jemaah berkumpul di keberangkatan internasional Terminal 3 Soekarno-Hatta untuk persiapan proses check-in" },
-      ],
-    },
-    {
-      day: 2,
-      date: "01 Okt 2026",
-      title: "Jakarta – Jeddah – Madinah",
-      location: "Jakarta → Jeddah → Madinah",
-      highlight: "departure",
-      activities: [
-        { time: "00:40 WIB", description: "Take-off menuju Jeddah (Saudia Airline SV827)" },
-        { time: "06:40 LT", description: "Landing di Bandara Internasional King Abdul Aziz, Jeddah" },
-        { time: "09:00 LT", description: "Perjalanan menggunakan bus AC luxury menuju kota Madinah" },
-        { time: "14:00 LT", description: "Check-in hotel Madinah (Daar El Naeem) & beristirahat" },
-      ],
-    },
-    {
-      day: 3,
-      date: "02 Okt 2026",
-      title: "Madinah – Rawdhah & Ziarah Dalam",
-      location: "Madinah Al-Munawwarah",
-      highlight: "worship",
-      activities: [
-        { time: "Subuh - 11:00", description: "Rawdhah jemaah perempuan (Sesuai jadwal Tasreh KSA)" },
-        { time: "11:00 - Isya", description: "Rawdhah jemaah laki-laki & Ziarah Makam Rasulullah SAW & Sahabat" },
-        { time: "19:30 LT", description: "Ziarah sekitar Masjid Nabawi: Bani Tsaqifah, Masjid Ali, Pemakaman Baqi" },
-      ],
-    },
-    {
-      day: 4,
-      date: "03 Okt 2026",
-      title: "Tour Sejarah Madinah (Masjid Quba & Uhud)",
-      location: "Madinah & Sekitarnya",
-      highlight: "ziarah",
-      activities: [
-        { time: "08:00 - 12:00", description: "Ziarah luar: Masjid Quba, Jabal Uhud (Makam Syuhada), Kebun Kurma Madinah" },
-        { time: "12:00 - 15:00", description: "Shalat Dhuhur & makan siang di hotel" },
-        { time: "16:00 - 21:00", description: "Acara bebas memperbanyak ibadah di Masjid Nabawi" },
-      ],
-    },
-    {
-      day: 5,
-      date: "04 Okt 2026",
-      title: "City Tour Madinah 2 & Manasik",
-      location: "Madinah Al-Munawwarah",
-      highlight: "ziarah",
-      activities: [
-        { time: "08:00 - 11:30", description: "Kunjungan ke Percetakan Al-Qur'an Malik Fahd & Jabal Magnet" },
-        { time: "16:00 - 18:00", description: "Pemantapan manasik umrah & tata cara ihram" },
-      ],
-    },
-    {
-      day: 6,
-      date: "05 Okt 2026",
-      title: "Madinah – Miqat Bir Ali – Makkah (Umrah 1)",
-      location: "Madinah → Bir Ali → Makkah",
-      highlight: "umrah",
-      activities: [
-        { time: "09:00 LT", description: "Persiapan check-out hotel Madinah & mengenakan kain ihram" },
-        { time: "13:00 LT", description: "Singgah Masjid Bir Ali (Dzulhulaifah) untuk Miqat & Niat Umrah" },
-        { time: "20:00 LT", description: "Tiba di Hotel Makkah (Grand Al Massa), check-in & makan malam" },
-        { time: "22:00 LT", description: "Melaksanakan Rukun Umrah Wajib (Tawaf, Sa'i, Tahallul) di Masjidil Haram" },
-      ],
-    },
-    {
-      day: 7,
-      date: "06 Okt 2026",
-      title: "Ibadah di Masjidil Haram & Tawaf Sunnah",
-      location: "Makkah Al-Mukarramah",
-      highlight: "worship",
-      activities: [
-        { time: "Seharian", description: "Memperbanyak ibadah mandiri di Masjidil Haram, iktikaf & Tawaf Sunnah" },
-      ],
-    },
-    {
-      day: 8,
-      date: "07 Okt 2026",
-      title: "Ziarah Sejarah Makkah & Umrah 2 (Ji'ranah)",
-      location: "Makkah & Sekitarnya",
-      highlight: "ziarah",
-      activities: [
-        { time: "08:00 - 12:00", description: "Ziarah Jabal Tsur, Padang Arafah, Jabal Rahmah, Mina, Muzdalifah" },
-        { time: "12:00 LT", description: "Miqat di Masjid Ji'ranah bagi jemaah yang ingin Umrah ke-2" },
-      ],
-    },
-    {
-      day: 9,
-      date: "08 Okt 2026",
-      title: "City Tour Kota Thaif (Bonus Special!)",
-      location: "Makkah → Thaif → Makkah",
-      highlight: "travel",
-      activities: [
-        { time: "08:00 LT", description: "Perjalanan ke Kota Sejuk Thaif: Masjid Ibn Abbas, Kebun Mawar & Pabrik Parfum" },
-        { time: "17:00 LT", description: "Kembali ke Makkah & Miqat Qarnul Manazil (Umrah 3 Opsional)" },
-      ],
-    },
-    {
-      day: 10,
-      date: "09 Okt 2026",
-      title: "Agenda Bebas Makkah & Shopping Zamzam",
-      location: "Makkah Al-Mukarramah",
-      highlight: "worship",
-      activities: [
-        { time: "Seharian", description: "Agenda bebas & belanja oleh-oleh di Zamzam Tower & Pasar Kakiyah" },
-      ],
-    },
-    {
-      day: 11,
-      date: "10 Okt 2026",
-      title: "Tawaf Wada' & City Tour Jeddah",
-      location: "Makkah → Jeddah",
-      highlight: "departure",
-      activities: [
-        { time: "05:00 LT", description: "Melaksanakan Tawaf Wada' (Tawaf Perpisahan) di Masjidil Haram" },
-        { time: "11:00 LT", description: "City tour Jeddah: Laut Merah, Masjid Terapung & Shopping Al-Balad" },
-        { time: "17:30 LT", description: "Tiba di Bandara Jeddah (JED) untuk persiapan flight kepulangan" },
-      ],
-    },
-    {
-      day: 12,
-      date: "11 Okt 2026",
-      title: "Landing Jakarta – Pangkal Pinang (PGK)",
-      location: "Jeddah → CGK → PGK",
-      highlight: "departure",
-      activities: [
-        { time: "07:35 WIB", description: "Landing di Bandara Soekarno-Hatta Jakarta (CGK)" },
-        { time: "12:25 WIB", description: "Take-off penerbangan feeder menuju Bandara Depati Amir Pangkal Pinang (PGK)" },
-        { time: "13:54 WIB", description: "Tiba di Pangkal Pinang (PGK). Seluruh rangkaian ibadah umrah selesai" },
-      ],
-    },
-  ];
+export default function ItineraryLandingPreviewPage() {
+  const [packagesList, setPackagesList] = useState<PackageItem[]>([]);
+  const [selectedPkgId, setSelectedPkgId] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"detail" | "live">("detail");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          setPackagesList(res.data);
+          setSelectedPkgId(res.data[0].id);
+        }
+      })
+      .catch((e) => console.error("Fetch packages error:", e))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const activePackage = packagesList.find((p) => p.id === selectedPkgId) || packagesList[0];
 
   return (
-    <AppShell title="Preview Landing Page Itinerary Interaktif (elmassa.itinerary)">
+    <AppShell title="Live Sync Standalone Web App (itinerary.elmassa-weld)">
       <div className="space-y-8 font-sans max-w-5xl mx-auto pb-12">
         
         {/* HERO BANNER SECTION - SOLID DEEP BROWN (#2A170E) */}
@@ -181,7 +77,7 @@ export default function ItineraryLandingPreviewPage() {
           <div className="relative z-10 space-y-4 max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#3d2417] border border-[#523221] px-4 py-1.5 text-xs font-bold text-amber-200">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Preview Live App Itinerary Interaktif (elmassa.itinerary)</span>
+              <span>Sinkron 100% Real-Time ke Standalone Web App (itinerary.elmassa-weld)</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
@@ -189,13 +85,13 @@ export default function ItineraryLandingPreviewPage() {
             </h1>
 
             <p className="text-xs sm:text-sm text-amber-100/80 leading-relaxed max-w-2xl">
-              Tampilan landing page brosur itinerary interaktif hari demi hari, khusus keberangkatan <strong>Pangkal Pinang (PGK)</strong> menuju Makkah, Madinah, &amp; Kota Thaif.
+              Tampilan brosur &amp; itinerary interaktif yang tersinkronisasi 100% otomatis antara Web Admin Sistem dan Standalone Landing Page <strong>itinerary.elmassa-weld</strong>.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-3">
               <button
                 type="button"
-                onClick={() => openWA("Halo El Massa, saya mau tanya paket & itinerary Umrah ini")}
+                onClick={() => openWA(`Halo El Massa, saya tertarik konsultasi itinerary paket ${activePackage?.name || ""}`)}
                 className="h-11 px-5 rounded-xl bg-pink-600 hover:bg-pink-700 font-extrabold text-xs text-white shadow-lg transition flex items-center gap-2 cursor-pointer"
               >
                 <span>Konsultasi Itinerary via WA</span>
@@ -203,45 +99,51 @@ export default function ItineraryLandingPreviewPage() {
               </button>
 
               <a
-                href="https://itineraryelmassa-weld.vercel.app/"
+                href="https://itinerary.elmassa.weld.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="h-11 px-4 rounded-xl bg-[#3d2417] hover:bg-[#4d2d1d] border border-[#523221] text-xs font-bold text-amber-100 transition flex items-center gap-2 cursor-pointer shadow-sm"
               >
                 <ExternalLink className="h-4 w-4 text-amber-400" />
-                <span>Buka Standalone App (itineraryelmassa-weld.vercel.app) ↗</span>
+                <span>Buka Standalone App (itinerary.elmassa.weld) ↗</span>
               </a>
 
               <Link
                 href="/paket/kalkulator"
                 className="h-11 px-4 rounded-xl border border-[#4d2d1d] bg-[#1e1009] text-xs font-bold text-stone-300 hover:bg-[#2a170e] transition flex items-center gap-1.5"
               >
-                <span>Edit Itinerary di Web Admin</span>
+                <span>Edit HPP di Web Admin</span>
               </Link>
             </div>
           </div>
         </div>
 
-        {/* MONTH TAB SELECTOR */}
+        {/* PACKAGE TAB SELECTOR (DYNAMIC FROM SUPABASE) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {(["oktober", "november", "desember"] as const).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setSelectedTab(tab)}
-                className={`h-10 px-5 rounded-xl text-xs font-bold capitalize transition whitespace-nowrap cursor-pointer ${
-                  selectedTab === tab
-                    ? "bg-[#2a170e] text-amber-200 shadow-md border border-[#3d2417]"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                }`}
-              >
-                Paket {tab} 2026
-              </button>
-            ))}
+            {loading ? (
+              <span className="text-xs text-stone-500 animate-pulse font-medium">Memuat daftar paket dari Supabase...</span>
+            ) : packagesList.length > 0 ? (
+              packagesList.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  type="button"
+                  onClick={() => setSelectedPkgId(pkg.id)}
+                  className={`h-10 px-5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                    activePackage?.id === pkg.id
+                      ? "bg-[#2a170e] text-amber-200 shadow-md border border-[#3d2417]"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  }`}
+                >
+                  {pkg.name} ({pkg.price})
+                </button>
+              ))
+            ) : (
+              <span className="text-xs text-stone-500">Belum ada paket diterbitkan.</span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setViewMode("detail")}
@@ -262,7 +164,7 @@ export default function ItineraryLandingPreviewPage() {
                   : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
               }`}
             >
-              🌐 Live App Frame (itineraryelmassa-weld)
+              🌐 Live App Frame (itinerary.elmassa.weld)
             </button>
           </div>
         </div>
@@ -271,9 +173,9 @@ export default function ItineraryLandingPreviewPage() {
         {viewMode === "live" ? (
           <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm space-y-3 p-3">
             <div className="flex items-center justify-between px-2 text-xs">
-              <span className="font-bold text-stone-700">Live Web App: https://itineraryelmassa-weld.vercel.app/</span>
+              <span className="font-bold text-stone-700">Live Web App Standalone: https://itinerary.elmassa.weld.vercel.app/</span>
               <a
-                href="https://itineraryelmassa-weld.vercel.app/"
+                href="https://itinerary.elmassa.weld.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-brand-pink font-bold hover:underline"
@@ -282,64 +184,108 @@ export default function ItineraryLandingPreviewPage() {
               </a>
             </div>
             <iframe
-              src="https://itineraryelmassa-weld.vercel.app/"
+              src="https://itinerary.elmassa.weld.vercel.app/"
               className="w-full h-[700px] rounded-xl border border-stone-200 shadow-inner"
               title="Live Standalone Itinerary App"
             />
           </div>
-        ) : (
-          /* ITINERARY TIMELINE GRID */
-          <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-extrabold text-stone-900 flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-pink-600" />
-              <span>Rincian Kegiatan Hari demi Hari ({selectedTab.toUpperCase()} 2026)</span>
-            </h3>
-            <span className="text-xs text-stone-500 font-medium">Bangka Belitung Feeder (PGK ⇄ CGK)</span>
-          </div>
-
-          <div className="grid gap-4">
-            {itineraryData.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs hover:border-pink-300 transition space-y-3"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-pink-600 text-white font-black text-xs shadow-xs">
-                      H{item.day}
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-stone-900">{item.title}</h4>
-                      <p className="text-xs font-semibold text-pink-600 flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        <span>{item.location}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-bold text-stone-700 bg-stone-100 px-3 py-1 rounded-xl shrink-0 self-start sm:self-auto border border-stone-200">
-                    {item.date}
+        ) : activePackage ? (
+          /* ITINERARY TIMELINE GRID FOR ACTIVE PACKAGE */
+          <div className="space-y-6">
+            
+            {/* Active Package Specs Card */}
+            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+                <div>
+                  <span className="bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                    {activePackage.category} • {activePackage.duration}
                   </span>
+                  <h3 className="text-lg font-extrabold text-stone-900 mt-1">{activePackage.name}</h3>
                 </div>
-
-                <div className="space-y-2 pl-2 sm:pl-12">
-                  {item.activities.map((act, aIdx) => (
-                    <div key={aIdx} className="flex items-start gap-2.5 text-xs">
-                      {act.time && (
-                        <span className="font-extrabold text-stone-700 text-[10px] shrink-0 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-md min-w-[75px] text-center">
-                          {act.time}
-                        </span>
-                      )}
-                      <p className="text-stone-700 leading-relaxed font-medium">{act.description}</p>
-                    </div>
-                  ))}
+                <div className="sm:text-right">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Harga Resmi All In</span>
+                  <span className="text-xl font-black text-rose-600">{activePackage.price}</span>
                 </div>
               </div>
-            ))}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60">
+                  <span className="text-[10px] text-stone-400 font-semibold block uppercase">Keberangkatan</span>
+                  <span className="font-bold text-stone-800 truncate block mt-0.5">{activePackage.departuresDate || activePackage.departureDate}</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60">
+                  <span className="text-[10px] text-stone-400 font-semibold block uppercase">Hotel Makkah</span>
+                  <span className="font-bold text-stone-800 truncate block mt-0.5">{activePackage.makkahHotel || "Grand Al Massa"}</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60">
+                  <span className="text-[10px] text-stone-400 font-semibold block uppercase">Hotel Madinah</span>
+                  <span className="font-bold text-stone-800 truncate block mt-0.5">{activePackage.madinahHotel || "Daar El Naeem"}</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60">
+                  <span className="text-[10px] text-stone-400 font-semibold block uppercase">Maskapai & Flight</span>
+                  <span className="font-bold text-stone-800 truncate block mt-0.5">{activePackage.airline || "Garuda / Saudia"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Daily Activities Timeline */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-pink-600" />
+                  <span>Rincian Kegiatan Hari demi Hari</span>
+                </h3>
+                <span className="text-xs text-stone-500 font-medium">Bangka Belitung Feeder (PGK ⇄ CGK)</span>
+              </div>
+
+              <div className="grid gap-4">
+                {activePackage.itinerary && activePackage.itinerary.length > 0 ? (
+                  activePackage.itinerary.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs hover:border-pink-300 transition space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-pink-600 text-white font-black text-xs shadow-xs">
+                            H{item.day}
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-extrabold text-stone-900">{item.title}</h4>
+                            {item.location && (
+                              <p className="text-xs font-semibold text-pink-600 flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span>{item.location}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 pl-2 sm:pl-12">
+                        {(item.activities || []).map((act, aIdx) => (
+                          <div key={aIdx} className="flex items-start gap-2.5 text-xs">
+                            {act.time && (
+                              <span className="font-extrabold text-stone-700 text-[10px] shrink-0 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-md min-w-[75px] text-center">
+                                {act.time}
+                              </span>
+                            )}
+                            <p className="text-stone-700 leading-relaxed font-medium">{act.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-stone-500 text-sm">
+                    Itinerary harian belum dikonfigurasi untuk paket ini.
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
-          </div>
-        )}
+        ) : null}
 
         {/* BOTTOM CTA BANNER */}
         <div className="rounded-2xl border border-pink-200 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -349,7 +295,7 @@ export default function ItineraryLandingPreviewPage() {
           </div>
           <button
             type="button"
-            onClick={() => openWA("Halo El Massa, saya mau booking paket umrah sesuai itinerary ini")}
+            onClick={() => openWA(`Halo El Massa, saya mau booking paket ${activePackage?.name || "Umrah"}`)}
             className="h-10 px-5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-xs shadow-md transition shrink-0"
           >
             Hubungi Staf via WhatsApp
