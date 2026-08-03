@@ -69,7 +69,7 @@ export function FloatingRevisionNotes() {
     loadNotes();
     const interval = setInterval(() => {
       loadNotes();
-    }, 10000);
+    }, 4000);
     return () => clearInterval(interval);
   }, [pathname]);
 
@@ -98,20 +98,23 @@ export function FloatingRevisionNotes() {
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [newNote, ...notes];
-    setNotes(updated);
     try {
-      localStorage.setItem("el_massa_revision_notes", JSON.stringify(updated));
-    } catch (e) {}
-
-    try {
-      await fetch("/api/revision-notes", {
+      const res = await fetch("/api/revision-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newNote),
       });
+      const json = await res.json();
+      if (json.ok) {
+        await loadNotes();
+      } else {
+        const updated = [newNote, ...notes];
+        setNotes(updated);
+      }
     } catch (e) {
       console.error("Save note error:", e);
+      const updated = [newNote, ...notes];
+      setNotes(updated);
     }
 
     setSubmitting(false);

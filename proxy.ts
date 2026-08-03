@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout"];
+const publicApiPrefixes = [
+  "/api/auth/login",
+  "/api/auth/logout",
+  "/api/packages",
+  "/api/revision-notes",
+  "/api/reset-all-data",
+  "/api/bookings",
+  "/api/schedules",
+];
 const knownUserIds = new Set(["user-azri"]);
 
 export function proxy(request: NextRequest) {
