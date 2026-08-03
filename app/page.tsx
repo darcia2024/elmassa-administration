@@ -490,9 +490,9 @@ export default function DashboardPage() {
                         </tr>
                       ) : (
                         filteredBookings.map((booking) => {
-                          const initials = booking.customer
+                          const initials = (booking.customer || "Jamaah")
                             .split(" ")
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .slice(0, 2)
                             .join("")
                             .toUpperCase();
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                               </td>
 
                               <td className="py-3 pr-2 text-stone-500">
-                                {booking.departureLabel}
+                                {(booking as any).departure || (booking as any).departureLabel || "30 Sep 2026"}
                               </td>
 
                               <td className="py-3 pr-2">

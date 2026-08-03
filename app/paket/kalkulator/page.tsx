@@ -60,36 +60,7 @@ export default function PackageCalculatorPage() {
 
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
 
-  // Load package from localStorage if returning to Kalkulator HPP for editing
-  useEffect(() => {
-    try {
-      const editStr = localStorage.getItem("el_massa_edit_hpp_package");
-      if (editStr) {
-        const pkg = JSON.parse(editStr);
-        if (pkg) {
-          if (pkg.id) setEditingPackageId(pkg.id);
-          if (pkg.name) setPackageName(pkg.name);
-          if (pkg.makkahHotel) setMakkahHotelName(pkg.makkahHotel);
-          if (pkg.madinahHotel) setMadinahHotelName(pkg.madinahHotel);
-          if (pkg.airline) setInternationalAirline(pkg.airline);
-          if (pkg.category) setCategoryName(pkg.category);
-          if (pkg.departureDate) setDepartureDate(pkg.departureDate);
-          if (pkg.returnDate) setReturnDate(pkg.returnDate);
-          if (pkg.targetPax) setTargetPax(Number(pkg.targetPax));
-          if (pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(pkg.makkahRoomSarPerNight));
-          if (pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(pkg.madinahRoomSarPerNight));
-          if (pkg.flightCgkJed) setFlightCgkJed(Number(pkg.flightCgkJed));
-          if (pkg.flightPtkCgk) setFlightPtkCgk(Number(pkg.flightPtkCgk));
-          if (pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0) {
-            setItineraryList(pkg.itinerary);
-          }
-          localStorage.removeItem("el_massa_edit_hpp_package");
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
+
 
   // Helper: Format YYYY-MM-DD to Indonesian Date String
   const formatIndoDate = (dateStr: string) => {
@@ -247,6 +218,55 @@ export default function PackageCalculatorPage() {
   const [pubCategory, setPubCategory] = useState("Umrah Spesial");
   const [pubDepartureDate, setPubDepartureDate] = useState("15 November 2026");
   const [pubDpMinimum, setPubDpMinimum] = useState("Rp 5.000.000");
+
+  // Load package from localStorage if returning to Kalkulator HPP for editing
+  useEffect(() => {
+    try {
+      const editStr = localStorage.getItem("el_massa_edit_hpp_package");
+      if (editStr) {
+        const pkg = JSON.parse(editStr);
+        if (pkg) {
+          if (pkg.id) setEditingPackageId(pkg.id);
+          if (pkg.name) {
+            setPackageName(pkg.name);
+            setPubPackageName(pkg.name);
+          }
+          if (pkg.makkahHotel) setMakkahHotelName(pkg.makkahHotel);
+          if (pkg.madinahHotel) setMadinahHotelName(pkg.madinahHotel);
+          if (pkg.airline) setInternationalAirline(pkg.airline);
+          if (pkg.domesticAirline) setDomesticAirline(pkg.domesticAirline);
+          if (pkg.internationalAirline) setInternationalAirline(pkg.internationalAirline);
+          if (pkg.category) {
+            setCategoryName(pkg.category);
+            setPubCategory(pkg.category);
+          }
+          if (pkg.departureDate) {
+            setDepartureDate(pkg.departureDate);
+            setPubDepartureDate(pkg.departureDate);
+          }
+          if (pkg.returnDate) setReturnDate(pkg.returnDate);
+          if (pkg.targetPax) setTargetPax(Number(pkg.targetPax));
+          if (pkg.makkahRoomSarPerNight) setMakkahRoomSarPerNight(Number(pkg.makkahRoomSarPerNight));
+          if (pkg.madinahRoomSarPerNight) setMadinahRoomSarPerNight(Number(pkg.madinahRoomSarPerNight));
+          if (pkg.flightCgkJed) setFlightCgkJed(Number(pkg.flightCgkJed));
+          if (pkg.flightPtkCgk) setFlightPtkCgk(Number(pkg.flightPtkCgk));
+          if (pkg.visaAndInsuranceSar) setVisaAndInsuranceSar(Number(pkg.visaAndInsuranceSar));
+          if (pkg.handlingJakartaCgkIdr) setHandlingJakartaCgkIdr(Number(pkg.handlingJakartaCgkIdr));
+          if (pkg.handlingSaudiSharedSar) setHandlingSaudiSharedSar(Number(pkg.handlingSaudiSharedSar));
+          if (pkg.feeMarketingIdr) setFeeMarketingIdr(Number(pkg.feeMarketingIdr));
+          if (pkg.marginNominalPerPax) setMarginNominalPerPax(Number(pkg.marginNominalPerPax));
+          if (pkg.triplePaxCount) setTriplePaxCount(Number(pkg.triplePaxCount));
+          if (pkg.doublePaxCount) setDoublePaxCount(Number(pkg.doublePaxCount));
+          if (pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0) {
+            setItineraryList(pkg.itinerary);
+          }
+          localStorage.removeItem("el_massa_edit_hpp_package");
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // 4. Calculations (Live Computed 0ms)
   const calculations = useMemo(() => {

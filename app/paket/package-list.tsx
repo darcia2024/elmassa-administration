@@ -249,7 +249,32 @@ export function PackageList() {
 
   const handleReturnToCalculator = (pkg: PackageCardItem) => {
     try {
-      localStorage.setItem("el_massa_edit_hpp_package", JSON.stringify(pkg));
+      const fullPackageToEdit = {
+        id: pkg.id,
+        name: pkg.name,
+        category: pkg.category,
+        departureDate: (pkg as any).departureDate || "2026-10-15",
+        returnDate: (pkg as any).returnDate || "2026-10-26",
+        makkahHotel: pkg.makkahHotel || "Grand Al Massa",
+        madinahHotel: pkg.madinahHotel || "Daar El Naeem",
+        airline: pkg.airline || "Garuda Indonesia + Saudia Airlines",
+        domesticAirline: (pkg as any).domesticAirline || "Garuda Indonesia (Feeder PGK ⇄ CGK)",
+        internationalAirline: (pkg as any).internationalAirline || "Saudia Airlines (SV-815)",
+        targetPax: (pkg as any).targetPax || 45,
+        makkahRoomSarPerNight: (pkg as any).makkahRoomSarPerNight || 480,
+        madinahRoomSarPerNight: (pkg as any).madinahRoomSarPerNight || 380,
+        flightCgkJed: (pkg as any).flightCgkJed || 14500000,
+        flightPtkCgk: (pkg as any).flightPtkCgk || 2400000,
+        visaAndInsuranceSar: (pkg as any).visaAndInsuranceSar || 450,
+        handlingJakartaCgkIdr: (pkg as any).handlingJakartaCgkIdr || 350000,
+        handlingSaudiSharedSar: (pkg as any).handlingSaudiSharedSar || 4500,
+        feeMarketingIdr: (pkg as any).feeMarketingIdr || 1000000,
+        marginNominalPerPax: (pkg as any).marginNominalPerPax || 3500000,
+        triplePaxCount: (pkg as any).triplePaxCount || 6,
+        doublePaxCount: (pkg as any).doublePaxCount || 4,
+        itinerary: pkg.itinerary || [],
+      };
+      localStorage.setItem("el_massa_edit_hpp_package", JSON.stringify(fullPackageToEdit));
     } catch (e) {
       console.error(e);
     }
