@@ -516,20 +516,20 @@ export default function PenerbitanUmrahmePage() {
           </div>
         </section>
 
-        {/* 🪙 SLEEK & COMPACT BAR: SALDO LISENSI UMRAHME */}
-        <section className="rounded-2xl border border-stone-800 bg-stone-900 px-4 sm:px-5 py-3 text-white shadow-md">
+        {/* 🪙 SLEEK & COMPACT OUTLINE BAR: SALDO LISENSI UMRAHME */}
+        <section className="rounded-2xl border-2 border-stone-200 bg-white px-4 sm:px-5 py-3 text-stone-900 shadow-xs">
           <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
             {/* Left: Icon & Compact Credits */}
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 rounded-xl bg-pink-50 border border-pink-200 text-pink-600 flex items-center justify-center shrink-0">
                 <CreditCard className="h-4 w-4" />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black text-white tracking-tight">
+                <span className="text-xs font-black text-stone-900 tracking-tight">
                   Saldo Lisensi:{" "}
                   <span
-                    className={`text-amber-300 font-extrabold ${
-                      licenseCredits <= 5 ? "text-rose-400 animate-pulse" : ""
+                    className={`text-pink-600 font-black ${
+                      licenseCredits <= 5 ? "text-rose-600 animate-pulse" : ""
                     }`}
                   >
                     {licenseCredits} Kuota
@@ -543,23 +543,23 @@ export default function PenerbitanUmrahmePage() {
 
             {/* Right: Compact Stats & Top Up Button */}
             <div className="flex items-center gap-3 ml-auto">
-              <span className="text-[11px] text-stone-400 font-medium hidden md:inline">
-                Terbit: <strong className="text-amber-300 font-bold">{accounts.length} Jemaah</strong>
+              <span className="text-[11px] text-stone-500 font-medium hidden md:inline">
+                Terbit: <strong className="text-stone-900 font-extrabold">{accounts.length} Jemaah</strong>
               </span>
               <button
                 type="button"
                 onClick={() => setIsTopUpModalOpen(true)}
-                className="h-8 px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer shrink-0"
+                className="h-8 px-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer shrink-0"
               >
                 <Plus className="h-3.5 w-3.5 stroke-[3]" />
-                <span>Top Up</span>
+                <span>Top Up Saldo</span>
               </button>
             </div>
           </div>
 
           {licenseCredits <= 0 && (
-            <p className="text-[11px] text-rose-300 font-semibold mt-2 pt-2 border-t border-rose-500/20 flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+            <p className="text-[11px] text-rose-600 font-bold mt-2 pt-2 border-t border-rose-100 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-rose-500 shrink-0" />
               <span>Saldo lisensi habis (0 tersisa). Penerbitan akun baru terkunci hingga dilakukan Top Up.</span>
             </p>
           )}
