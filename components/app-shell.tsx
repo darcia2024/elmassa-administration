@@ -320,7 +320,7 @@ export function AppShell({ children }: AppShellProps) {
   }, [isMobileNavOpen]);
 
   useEffect(() => {
-    if (pathname.startsWith("/pengaturan/lisensi-master") || pathname.startsWith("/lisensi-master")) {
+    if (pathname.startsWith("/pengaturan/lisensi-master") || pathname.startsWith("/lisensi-master") || pathname.startsWith("/master")) {
       setIsAuthChecked(true);
       return;
     }
@@ -489,7 +489,7 @@ export function AppShell({ children }: AppShellProps) {
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
           <p className="text-[11px] font-medium text-stone-600">Sistem Live & Aktif</p>
         </div>
-        <Link href="/lisensi-master" className="mt-1 block text-xs text-stone-500 hover:text-stone-700 transition" title="System Engine">
+        <Link href="/master" className="mt-1 block text-xs text-stone-500 hover:text-stone-700 transition" title="System Engine">
           El Massa Tour & Travel © 2026
         </Link>
       </div>
