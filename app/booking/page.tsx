@@ -13,6 +13,7 @@ import {
   Plus,
   Receipt,
   Search,
+  Trash2,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -83,14 +84,46 @@ export default function BookingsPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("el_massa_real_bookings");
-      if (saved) {
-        setBookings(JSON.parse(saved));
+      const savedBookingsStr = localStorage.getItem("el_massa_real_bookings");
+      const savedPackagesStr = localStorage.getItem("el_massa_published_packages");
+
+      let currentBookings: BookingItem[] = savedBookingsStr ? JSON.parse(savedBookingsStr) : [];
+      let activePackages: any[] = savedPackagesStr ? JSON.parse(savedPackagesStr) : [];
+
+      if (Array.isArray(currentBookings)) {
+        if (Array.isArray(activePackages)) {
+          const activeNames = activePackages.map((p: any) =>
+            (p.name || p.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase()
+          );
+
+          // If active packages list is empty, or a package was deleted, filter out orphan bookings
+          if (activePackages.length === 0) {
+            currentBookings = [];
+          } else {
+            currentBookings = currentBookings.filter((b) => {
+              const bName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
+              return activeNames.some((pName) => bName.includes(pName) || pName.includes(bName));
+            });
+          }
+          localStorage.setItem("el_massa_real_bookings", JSON.stringify(currentBookings));
+        }
+        setBookings(currentBookings);
       }
     } catch (e) {
       console.error(e);
     }
   }, []);
+
+  const handleDeleteBooking = (code: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus data transaksi booking ${code}?`)) return;
+    const updated = bookings.filter((b) => b.code !== code);
+    setBookings(updated);
+    try {
+      localStorage.setItem("el_massa_real_bookings", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -557,6 +590,15 @@ export default function BookingsPage() {
                         >
                           <Receipt className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </Link>
+
+                        {/* Hapus Booking */}
+                        <button
+                          onClick={() => handleDeleteBooking(b.code)}
+                          title="Hapus Transaksi Booking Ini"
+                          className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        </button>
                       </td>
                     </tr>
                   );

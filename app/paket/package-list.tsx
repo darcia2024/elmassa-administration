@@ -100,10 +100,24 @@ export function PackageList() {
 
   const executeDeletePackage = () => {
     if (!deletingPkg) return;
+    const deletingPkgName = (deletingPkg.name || deletingPkg.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
     const updatedList = customPackages.filter((item) => item.id !== deletingPkg.id);
     setCustomPackages(updatedList);
     try {
       localStorage.setItem("el_massa_published_packages", JSON.stringify(updatedList));
+
+      // Cascade delete: automatically purge bookings linked to this deleted package
+      const savedBookingsStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedBookingsStr) {
+        const savedBookings = JSON.parse(savedBookingsStr);
+        if (Array.isArray(savedBookings)) {
+          const updatedBookings = savedBookings.filter((b: any) => {
+            const bPkgName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
+            return !bPkgName.includes(deletingPkgName) && !deletingPkgName.includes(bPkgName);
+          });
+          localStorage.setItem("el_massa_real_bookings", JSON.stringify(updatedBookings));
+        }
+      }
     } catch (e) {
       console.error(e);
     }
