@@ -144,14 +144,14 @@ export default function PackageCalculatorPage() {
   };
 
   // Visa & Saudi Mandatory Insurance
-  const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(450); // 450 SAR per pax
+  const [visaAndInsuranceSar, setVisaAndInsuranceSar] = useState(490); // 490 SAR per pax
 
   // Handling Bandara Jakarta (CGK) & Arab Saudi (JED/MED - Shared Group SAR)
-  const [handlingJakartaCgkIdr, setHandlingJakartaCgkIdr] = useState(350000); // Handling CGK Jakarta per pax (Rp)
-  const [handlingSaudiSharedSar, setHandlingSaudiSharedSar] = useState(4500); // Handling JED/MED Shared total group cost (SAR)
+  const [handlingJakartaCgkIdr, setHandlingJakartaCgkIdr] = useState(250000); // Handling CGK Jakarta per pax (Rp 250.000)
+  const [handlingSaudiSharedSar, setHandlingSaudiSharedSar] = useState(4000); // Handling JED/MED Shared total group cost (4000 SAR)
 
   // Transit & Lounge
-  const [hotelTransitLoungeIdr, setHotelTransitLoungeIdr] = useState(650000); // Hotel Transit Jakarta / Lounge Executive Bandara CGK
+  const [hotelTransitLoungeIdr, setHotelTransitLoungeIdr] = useState(450000); // Hotel Transit Jakarta / Lounge Executive Bandara CGK (Rp 450.000)
 
   // Marketing & Agency Fee
   const [feeMarketingIdr, setFeeMarketingIdr] = useState(1000000); // Fee Marketing & Komisi Agen / Staf Sales per pax
@@ -194,12 +194,12 @@ export default function PackageCalculatorPage() {
   const [tourLeaderFeeIdrTotal, setTourLeaderFeeIdrTotal] = useState(10000000); // Fee Tour Leader Total Rombongan (Rp)
 
   // Operasional di Indonesia (Manasik, Operasional Kantor, & Asuransi Siskopatuh)
-  const [biayaManasikIdr, setBiayaManasikIdr] = useState(250000); // Biaya Manasik (Rp/Pax)
-  const [biayaOperasionalKantorIdr, setBiayaOperasionalKantorIdr] = useState(500000); // Biaya Operasional Kantor (Rp/Pax)
-  const [biayaAsuransiSiskopatuhIdr, setBiayaAsuransiSiskopatuhIdr] = useState(150000); // Biaya Asuransi Siskopatuh (Rp/Pax)
+  const [biayaManasikIdr, setBiayaManasikIdr] = useState(250000); // Biaya Manasik (Rp 250.000/Pax)
+  const [biayaOperasionalKantorIdr, setBiayaOperasionalKantorIdr] = useState(250000); // Biaya Operasional Kantor (Rp 250.000/Pax)
+  const [biayaAsuransiSiskopatuhIdr, setBiayaAsuransiSiskopatuhIdr] = useState(850000); // Biaya Asuransi Siskopatuh (Rp 850.000/Pax)
 
   // Bonus & Miscellaneous
-  const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(350000); // Nasi Nampan + City Tour
+  const [bonusCityTourThaifIdr, setBonusCityTourThaifIdr] = useState(300000); // City Tour Thaif (Rp 300.000/Pax)
   const [miscEmergencyIdr, setMiscEmergencyIdr] = useState(250000);
 
   // Group Room Distribution (Berapa Jamaah Upgrade Triple & Double)
@@ -314,6 +314,18 @@ export default function PackageCalculatorPage() {
           const fMkt = readVal("feeMarketingIdr", "fee_marketing_idr");
           if (fMkt !== undefined) setFeeMarketingIdr(Number(fMkt));
 
+          const nbJktQty = readVal("nasiBoxJakartaQty", "nasi_box_jakarta_qty");
+          if (nbJktQty !== undefined) setNasiBoxJakartaQty(Number(nbJktQty));
+
+          const nbJktPrc = readVal("nasiBoxJakartaPriceIdr", "nasi_box_jakarta_price_idr");
+          if (nbJktPrc !== undefined) setNasiBoxJakartaPriceIdr(Number(nbJktPrc));
+
+          const nbSauQty = readVal("nasiBoxSaudiQty", "nasi_box_saudi_qty");
+          if (nbSauQty !== undefined) setNasiBoxSaudiQty(Number(nbSauQty));
+
+          const nbSauPrc = readVal("nasiBoxSaudiPriceSar", "nasi_box_saudi_price_sar");
+          if (nbSauPrc !== undefined) setNasiBoxSaudiPriceSar(Number(nbSauPrc));
+
           const muth = readVal("muthawwifFeeIdrTotal", "muthawwif_fee_idr_total");
           if (muth !== undefined) setMuthawwifFeeIdrTotal(Number(muth));
 
@@ -329,14 +341,56 @@ export default function PackageCalculatorPage() {
           const bSisko = readVal("biayaAsuransiSiskopatuhIdr", "biaya_asuransi_siskopatuh_idr");
           if (bSisko !== undefined) setBiayaAsuransiSiskopatuhIdr(Number(bSisko));
 
+          const bThaif = readVal("bonusCityTourThaifIdr", "bonus_city_tour_thaif_idr");
+          if (bThaif !== undefined) setBonusCityTourThaifIdr(Number(bThaif));
+
+          const miscEmergency = readVal("miscEmergencyIdr", "misc_emergency_idr");
+          if (miscEmergency !== undefined) setMiscEmergencyIdr(Number(miscEmergency));
+
+          const sarRate = readVal("sarExchangeRate", "sar_exchange_rate");
+          if (sarRate !== undefined) setSarExchangeRate(Number(sarRate));
+
+          const mType = readVal("marginType", "margin_type");
+          if (mType) setMarginType(mType);
+
           const mMargin = readVal("marginNominalPerPax", "margin_nominal_per_pax");
           if (mMargin !== undefined) setMarginNominalPerPax(Number(mMargin));
+
+          const mPercent = readVal("marginPercent", "margin_percent");
+          if (mPercent !== undefined) setMarginPercent(Number(mPercent));
 
           const tripCount = readVal("triplePaxCount", "triple_pax_count");
           if (tripCount !== undefined) setTriplePaxCount(Number(tripCount));
 
           const dblCount = readVal("doublePaxCount", "double_pax_count");
           if (dblCount !== undefined) setDoublePaxCount(Number(dblCount));
+
+          // Men Equipment
+          const eqM1 = readVal("equipMenKoperBagasi", "equip_men_koper_bagasi"); if (eqM1 !== undefined) setEquipMenKoperBagasi(Number(eqM1));
+          const eqM2 = readVal("equipMenIhram", "equip_men_ihram"); if (eqM2 !== undefined) setEquipMenIhram(Number(eqM2));
+          const eqM3 = readVal("equipMenKainBaju", "equip_men_kain_baju"); if (eqM3 !== undefined) setEquipMenKainBaju(Number(eqM3));
+          const eqM4 = readVal("equipMenRansel", "equip_men_ransel"); if (eqM4 !== undefined) setEquipMenRansel(Number(eqM4));
+          const eqM5 = readVal("equipMenTasSerut", "equip_men_tas_serut"); if (eqM5 !== undefined) setEquipMenTasSerut(Number(eqM5));
+          const eqM6 = readVal("equipMenSarungKoper", "equip_men_sarung_koper"); if (eqM6 !== undefined) setEquipMenSarungKoper(Number(eqM6));
+          const eqM7 = readVal("equipMenTagBagasi", "equip_men_tag_bagasi"); if (eqM7 !== undefined) setEquipMenTagBagasi(Number(eqM7));
+          const eqM8 = readVal("equipMenBukuDoa", "equip_men_buku_doa"); if (eqM8 !== undefined) setEquipMenBukuDoa(Number(eqM8));
+          const eqM9 = readVal("equipMenSajadahSyal", "equip_men_sajadah_syal"); if (eqM9 !== undefined) setEquipMenSajadahSyal(Number(eqM9));
+          const eqM10 = readVal("equipMenBantalLeher", "equip_men_bantal_leher"); if (eqM10 !== undefined) setEquipMenBantalLeher(Number(eqM10));
+          const eqM11 = readVal("equipMenLanyard", "equip_men_lanyard"); if (eqM11 !== undefined) setEquipMenLanyard(Number(eqM11));
+
+          // Women Equipment
+          const eqW1 = readVal("equipWomenKoperBagasi", "equip_women_koper_bagasi"); if (eqW1 !== undefined) setEquipWomenKoperBagasi(Number(eqW1));
+          const eqW2 = readVal("equipWomenKainBaju", "equip_women_kain_baju"); if (eqW2 !== undefined) setEquipWomenKainBaju(Number(eqW2));
+          const eqW3 = readVal("equipWomenKerudung", "equip_women_kerudung"); if (eqW3 !== undefined) setEquipWomenKerudung(Number(eqW3));
+          const eqW4 = readVal("equipWomenRansel", "equip_women_ransel"); if (eqW4 !== undefined) setEquipWomenRansel(Number(eqW4));
+          const eqW5 = readVal("equipWomenTasSerut", "equip_women_tas_serut"); if (eqW5 !== undefined) setEquipWomenTasSerut(Number(eqW5));
+          const eqW6 = readVal("equipWomenSarungKoper", "equip_women_sarung_koper"); if (eqW6 !== undefined) setEquipWomenSarungKoper(Number(eqW6));
+          const eqW7 = readVal("equipWomenTagBagasi", "equip_women_tag_bagasi"); if (eqW7 !== undefined) setEquipWomenTagBagasi(Number(eqW7));
+          const eqW8 = readVal("equipWomenBukuDoa", "equip_women_buku_doa"); if (eqW8 !== undefined) setEquipWomenBukuDoa(Number(eqW8));
+          const eqW9 = readVal("equipWomenSyalSajadah", "equip_women_syal_sajadah"); if (eqW9 !== undefined) setEquipWomenSyalSajadah(Number(eqW9));
+          const eqW10 = readVal("equipWomenMukenaTravel", "equip_women_mukena_travel"); if (eqW10 !== undefined) setEquipWomenMukenaTravel(Number(eqW10));
+          const eqW11 = readVal("equipWomenBantalLeher", "equip_women_bantal_leher"); if (eqW11 !== undefined) setEquipWomenBantalLeher(Number(eqW11));
+          const eqW12 = readVal("equipWomenLanyard", "equip_women_lanyard"); if (eqW12 !== undefined) setEquipWomenLanyard(Number(eqW12));
 
           const itinVal = readVal("itineraryList", "itinerary_list") || readVal("itinerary", "itinerary");
           if (itinVal && Array.isArray(itinVal) && itinVal.length > 0) {
