@@ -105,6 +105,13 @@ export default function BookingFormPage() {
         departure: selectedPkg.date,
         groupName: "Rombongan Jamaah",
         participants: participants.length,
+        participantsList: participants.map((p) => ({
+          name: p.name,
+          passport: p.passport || "C" + Math.floor(1000000 + Math.random() * 9000000),
+          contact: p.phone || customerPhone || "-",
+          documentStatus: "Lengkap" as const,
+          roomType: "Quad (Sekamar Ber-4)",
+        })),
         totalAmount: totalPrice,
         paidAmount,
         remainingAmount,

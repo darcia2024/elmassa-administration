@@ -1,3 +1,6 @@
+"use client";
+
+import React, { useEffect, useState, use } from "react";
 import { ArrowLeft, CheckCircle2, Clock, CreditCard, Download, FileText, Hotel, MessageSquare, Plane, Printer, Receipt, ShieldAlert, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -56,66 +59,26 @@ const bookingDatabase: Record<string, BookingDetail> = {
       { receipt: "KW-2407-044", date: "25 Jul 2026", amountDisplay: "Rp 97.500.000", account: "BCA El Massa (534-567-8901)", staff: "Azri" },
     ],
   },
-  "BK-2407-002": {
-    code: "BK-2407-002",
-    customer: "Ahmad Hidayat",
-    phone: "0813-8899-1122",
-    packageName: "Umrah Plus Thaif 12 Hari",
-    departure: "08-18 Jul 2026",
-    groupName: "Rombongan Bangka Belitung 08 Jul 2026",
-    status: "DP",
-    totalDisplay: "Rp 69.000.000",
-    paidDisplay: "Rp 34.500.000",
-    remainingDisplay: "Rp 34.500.000",
-    remainingAmount: 34500000,
-    participants: [
-      { name: "Ahmad Hidayat", passport: "C4433221", contact: "0813-8899-1122", documentStatus: "Proses Visa", roomType: "Double (Sekamar Ber-2)" },
-      { name: "Nurul Aini", passport: "C5566778", contact: "0813-8899-1123", documentStatus: "Proses Visa", roomType: "Double (Sekamar Ber-2)" },
-    ],
-    payments: [
-      { receipt: "KW-2407-012", date: "03 Jul 2026", amountDisplay: "Rp 34.500.000", account: "Mandiri El Massa (169-00-1234567-8)", staff: "Azri" },
-    ],
-  },
-  "BK-2407-003": {
-    code: "BK-2407-003",
-    customer: "Budi Santoso",
-    phone: "0819-2233-4455",
-    packageName: "Umrah VIP Turki 14 Hari",
-    departure: "15-28 Aug 2026",
-    groupName: "Rombongan Palembang Sumbagsel",
-    status: "DP",
-    totalDisplay: "Rp 180.000.000",
-    paidDisplay: "Rp 45.000.000",
-    remainingDisplay: "Rp 135.000.000",
-    remainingAmount: 135000000,
-    participants: [
-      { name: "Budi Santoso", passport: "C9900112", contact: "0819-2233-4455", documentStatus: "Lengkap", roomType: "Double (Sekamar Ber-2)" },
-      { name: "Endang Sri", passport: "C9900113", contact: "0819-2233-4456", documentStatus: "Belum Lengkap", roomType: "Double (Sekamar Ber-2)" },
-    ],
-    payments: [
-      { receipt: "KW-2407-015", date: "05 Jul 2026", amountDisplay: "Rp 45.000.000", account: "BSI El Massa (712-345-6789)", staff: "Azri" },
-    ],
-  },
 };
 
 const fallbackBooking: BookingDetail = {
   code: "BK-2407-001",
-  customer: "Siti Rahma",
-  phone: "0812-4455-7788",
-  packageName: "Umrah Reguler 12 Hari",
-  departure: "08-18 Jul 2026",
-  groupName: "Rombongan Bangka Belitung 08 Jul 2026",
-  status: "Lunas",
-  totalDisplay: "Rp 97.500.000",
-  paidDisplay: "Rp 97.500.000",
+  customer: "Jamaah Terdaftar",
+  phone: "0812-7199-1001",
+  packageName: "Umrah Spesial Musim Baru",
+  departure: "Terjadwal 2026",
+  groupName: "Rombongan Jamaah El Massa",
+  status: "DP",
+  totalDisplay: "Rp 64.485.778",
+  paidDisplay: "Rp 500.000.000",
   remainingDisplay: "Rp 0",
   remainingAmount: 0,
   participants: [
-    { name: "Siti Rahma", passport: "C1234567", contact: "0812-4455-7788", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-    { name: "Ahmad Subagyo", passport: "C7654321", contact: "0812-4455-7789", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
+    { name: "H. Rusli Suparman", passport: "C9824101", contact: "0812-7199-1001", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
+    { name: "Hj. Zubaidah Mansur", passport: "C9824102", contact: "0812-7199-1002", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
   ],
   payments: [
-    { receipt: "KW-2407-044", date: "25 Jul 2026", amountDisplay: "Rp 97.500.000", account: "BCA El Massa (534-567-8901)", staff: "Azri" },
+    { receipt: "KW-2407-001", date: "Hari ini", amountDisplay: "Rp 500.000.000", account: "BCA El Massa", staff: "Admin" },
   ],
 };
 
@@ -140,14 +103,50 @@ type BookingDetailPageProps = {
   }>;
 };
 
-export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
-  const { code } = await params;
-  const decodedCode = decodeURIComponent(code);
+export default function BookingDetailPage({ params }: BookingDetailPageProps) {
+  const resolvedParams = use(params);
+  const decodedCode = decodeURIComponent(resolvedParams.code);
 
-  const booking = bookingDatabase[decodedCode] ?? {
-    ...fallbackBooking,
-    code: decodedCode,
-  };
+  const [booking, setBooking] = useState<BookingDetail>(() => {
+    return bookingDatabase[decodedCode] ?? { ...fallbackBooking, code: decodedCode };
+  });
+
+  useEffect(() => {
+    try {
+      const savedStr = localStorage.getItem("el_massa_real_bookings");
+      if (savedStr) {
+        const savedBookings = JSON.parse(savedStr);
+        if (Array.isArray(savedBookings)) {
+          const found = savedBookings.find((b: any) => b.code === decodedCode) || savedBookings[0];
+          if (found) {
+            setBooking({
+              code: found.code || decodedCode,
+              customer: found.customer || "Jamaah Terdaftar",
+              phone: found.phone || "0812-7199-1001",
+              packageName: found.packageName || "Umrah Spesial Musim Baru",
+              departure: found.departure || "Terjadwal 2026",
+              groupName: found.groupName || "Rombongan Jamaah El Massa",
+              status: found.status || "DP",
+              totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 64485778).toLocaleString("id-ID")}`,
+              paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 500000000).toLocaleString("id-ID")}`,
+              remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
+              remainingAmount: found.remainingAmount ?? 0,
+              participants: Array.isArray(found.participantsList) && found.participantsList.length > 0
+                ? found.participantsList
+                : [
+                    { name: found.customer || "Jamaah Peserta 1", passport: "C9824101", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
+                  ],
+              payments: [
+                { receipt: `KW-${found.code || "2407"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 50.000.000", account: "BCA El Massa", staff: "Admin" }
+              ]
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed loading booking from localStorage:", e);
+    }
+  }, [decodedCode]);
 
   const waText = encodeURIComponent(
     `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${booking.customer},\n\nBerikut rincian transaksi booking *${booking.code}* untuk paket *${booking.packageName}*.\nTotal: ${booking.totalDisplay}\nTerbayar: ${booking.paidDisplay}\nSisa: ${booking.remainingDisplay}.\n\nTerima kasih,\n*PT El Massa Tour & Travel*`,
