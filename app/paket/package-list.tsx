@@ -82,8 +82,10 @@ export function PackageList() {
       .then((res) => {
         if (res.ok && Array.isArray(res.data)) {
           const mergedMap = new Map<string, PackageCardItem>();
-          res.data.forEach((p: PackageCardItem) => mergedMap.set(p.id, p));
+          // Put local packages first as base fallback
           localPkgs.forEach((p: PackageCardItem) => mergedMap.set(p.id, p));
+          // Overwrite with fresh Supabase Cloud DB packages so DB data ALWAYS takes priority
+          res.data.forEach((p: PackageCardItem) => mergedMap.set(p.id, p));
           const finalPackages = Array.from(mergedMap.values());
           setCustomPackages(finalPackages);
           try {
