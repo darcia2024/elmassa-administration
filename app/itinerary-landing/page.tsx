@@ -27,6 +27,7 @@ const openWA = (text: string) => {
 
 export default function ItineraryLandingPreviewPage() {
   const [selectedTab, setSelectedTab] = useState<"oktober" | "november" | "desember">("oktober");
+  const [viewMode, setViewMode] = useState<"detail" | "live">("detail");
 
   const itineraryData = [
     {
@@ -202,13 +203,13 @@ export default function ItineraryLandingPreviewPage() {
               </button>
 
               <a
-                href="http://localhost:5173"
+                href="https://itineraryelmassa-weld.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
-                className="h-11 px-4 rounded-xl bg-[#3d2417] hover:bg-[#4d2d1d] border border-[#523221] text-xs font-bold text-amber-100 transition flex items-center gap-2 cursor-pointer"
+                className="h-11 px-4 rounded-xl bg-[#3d2417] hover:bg-[#4d2d1d] border border-[#523221] text-xs font-bold text-amber-100 transition flex items-center gap-2 cursor-pointer shadow-sm"
               >
                 <ExternalLink className="h-4 w-4 text-amber-400" />
-                <span>Buka Standalone App ↗</span>
+                <span>Buka Standalone App (itineraryelmassa-weld.vercel.app) ↗</span>
               </a>
 
               <Link
@@ -240,13 +241,55 @@ export default function ItineraryLandingPreviewPage() {
             ))}
           </div>
 
-          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-xl shrink-0 self-start sm:self-auto">
-            ✓ 12 Hari Program (PGK - Saudi)
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode("detail")}
+              className={`h-9 px-3.5 rounded-xl text-xs font-bold transition ${
+                viewMode === "detail"
+                  ? "bg-rose-50 text-brand-pink border border-brand-pink/20 shadow-2xs"
+                  : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+              }`}
+            >
+              📋 Rincian Kegiatan
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("live")}
+              className={`h-9 px-3.5 rounded-xl text-xs font-bold transition ${
+                viewMode === "live"
+                  ? "bg-rose-50 text-brand-pink border border-brand-pink/20 shadow-2xs"
+                  : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+              }`}
+            >
+              🌐 Live App Frame (itineraryelmassa-weld)
+            </button>
+          </div>
         </div>
 
-        {/* ITINERARY TIMELINE GRID */}
-        <div className="space-y-4">
+        {/* LIVE APP IFRAME VIEW */}
+        {viewMode === "live" ? (
+          <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm space-y-3 p-3">
+            <div className="flex items-center justify-between px-2 text-xs">
+              <span className="font-bold text-stone-700">Live Web App: https://itineraryelmassa-weld.vercel.app/</span>
+              <a
+                href="https://itineraryelmassa-weld.vercel.app/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-brand-pink font-bold hover:underline"
+              >
+                Buka Tab Baru ↗
+              </a>
+            </div>
+            <iframe
+              src="https://itineraryelmassa-weld.vercel.app/"
+              className="w-full h-[700px] rounded-xl border border-stone-200 shadow-inner"
+              title="Live Standalone Itinerary App"
+            />
+          </div>
+        ) : (
+          /* ITINERARY TIMELINE GRID */
+          <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-extrabold text-stone-900 flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-pink-600" />
@@ -295,7 +338,8 @@ export default function ItineraryLandingPreviewPage() {
               </div>
             ))}
           </div>
-        </div>
+          </div>
+        )}
 
         {/* BOTTOM CTA BANNER */}
         <div className="rounded-2xl border border-pink-200 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
