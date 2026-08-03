@@ -17,6 +17,7 @@ import {
   Compass,
   FileText,
   IdCard,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -62,6 +63,7 @@ const navGroups = [
       { label: "Laporan", icon: BarChart3, href: "/laporan" },
       { label: "Identitas Perusahaan", icon: Building2, href: "/pengaturan/identitas" },
       { label: "Pengaturan", icon: Settings, href: "/pengaturan" },
+      { label: "Lisensi Master Dev 🔒", icon: KeyRound, href: "/pengaturan/lisensi-master" },
     ],
   },
 ];
@@ -83,6 +85,7 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/pengaturan/identitas": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan/hak-akses": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan": ["CEO / Admin Master", "Admin Master"],
+  "/pengaturan/lisensi-master": ["CEO / Admin Master", "Admin Master"],
 };
 
 function getActiveHref(pathname: string) {
