@@ -51,6 +51,16 @@ async function ensureTable() {
   }
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 // GET: Fetch all published packages from Supabase
 export async function GET() {
   try {
@@ -85,9 +95,9 @@ export async function GET() {
        FROM published_packages 
        ORDER BY created_at DESC;`
     );
-    return NextResponse.json({ ok: true, data: res.rows });
+    return NextResponse.json({ ok: true, data: res.rows }, { headers: corsHeaders });
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -158,12 +168,12 @@ export async function POST(req: Request) {
         ]
       );
 
-      return NextResponse.json({ ok: true, message: "Package saved to Supabase Cloud Database" });
+      return NextResponse.json({ ok: true, message: "Package saved to Supabase Cloud Database" }, { headers: corsHeaders });
     } finally {
       client.release();
     }
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -177,14 +187,16 @@ export async function DELETE(req: Request) {
 
     if (wipeAll) {
       await pool.query("TRUNCATE TABLE published_packages;");
-      return NextResponse.json({ ok: true, message: "All packages wiped from Supabase Cloud Database" });
+      return NextResponse.json({ ok: true, message: "All packages wiped from Supabase Cloud Database" }, { headers: corsHeaders });
     }
 
-    if (!id) return NextResponse.json({ ok: false, error: "ID required" }, { status: 400 });
+    if (id) {
+      await pool.query("DELETE FROM published_packages WHERE id = $1;", [id]);
+      return NextResponse.json({ ok: true, message: `Package ${id} deleted from Supabase Cloud Database` }, { headers: corsHeaders });
+    }
 
-    await pool.query("DELETE FROM published_packages WHERE id = $1;", [id]);
-    return NextResponse.json({ ok: true, message: `Package ${id} deleted from Supabase` });
+    return NextResponse.json({ ok: false, error: "Missing package ID" }, { status: 400, headers: corsHeaders });
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500, headers: corsHeaders });
   }
 }
