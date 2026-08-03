@@ -531,7 +531,7 @@ export default function DashboardPage() {
                               </td>
 
                               <td className="py-3 pr-2 font-semibold text-brand-cocoa">
-                                {booking.paidDisplay}
+                                {(booking as any).totalAmount || (booking as any).paidDisplay || "Rp 0"}
                               </td>
 
                               <td className="py-3 pr-3 text-right">
