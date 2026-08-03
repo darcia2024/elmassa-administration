@@ -63,7 +63,6 @@ const navGroups = [
       { label: "Laporan", icon: BarChart3, href: "/laporan" },
       { label: "Identitas Perusahaan", icon: Building2, href: "/pengaturan/identitas" },
       { label: "Pengaturan", icon: Settings, href: "/pengaturan" },
-      { label: "Lisensi Master Dev 🔒", icon: KeyRound, href: "/pengaturan/lisensi-master" },
     ],
   },
 ];
@@ -490,7 +489,9 @@ export function AppShell({ children }: AppShellProps) {
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
           <p className="text-[11px] font-medium text-stone-600">Sistem Live & Aktif</p>
         </div>
-        <p className="mt-1 text-xs text-stone-500">El Massa Tour & Travel © 2026</p>
+        <Link href="/lisensi-master" className="mt-1 block text-xs text-stone-500 hover:text-stone-700 transition" title="System Engine">
+          El Massa Tour & Travel © 2026
+        </Link>
       </div>
     </div>
   );
