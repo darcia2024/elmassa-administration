@@ -1,56 +1,44 @@
 "use client";
 
-import { use } from "react";
-import { ArrowLeft, CheckCircle2, Download, Printer } from "lucide-react";
+import { use, useEffect, useState } from "react";
+import { ArrowLeft, Printer } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
-type InvoiceItemDetail = {
+type InvoiceDetail = {
+  id: string;
   number: string;
   bookingCode: string;
   customer: string;
   phone: string;
   address: string;
+  packageName: string;
+  participants: number;
   issueDate: string;
   dueDate: string;
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+  paid: number;
+  remaining: number;
   status: "Lunas" | "Sebagian" | "Belum Bayar";
-  packageName: string;
-  packagePrice: string;
-  paxQty: number;
-  roomUpgrade: string;
-  packageTotal: string;
-  historyLogs: {
-    date: string;
-    description: string;
-    nominal: string;
-    notes: string;
-    remainingTotal: string;
-  }[];
-  discountDisplay: string;
-  totalPaidDisplay: string;
-  totalDueDisplay: string;
 };
 
-import React, { useEffect, useState } from "react";
+type PaymentRow = {
+  id: string;
+  date: string;
+  amount: number;
+  method: string;
+  notes: string;
+  createdAt: string;
+};
 
-const emptyInvoice: InvoiceItemDetail = {
-  number: "INV-0000-00",
-  bookingCode: "-",
-  customer: "- (Belum Ada Data)",
-  phone: "-",
-  address: "Bangka Belitung",
-  issueDate: "Hari ini",
-  dueDate: "Terjadwal",
-  status: "Belum Bayar",
-  packageName: "-",
-  packagePrice: "Rp 0",
-  paxQty: 1,
-  roomUpgrade: "Quad Standard (Rp 0)",
-  packageTotal: "Rp 0",
-  historyLogs: [],
-  discountDisplay: "Rp 0",
-  totalPaidDisplay: "Rp 0",
-  totalDueDisplay: "Rp 0",
+type HistoryLog = {
+  date: string;
+  description: string;
+  nominal: string;
+  notes: string;
+  remainingTotal: string;
 };
 
 type InvoiceDetailPageProps = {
@@ -60,96 +48,95 @@ type InvoiceDetailPageProps = {
 };
 
 export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetailPageProps) {
-  const resolvedParams = use(params);
-  const decodedNumber = decodeURIComponent(resolvedParams.number);
+  const { number } = use(params);
+  const decodedNumber = decodeURIComponent(number);
 
-  const [invoice, setInvoice] = useState<InvoiceItemDetail>(() => ({
-    ...emptyInvoice,
-    number: decodedNumber.startsWith("INV-") ? decodedNumber : `INV-${decodedNumber}`,
-    bookingCode: decodedNumber,
-  }));
+  const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
+  const [historyLogs, setHistoryLogs] = useState<HistoryLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    try {
-      const savedStr = localStorage.getItem("el_massa_real_bookings");
-      if (savedStr) {
-        const savedBookings = JSON.parse(savedStr);
-        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
-          const found =
-            savedBookings.find(
-              (b: any) =>
-                b.code === decodedNumber ||
-                `INV-${b.code}` === decodedNumber ||
-                decodedNumber.includes(b.code) ||
-                b.code.includes(decodedNumber)
-            ) || savedBookings[0];
-
-          if (found) {
-            const pax = found.participants || 1;
-            const total = found.totalAmount || 0;
-            const pricePerPax = Math.round(total / pax);
-            const paid = found.paidAmount || 0;
-            const remaining = found.remainingAmount ?? Math.max(0, total - paid);
-
-            const logs: InvoiceItemDetail["historyLogs"] = [];
-            if (paid > 0) {
-              logs.push({
-                date: found.createdDate || "Hari ini",
-                description: "Pembayaran DP / Cicilan Booking",
-                nominal: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
-                notes: "Transfer Bank El Massa (Terverifikasi Kasir)",
-                remainingTotal: remaining <= 0 ? "Rp 0 (LUNAS)" : `Rp ${remaining.toLocaleString("id-ID")}`,
-              });
-            }
-            if (remaining <= 0 && paid > 0) {
-              logs.push({
-                date: found.createdDate || "Hari ini",
-                description: "Pelunasan Tahap Akhir",
-                nominal: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
-                notes: "Verifikasi Tim Keuangan (Lunas 100%)",
-                remainingTotal: "Rp 0 (LUNAS)",
-              });
-            }
-
-            setInvoice({
-              number: `INV-${found.code}`,
-              bookingCode: found.code,
-              customer: found.customer || "Jamaah Terdaftar",
-              phone: found.phone || "-",
-              address: found.address || "Selindung Baru, Pangkalpinang",
-              issueDate: found.createdDate || new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
-              dueDate: found.departure || "Terjadwal 2026",
-              status: remaining <= 0 ? "Lunas" : paid > 0 ? "Sebagian" : "Belum Bayar",
-              packageName: found.packageName || "Umrah Spesial El Massa",
-              packagePrice: `Rp ${pricePerPax.toLocaleString("id-ID")}`,
-              paxQty: pax,
-              roomUpgrade: "Quad Standard (Rp 0)",
-              packageTotal: found.totalDisplay || `Rp ${total.toLocaleString("id-ID")}`,
-              historyLogs: logs.length > 0 ? logs : [
-                {
-                  date: found.createdDate || "Hari ini",
-                  description: "Registrasi Booking Baru",
-                  nominal: "Rp 0",
-                  notes: "Belum Pembayaran",
-                  remainingTotal: found.totalDisplay || `Rp ${total.toLocaleString("id-ID")}`,
-                }
-              ],
-              discountDisplay: "Rp 0",
-              totalPaidDisplay: found.paidDisplay || `Rp ${paid.toLocaleString("id-ID")}`,
-              totalDueDisplay: found.remainingDisplay || `Rp ${remaining.toLocaleString("id-ID")}`,
-            });
-          }
+    fetch(`/api/invoices/${decodedNumber}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          setNotFound(true);
+          return null;
         }
-      }
-    } catch (e) {
-      console.error("Failed loading invoice from real bookings:", e);
-    }
+        const json = await res.json();
+        return json.data as InvoiceDetail;
+      })
+      .then((data) => {
+        if (!data) return;
+        setInvoice(data);
+
+        fetch(`/api/payments?bookingCode=${encodeURIComponent(data.bookingCode)}`)
+          .then((res) => res.json())
+          .then((json) => {
+            const payments = ((json.data ?? []) as PaymentRow[])
+              .slice()
+              .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+
+            let runningPaid = 0;
+            const logs: HistoryLog[] = payments.map((p) => {
+              runningPaid += Number(p.amount);
+              const remaining = Math.max(data.total - runningPaid, 0);
+              return {
+                date: p.date,
+                description: `Pembayaran (${p.method})`,
+                nominal: `Rp ${Number(p.amount).toLocaleString("id-ID")}`,
+                notes: p.notes || "-",
+                remainingTotal: remaining <= 0 ? "Rp 0 (LUNAS)" : `Rp ${remaining.toLocaleString("id-ID")}`,
+              };
+            });
+
+            setHistoryLogs(
+              logs.length > 0
+                ? logs
+                : [
+                    {
+                      date: data.issueDate,
+                      description: "Invoice diterbitkan",
+                      nominal: "Rp 0",
+                      notes: "Belum ada pembayaran",
+                      remainingTotal: `Rp ${data.total.toLocaleString("id-ID")}`,
+                    },
+                  ],
+            );
+          })
+          .catch((e) => console.error(e));
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
   }, [decodedNumber]);
+
+  if (loading) {
+    return (
+      <AppShell eyebrow="Dokumen Keuangan" title="Memuat Invoice...">
+        <p className="text-xs text-stone-400">Memuat invoice...</p>
+      </AppShell>
+    );
+  }
+
+  if (notFound || !invoice) {
+    return (
+      <AppShell eyebrow="Dokumen Keuangan" title="Invoice Tidak Ditemukan">
+        <div className="rounded-2xl border border-stone-200/70 bg-white p-8 text-center space-y-3">
+          <p className="text-sm font-semibold text-stone-700">Invoice {decodedNumber} tidak ditemukan.</p>
+          <Link href="/dokumen/invoice" className="inline-flex text-xs font-semibold text-brand-pink hover:underline">
+            Kembali ke daftar invoice
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
+
+  const pricePerPax = Math.round(invoice.subtotal / Math.max(invoice.participants, 1));
 
   return (
     <AppShell eyebrow="Dokumen Keuangan" title={`Invoice ${invoice.number}`}>
       <div className="space-y-5">
-        
+
         {/* Top Control Bar */}
         <div className="flex items-center justify-between">
           <Link
@@ -170,10 +157,9 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
           </button>
         </div>
 
-        {/* 📄 MINIMALIST EDITORIAL INVOICE SHEET (LENGKAP PERSIS REFERENSI DOKUMEN EL MASSA) */}
+        {/* 📄 MINIMALIST EDITORIAL INVOICE SHEET */}
         <section className="mx-auto max-w-4xl rounded-xl border border-stone-300 bg-[#f4f6f0] p-8 sm:p-12 text-stone-900 shadow-md space-y-8 font-sans">
-          
-          {/* OFFICIAL KOP SURAT IMAGE RESMI EL MASSA */}
+
           <div className="w-full pb-2 border-b border-stone-800">
             <img
               src="/kop-surat-el-massa.png"
@@ -182,61 +168,51 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
             />
           </div>
 
-          {/* INVOICE META & GIANT INVOICE TITLE */}
           <div className="grid gap-6 sm:grid-cols-3 items-end pt-2">
-            
-            {/* Invoice to */}
             <div className="space-y-1 text-xs">
               <p className="font-bold uppercase tracking-wider text-stone-500 text-[11px]">Invoice to</p>
               <p className="font-extrabold text-sm text-stone-950">{invoice.customer}</p>
-              <p className="text-stone-700">{invoice.address}</p>
+              <p className="text-stone-700">{invoice.address || "-"}</p>
               <p className="font-mono text-stone-600 text-[11px]">{invoice.phone}</p>
             </div>
 
-            {/* Tanggal */}
             <div className="space-y-1 text-xs">
               <p className="font-bold uppercase tracking-wider text-stone-500 text-[11px]">Tanggal Terbit</p>
               <p className="font-bold text-sm text-stone-900">{invoice.issueDate}</p>
               <p className="text-[11px] font-semibold text-stone-600">Kode Booking: <span className="font-mono font-bold text-stone-900">{invoice.bookingCode}</span></p>
             </div>
 
-            {/* Giant Title */}
             <div className="sm:text-right">
               <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-stone-950 font-serif">
                 Invoice<span className="text-brand-pink">.</span>
               </h1>
             </div>
-
           </div>
 
-          {/* TABEL 1: PILIHAN PAKET (PACKAGE SELECTION TABLE) */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">Rincian Paket & Pilihan Kamar</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">Rincian Paket</h3>
             <div className="overflow-hidden border border-stone-800 rounded-sm">
               <table className="w-full border-collapse text-left text-xs divide-y divide-stone-800">
                 <thead className="bg-[#e9ebe4] font-bold text-stone-900 border-b border-stone-800">
                   <tr>
                     <th className="p-3 border-r border-stone-800">Pilihan Paket</th>
-                    <th className="p-3 text-right border-r border-stone-800 w-32">Harga Paket</th>
+                    <th className="p-3 text-right border-r border-stone-800 w-32">Harga / Pax</th>
                     <th className="p-3 text-center border-r border-stone-800 w-16">Jumlah</th>
-                    <th className="p-3 text-center border-r border-stone-800 w-36">Upgrade Kamar</th>
                     <th className="p-3 text-right w-36">Total Harga</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-800 font-medium">
                   <tr className="bg-transparent">
                     <td className="p-3 border-r border-stone-800 font-bold text-stone-950">{invoice.packageName}</td>
-                    <td className="p-3 text-right border-r border-stone-800 font-mono">{invoice.packagePrice}</td>
-                    <td className="p-3 text-center border-r border-stone-800 font-bold">{invoice.paxQty} Pax</td>
-                    <td className="p-3 text-center border-r border-stone-800 font-semibold text-stone-700">{invoice.roomUpgrade}</td>
-                    <td className="p-3 text-right font-mono font-bold text-stone-950">{invoice.packageTotal}</td>
+                    <td className="p-3 text-right border-r border-stone-800 font-mono">Rp {pricePerPax.toLocaleString("id-ID")}</td>
+                    <td className="p-3 text-center border-r border-stone-800 font-bold">{invoice.participants} Pax</td>
+                    <td className="p-3 text-right font-mono font-bold text-stone-950">Rp {invoice.subtotal.toLocaleString("id-ID")}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* TABEL 2: RIWAYAT PEMBAYARAN & CICILAN (PAYMENT HISTORY LOG TABLE) */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">Riwayat Transaksi Pembayaran & Cicilan</h3>
             <div className="overflow-hidden border border-stone-800 rounded-sm">
@@ -251,7 +227,7 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-800 font-medium bg-rose-50/20">
-                  {invoice.historyLogs.map((log, lIdx) => (
+                  {historyLogs.map((log, lIdx) => (
                     <tr key={lIdx}>
                       <td className="p-3 border-r border-stone-800 font-mono font-bold text-stone-900">{log.date}</td>
                       <td className="p-3 border-r border-stone-800 font-semibold text-stone-900">{log.description}</td>
@@ -265,7 +241,6 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
             </div>
           </div>
 
-          {/* CATATAN PELUNASAN (TERMS) */}
           <div className="rounded-sm border-l-4 border-stone-900 bg-[#eef0ea] p-3 text-xs space-y-0.5">
             <p className="font-extrabold uppercase tracking-wider text-stone-900">Catatan :</p>
             <p className="font-semibold text-stone-800">
@@ -273,10 +248,7 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
             </p>
           </div>
 
-          {/* SECTION BAWAH: REKENING PEMBAYARAN & TOTAL KALKULASI */}
           <div className="grid gap-6 sm:grid-cols-2 pt-2 items-start">
-            
-            {/* Kiri: Rekening Pembayaran Resmi BTN & PT. ALMASSA AZKA WISATA */}
             <div className="rounded-sm border border-stone-800 bg-white p-4 space-y-2 text-xs">
               <p className="font-semibold text-stone-600">Silahkan Melakukan Pembayaran Melalui Rekening Berikut :</p>
               <div className="border-t border-stone-200 pt-2 space-y-1 font-mono">
@@ -289,30 +261,25 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
               </p>
             </div>
 
-            {/* Kanan: Diskon, Total Pembayaran & Sisa Pelunasan */}
             <div className="space-y-3 text-xs sm:pl-8">
               <div className="flex items-center justify-between py-1 border-b border-stone-300">
                 <span className="font-bold text-stone-700">Diskon :</span>
-                <span className="font-mono font-bold text-stone-900">{invoice.discountDisplay}</span>
+                <span className="font-mono font-bold text-stone-900">Rp {invoice.discountAmount.toLocaleString("id-ID")}</span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-stone-300">
                 <span className="font-bold text-stone-700">Total Pembayaran (Terbayar) :</span>
-                <span className="font-mono font-bold text-emerald-800 text-sm">{invoice.totalPaidDisplay}</span>
+                <span className="font-mono font-bold text-emerald-800 text-sm">Rp {invoice.paid.toLocaleString("id-ID")}</span>
               </div>
 
               <div className="flex items-center justify-between py-2 border-b-2 border-stone-900 font-extrabold text-sm">
                 <span className="text-stone-950 uppercase tracking-wider">Sisa Pelunasan :</span>
-                <span className="font-mono text-brand-pink text-lg">{invoice.totalDueDisplay}</span>
+                <span className="font-mono text-brand-pink text-lg">Rp {invoice.remaining.toLocaleString("id-ID")}</span>
               </div>
             </div>
-
           </div>
 
-          {/* CLOSING GREETING & SIGNATURE BLOCK */}
           <div className="grid gap-6 sm:grid-cols-2 pt-4 items-end border-t border-stone-800">
-            
-            {/* Left: Closing Islamic Greeting */}
             <div className="space-y-1">
               <h3 className="text-2xl font-black text-stone-950 font-serif">Terima Kasih!</h3>
               <p className="text-xs font-semibold italic text-stone-700">
@@ -320,7 +287,6 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
               </p>
             </div>
 
-            {/* Right: Signature Azriandri */}
             <div className="text-right space-y-2 sm:pl-12">
               <div className="inline-block text-center">
                 <svg className="h-16 w-44 mx-auto text-stone-900" viewBox="0 0 200 70" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -332,7 +298,6 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
                 </p>
               </div>
             </div>
-
           </div>
 
         </section>

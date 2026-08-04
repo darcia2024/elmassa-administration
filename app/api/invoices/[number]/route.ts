@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findInvoiceRow } from "@/lib/seed-data/invoices";
+import { findInvoice } from "@/lib/invoices/store";
 
 type InvoiceDetailRouteProps = {
   params: Promise<{
@@ -9,7 +9,7 @@ type InvoiceDetailRouteProps = {
 
 export async function GET(_: NextRequest, { params }: InvoiceDetailRouteProps) {
   const { number } = await params;
-  const data = findInvoiceRow(decodeURIComponent(number));
+  const data = await findInvoice(decodeURIComponent(number));
 
   if (!data) {
     return NextResponse.json({ error: "Invoice tidak ditemukan" }, { status: 404 });

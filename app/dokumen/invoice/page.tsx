@@ -2,15 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  Download,
-  FileText,
   MessageSquare,
   Plus,
   Printer,
-  ReceiptText,
   Search,
   Sparkles,
   X,
@@ -19,6 +13,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
 type InvoiceItem = {
+  id: string;
   number: string;
   bookingCode: string;
   customer: string;
@@ -26,57 +21,59 @@ type InvoiceItem = {
   packageName: string;
   issueDate: string;
   dueDate: string;
-  totalDisplay: string;
-  paidDisplay: string;
-  remainingDisplay: string;
-  remainingAmount: number;
+  total: number;
+  paid: number;
+  remaining: number;
   status: "Lunas" | "Sebagian" | "Belum Bayar";
 };
 
-const initialInvoices: InvoiceItem[] = [];
-
-const availableBookings: Array<{ code: string; customer: string; package: string; price: string; phone: string }> = [];
+type BookingOption = {
+  code: string;
+  customer: string;
+  packageName: string;
+  totalAmount: number;
+  phone: string;
+};
 
 export default function FastInvoicePage() {
-  const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoices);
+  const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState<BookingOption[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("Semua");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const [selectedBookingCode, setSelectedBookingCode] = useState("BK-2407-001");
-  const [customCustomer, setCustomCustomer] = useState("");
-  const [customPackage, setCustomPackage] = useState("");
-  const [customTotal, setCustomTotal] = useState("");
-  const [customDueDate, setCustomDueDate] = useState("28 Agustus 2026");
+  const [selectedBookingCode, setSelectedBookingCode] = useState("");
+  const [customDueDate, setCustomDueDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  // Load real-time invoices dynamically from localStorage
+  function loadInvoices() {
+    setLoading(true);
+    fetch("/api/invoices")
+      .then((res) => res.json())
+      .then((json) => setInvoices(json.data ?? []))
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }
+
   useEffect(() => {
-    try {
-      const savedStr = localStorage.getItem("el_massa_real_bookings");
-      if (savedStr) {
-        const savedBookings = JSON.parse(savedStr);
-        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
-          const dynamicInvoices: InvoiceItem[] = savedBookings.map((b: any) => ({
-            number: `INV-${b.code}`,
-            bookingCode: b.code,
-            customer: b.customer || "Jamaah Terdaftar",
-            phone: b.phone || "-",
-            packageName: b.packageName || "Umrah Spesial El Massa",
-            issueDate: b.createdDate || "Hari ini",
-            dueDate: b.departure || "Terjadwal 2026",
-            totalDisplay: b.totalDisplay || `Rp ${(b.totalAmount || 0).toLocaleString("id-ID")}`,
-            paidDisplay: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
-            remainingDisplay: b.remainingDisplay || `Rp ${(b.remainingAmount || 0).toLocaleString("id-ID")}`,
-            remainingAmount: b.remainingAmount ?? 0,
-            status: b.remainingAmount <= 0 ? "Lunas" : b.paidAmount > 0 ? "Sebagian" : "Belum Bayar",
-          }));
-
-          setInvoices(dynamicInvoices);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    loadInvoices();
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        const options = rows.map((b) => ({
+          code: b.code,
+          customer: b.customerName,
+          packageName: b.packageName,
+          totalAmount: Number(b.totalAmount),
+          phone: b.phone,
+        }));
+        setBookings(options);
+        if (options.length > 0) setSelectedBookingCode(options[0].code);
+      })
+      .catch((e) => console.error(e));
   }, []);
 
   const filteredInvoices = useMemo(() => {
@@ -97,44 +94,41 @@ export default function FastInvoicePage() {
     });
   }, [invoices, searchQuery, selectedStatus]);
 
-  const handleBookingSelect = (code: string) => {
-    setSelectedBookingCode(code);
-    const found = availableBookings.find((b) => b.code === code);
-    if (found) {
-      setCustomCustomer(found.customer);
-      setCustomPackage(found.package);
-      setCustomTotal(found.price);
-    }
-  };
+  const selectedBooking = bookings.find((b) => b.code === selectedBookingCode) ?? null;
 
-  const handleCreateFastInvoice = (e: React.FormEvent) => {
+  async function handleCreateInvoice(e: React.FormEvent) {
     e.preventDefault();
-    const newNumber = `INV-2407-${String(invoices.length + 1).padStart(3, "0")}`;
-    const b = availableBookings.find((item) => item.code === selectedBookingCode);
+    if (!selectedBooking) return;
 
-    const newInv: InvoiceItem = {
-      number: newNumber,
-      bookingCode: selectedBookingCode,
-      customer: customCustomer || b?.customer || "Jamaah Umrah",
-      phone: b?.phone || "0812-3344-5566",
-      packageName: customPackage || b?.package || "Umrah Reguler 12 Hari",
-      issueDate: "29 Jul 2026",
-      dueDate: customDueDate,
-      totalDisplay: customTotal || b?.price || "Rp 32.500.000",
-      paidDisplay: "Rp 0",
-      remainingDisplay: customTotal || b?.price || "Rp 32.500.000",
-      remainingAmount: 32500000,
-      status: "Belum Bayar",
-    };
+    setIsSubmitting(true);
+    setFormError(null);
 
-    setInvoices([newInv, ...invoices]);
-    setIsModalOpen(false);
-  };
+    try {
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingCode: selectedBooking.code, dueDateValue: customDueDate }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        setFormError(json.error ?? "Gagal membuat invoice");
+        return;
+      }
+
+      setIsModalOpen(false);
+      loadInvoices();
+    } catch {
+      setFormError("Gagal membuat invoice, cek koneksi.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AppShell eyebrow="Dokumen Keuangan" title="Generator Invoice Instan & Tagihan">
       <div className="space-y-5">
-        
+
         {/* Header Hero Section */}
         <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -143,23 +137,18 @@ export default function FastInvoicePage() {
                 <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa">
                   Generator Invoice Tagihan Ringan & Instan
                 </h1>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200/60">
-                  ⚡ 0 Jeda Latensi
-                </span>
               </div>
               <p className="text-xs text-stone-500 mt-1 max-w-2xl">
-                Buat invoice tagihan jamaah secara otomatis hanya dengan memilih kode booking. Rincian biaya All In & nomor rekening bank terisi instan.
+                Buat invoice tagihan jamaah secara otomatis hanya dengan memilih kode booking.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  handleBookingSelect("BK-2407-001");
-                  setIsModalOpen(true);
-                }}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0"
+                onClick={() => setIsModalOpen(true)}
+                disabled={bookings.length === 0}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus className="h-4 w-4" strokeWidth={1.5} />
                 <span>+ Buat Invoice 1-Klik</span>
@@ -194,19 +183,17 @@ export default function FastInvoicePage() {
         {/* 🔎 Search Bar & Filter Tabs */}
         <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="Ketik No. INV-2407, nama jamaah, atau booking..."
+                placeholder="Ketik No. INV, nama jamaah, atau booking..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 pl-9 pr-3 text-xs text-brand-cocoa font-medium placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
               />
             </div>
 
-            {/* Filter Pill Tabs */}
             <div className="flex items-center gap-1.5 border-b border-stone-100 pb-2 md:border-none md:pb-0">
               {(["Semua", "Lunas", "Pending"] as const).map((st) => (
                 <button
@@ -225,7 +212,6 @@ export default function FastInvoicePage() {
             </div>
           </div>
 
-          {/* 📋 Fast Invoice Table */}
           <div className="overflow-x-auto rounded-xl border border-stone-200/60">
             <table className="w-full min-w-[880px] border-collapse text-left text-xs">
               <thead>
@@ -242,13 +228,23 @@ export default function FastInvoicePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
+                {loading && (
+                  <tr>
+                    <td colSpan={9} className="py-6 text-center text-stone-400">Memuat invoice...</td>
+                  </tr>
+                )}
+                {!loading && filteredInvoices.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="py-6 text-center text-stone-400">Belum ada invoice.</td>
+                  </tr>
+                )}
                 {filteredInvoices.map((inv) => {
                   const waText = encodeURIComponent(
-                    `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${inv.customer},\n\nBerikut tagihan *Invoice ${inv.number}* untuk *${inv.packageName}*.\nSisa tagihan pelunasan: *${inv.remainingDisplay}* (Tenggat: ${inv.dueDate}).\n\nTerima kasih,\n*PT El Massa Tour & Travel*`,
+                    `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${inv.customer},\n\nBerikut tagihan *Invoice ${inv.number}* untuk *${inv.packageName}*.\nSisa tagihan pelunasan: *Rp ${inv.remaining.toLocaleString("id-ID")}* (Tenggat: ${inv.dueDate}).\n\nTerima kasih,\n*PT El Massa Tour & Travel*`,
                   );
 
                   return (
-                    <tr key={inv.number} className="transition hover:bg-stone-50/60">
+                    <tr key={inv.id} className="transition hover:bg-stone-50/60">
                       <td className="py-3 pl-3 pr-2">
                         <Link href={`/dokumen/invoice/${inv.number}`} className="group">
                           <p className="font-mono font-bold text-brand-cocoa group-hover:text-brand-pink transition">
@@ -262,9 +258,9 @@ export default function FastInvoicePage() {
                       </td>
                       <td className="py-3 pr-2 text-stone-600 font-medium whitespace-nowrap">{inv.packageName}</td>
                       <td className="py-3 pr-2 text-stone-500 whitespace-nowrap">{inv.dueDate}</td>
-                      <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">{inv.totalDisplay}</td>
-                      <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{inv.paidDisplay}</td>
-                      <td className="py-3 pr-2 font-bold text-rose-600 whitespace-nowrap">{inv.remainingDisplay}</td>
+                      <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">Rp {inv.total.toLocaleString("id-ID")}</td>
+                      <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">Rp {inv.paid.toLocaleString("id-ID")}</td>
+                      <td className="py-3 pr-2 font-bold text-rose-600 whitespace-nowrap">Rp {inv.remaining.toLocaleString("id-ID")}</td>
                       <td className="py-3 pr-2 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
@@ -285,7 +281,7 @@ export default function FastInvoicePage() {
                           <span>Cetak</span>
                         </Link>
 
-                        {inv.remainingAmount > 0 && (
+                        {inv.remaining > 0 && (
                           <a
                             href={`https://wa.me/${inv.phone.replace(/[^0-9]/g, "")}?text=${waText}`}
                             target="_blank"
@@ -310,7 +306,7 @@ export default function FastInvoicePage() {
       {/* 📝 MODAL BUAT INVOICE INSTAN 1-KLIK */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <form onSubmit={handleCreateFastInvoice} className="relative w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl space-y-4">
+          <form onSubmit={handleCreateInvoice} className="relative w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-brand-pink" strokeWidth={1.5} />
@@ -327,65 +323,43 @@ export default function FastInvoicePage() {
               </button>
             </div>
 
+            {formError && (
+              <p className="rounded-md bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">{formError}</p>
+            )}
+
             <div className="space-y-3 text-xs">
               <label className="block space-y-1">
                 <span className="font-semibold text-stone-700">Pilih Kode Booking Jamaah</span>
                 <select
                   className="w-full h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-brand-cocoa outline-none shadow-2xs"
                   value={selectedBookingCode}
-                  onChange={(e) => handleBookingSelect(e.target.value)}
+                  onChange={(e) => setSelectedBookingCode(e.target.value)}
                 >
-                  {availableBookings.map((b) => (
+                  {bookings.map((b) => (
                     <option key={b.code} value={b.code}>
-                      {b.code} - {b.customer} ({b.package})
+                      {b.code} - {b.customer} ({b.packageName})
                     </option>
                   ))}
                 </select>
               </label>
 
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block space-y-1">
-                  <span className="font-semibold text-stone-700">Nama Jamaah Pemesan</span>
-                  <input
-                    required
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none"
-                    value={customCustomer}
-                    onChange={(e) => setCustomCustomer(e.target.value)}
-                  />
-                </label>
+              {selectedBooking && (
+                <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 space-y-1">
+                  <p className="text-stone-600">Paket: <span className="font-semibold text-stone-900">{selectedBooking.packageName}</span></p>
+                  <p className="text-stone-600">Total tagihan: <span className="font-bold text-brand-cocoa">Rp {selectedBooking.totalAmount.toLocaleString("id-ID")}</span></p>
+                </div>
+              )}
 
-                <label className="block space-y-1">
-                  <span className="font-semibold text-stone-700">Paket Wisata</span>
-                  <input
-                    required
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-stone-800 outline-none"
-                    value={customPackage}
-                    onChange={(e) => setCustomPackage(e.target.value)}
-                  />
-                </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block space-y-1">
-                  <span className="font-semibold text-stone-700">Total Nominal Tagihan</span>
-                  <input
-                    required
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-bold text-brand-cocoa outline-none"
-                    value={customTotal}
-                    onChange={(e) => setCustomTotal(e.target.value)}
-                  />
-                </label>
-
-                <label className="block space-y-1">
-                  <span className="font-semibold text-stone-700">Tenggat Jatuh Tempo</span>
-                  <input
-                    required
-                    className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium outline-none"
-                    value={customDueDate}
-                    onChange={(e) => setCustomDueDate(e.target.value)}
-                  />
-                </label>
-              </div>
+              <label className="block space-y-1">
+                <span className="font-semibold text-stone-700">Tenggat Jatuh Tempo</span>
+                <input
+                  type="date"
+                  required
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium outline-none"
+                  value={customDueDate}
+                  onChange={(e) => setCustomDueDate(e.target.value)}
+                />
+              </label>
             </div>
 
             <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-3">
@@ -398,9 +372,10 @@ export default function FastInvoicePage() {
               </button>
               <button
                 type="submit"
-                className="h-9 rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover"
+                disabled={isSubmitting || !selectedBooking}
+                className="h-9 rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Terbitkan Invoice (Instan)
+                {isSubmitting ? "Menyimpan..." : "Terbitkan Invoice"}
               </button>
             </div>
           </form>

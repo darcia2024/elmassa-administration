@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateInvoiceFromBooking, listInvoiceRows } from "@/lib/seed-data/invoices";
+import { generateInvoiceFromBooking, listInvoices } from "@/lib/invoices/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
   const page = Math.max(Number(searchParams.get("page") ?? 1), 1);
   const pageSize = Math.min(Math.max(Number(searchParams.get("pageSize") ?? 10), 1), 100);
 
-  const filtered = listInvoiceRows().filter((item) => {
+  const all = await listInvoices();
+
+  const filtered = all.filter((item) => {
     const searchable = `${item.number} ${item.bookingCode} ${item.customer} ${item.packageName}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesStatus = !status || status === "Semua" || item.status === status;
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
         page,
         pageSize,
         totalPages: Math.max(Math.ceil(filtered.length / pageSize), 1),
-        source: "dummy",
+        source: "supabase",
         filters: {
           bookingCode: bookingCode ?? null,
           q: query,
@@ -46,37 +48,30 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
 
   if (!body.bookingCode) {
-    return NextResponse.json(
-      {
-        error: "bookingCode wajib diisi",
-      },
-      {
-        status: 400,
-      },
-    );
+    return NextResponse.json({ error: "bookingCode wajib diisi" }, { status: 400 });
   }
 
-  const data = generateInvoiceFromBooking(String(body.bookingCode), {
-    dueDateValue: body.dueDateValue === undefined ? undefined : String(body.dueDateValue),
-    forceNew: Boolean(body.forceNew),
-    notes: body.notes === undefined ? undefined : String(body.notes),
-  });
+  try {
+    const data = await generateInvoiceFromBooking(String(body.bookingCode), {
+      dueDate: body.dueDateValue === undefined ? undefined : String(body.dueDateValue),
+      forceNew: Boolean(body.forceNew),
+      notes: body.notes === undefined ? undefined : String(body.notes),
+    });
 
-  if (!data) {
-    return NextResponse.json({ error: "Booking tidak ditemukan" }, { status: 404 });
+    if (!data) {
+      return NextResponse.json({ error: "Booking tidak ditemukan" }, { status: 404 });
+    }
+
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? "Gagal membuat invoice" }, { status: 500 });
   }
-
-  return NextResponse.json({ data }, { status: 201 });
 }

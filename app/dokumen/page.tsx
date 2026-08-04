@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -40,9 +40,8 @@ type DocumentItem = {
   badgeColor: string;
 };
 
-const initialDocs: DocumentItem[] = [];
-
 export default function EasyDocumentsPage() {
+  const [docs, setDocs] = useState<DocumentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
@@ -50,8 +49,52 @@ export default function EasyDocumentsPage() {
   const [printedLetterKTP, setPrintedLetterKTP] = useState("");
   const [isLetterPreviewOpen, setIsLetterPreviewOpen] = useState(false);
 
+  // Manifest Flight and Surat Rekomendasi Paspor aren't backed by any table
+  // yet, so this hub only aggregates the two document types that are real:
+  // invoices and kuitansi (receipts).
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/invoices").then((res) => res.json()),
+      fetch("/api/receipts").then((res) => res.json()),
+    ])
+      .then(([invoicesJson, receiptsJson]) => {
+        const invoiceDocs: DocumentItem[] = ((invoicesJson.data ?? []) as any[]).map((inv) => ({
+          id: `inv-${inv.id}`,
+          number: inv.number,
+          type: "Invoice" as const,
+          customerName: inv.customer,
+          bookingCode: inv.bookingCode,
+          date: inv.issueDate,
+          amountDisplay: `Rp ${Number(inv.total).toLocaleString("id-ID")}`,
+          status: inv.remaining <= 0 ? ("Sah & Diverifikasi" as const) : ("Pending Pelunasan" as const),
+          targetUrl: `/dokumen/invoice/${inv.number}`,
+          phone: inv.phone ?? "",
+          badgeColor: "bg-purple-50 text-purple-700 border-purple-200/60",
+        }));
+
+        const receiptDocs: DocumentItem[] = ((receiptsJson.data ?? []) as any[]).map((r) => ({
+          id: `kw-${r.receipt.id}`,
+          number: r.receipt.number,
+          type: "Kuitansi" as const,
+          customerName: r.receipt.receivedFrom,
+          bookingCode: r.payment.bookingCode,
+          date: r.receipt.date,
+          amountDisplay: `Rp ${Number(r.receipt.amount).toLocaleString("id-ID")}`,
+          status: "Sah & Diverifikasi" as const,
+          targetUrl: "/dokumen/kuitansi",
+          phone: r.payment.customerPhone ?? "",
+          badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+        }));
+
+        setDocs(
+          [...invoiceDocs, ...receiptDocs].sort((a, b) => b.date.localeCompare(a.date)),
+        );
+      })
+      .catch((e) => console.error(e));
+  }, []);
+
   const filteredDocs = useMemo(() => {
-    return initialDocs.filter((doc) => {
+    return docs.filter((doc) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         doc.number.toLowerCase().includes(q) ||
@@ -63,7 +106,7 @@ export default function EasyDocumentsPage() {
 
       return matchesSearch && matchesCat;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [docs, searchQuery, selectedCategory]);
 
   const handlePrintLetter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,7 +251,7 @@ export default function EasyDocumentsPage() {
             {/* Filter Pill Tabs */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
               {(["Semua", "Invoice", "Kuitansi", "Manifest Flight", "Surat Rekomendasi Paspor"] as const).map((cat) => {
-                const count = cat === "Semua" ? initialDocs.length : initialDocs.filter((d) => d.type === cat).length;
+                const count = cat === "Semua" ? docs.length : docs.filter((d) => d.type === cat).length;
 
                 return (
                   <button
