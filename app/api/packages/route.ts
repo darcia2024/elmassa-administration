@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
+import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
 
 let isTableEnsured = false;
 
@@ -180,6 +181,9 @@ export async function DELETE(req: Request) {
     const wipeAll = searchParams.get("all") === "true" || searchParams.get("clearAll") === "true" || id === "ALL";
 
     if (wipeAll) {
+      if (!isDataResetAllowed()) {
+        return dataResetBlockedResponse();
+      }
       await getPool().query("TRUNCATE TABLE published_packages;");
       return NextResponse.json({ ok: true, message: "All packages wiped from Supabase Cloud Database" }, { headers: corsHeaders });
     }

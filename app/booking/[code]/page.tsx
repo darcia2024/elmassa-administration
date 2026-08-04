@@ -81,52 +81,131 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
   const [booking, setBooking] = useState<BookingDetail>(() => {
     return { ...emptyBooking, code: decodedCode };
   });
+  const [loadState, setLoadState] = useState<"loading" | "found" | "notFound">("loading");
 
   useEffect(() => {
+    let cancelled = false;
+
+    // Match the booking code exactly. Never fall back to another booking — showing
+    // someone else's jamaah and payment figures under this code is worse than
+    // showing nothing.
+    const findByCode = (list: unknown) =>
+      Array.isArray(list) ? list.find((b: any) => b?.code === decodedCode) : undefined;
+
+    const apply = (found: any) => {
+      if (cancelled) return;
+      setBooking({
+        code: found.code || decodedCode,
+        customer: found.customer || "-",
+        phone: found.phone || "-",
+        packageName: found.packageName || "-",
+        departure: found.departure || "-",
+        groupName: found.groupName || "-",
+        status: found.status || "DP",
+        totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 0).toLocaleString("id-ID")}`,
+        paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 0).toLocaleString("id-ID")}`,
+        remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
+        remainingAmount: found.remainingAmount ?? 0,
+        participants: Array.isArray(found.participantsList) && found.participantsList.length > 0
+          ? found.participantsList
+          : [
+              { name: found.customer || "Peserta 1", passport: "-", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
+            ],
+        payments: [
+          { receipt: `KW-${found.code || "001"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 0", account: "BCA El Massa", staff: "Admin" }
+        ]
+      });
+      setLoadState("found");
+    };
+
+    // 1. Try this browser's cache first so the page paints instantly
     try {
       const savedStr = localStorage.getItem("el_massa_real_bookings");
-      if (savedStr) {
-        const savedBookings = JSON.parse(savedStr);
-        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
-          const found = savedBookings.find((b: any) => b.code === decodedCode) || savedBookings[0];
-          if (found) {
-            setBooking({
-              code: found.code || decodedCode,
-              customer: found.customer || "-",
-              phone: found.phone || "-",
-              packageName: found.packageName || "-",
-              departure: found.departure || "-",
-              groupName: found.groupName || "-",
-              status: found.status || "DP",
-              totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 0).toLocaleString("id-ID")}`,
-              paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 0).toLocaleString("id-ID")}`,
-              remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
-              remainingAmount: found.remainingAmount ?? 0,
-              participants: Array.isArray(found.participantsList) && found.participantsList.length > 0
-                ? found.participantsList
-                : [
-                    { name: found.customer || "Peserta 1", passport: "-", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-                  ],
-              payments: [
-                { receipt: `KW-${found.code || "001"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 0", account: "BCA El Massa", staff: "Admin" }
-              ]
-            });
-          }
-        }
+      const cached = savedStr ? findByCode(JSON.parse(savedStr)) : undefined;
+      if (cached) {
+        apply(cached);
+        return () => {
+          cancelled = true;
+        };
       }
     } catch (e) {
       console.error("Failed loading booking from localStorage:", e);
     }
+
+    // 2. Not in this browser — the booking may have been created on another
+    // device, so ask Supabase before giving up.
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (cancelled) return;
+        const remote = findByCode(res?.data);
+        if (remote) {
+          apply(remote);
+        } else {
+          setLoadState("notFound");
+        }
+      })
+      .catch((e) => {
+        console.error("Failed loading booking from Supabase:", e);
+        if (!cancelled) setLoadState("notFound");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [decodedCode]);
 
   const waText = encodeURIComponent(
     `Assalamu'alaikum wr. wb. Yth. Bapak/Ibu ${booking.customer},\n\nBerikut rincian transaksi booking *${booking.code}* untuk paket *${booking.packageName}*.\nTotal: ${booking.totalDisplay}\nTerbayar: ${booking.paidDisplay}\nSisa: ${booking.remainingDisplay}.\n\nTerima kasih,\n*PT El Massa Tour & Travel*`,
   );
 
+  if (loadState !== "found") {
+    return (
+      <AppShell eyebrow="Manajemen Transaksi" title={`Rincian Booking ${decodedCode}`}>
+        <div className="space-y-5">
+          <div>
+            <Link
+              href="/booking"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-brand-pink transition"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+              <span>Kembali ke Daftar Transaksi Booking</span>
+            </Link>
+          </div>
+
+          <section className="rounded-2xl border border-stone-200 bg-white p-10 text-center shadow-2xs">
+            {loadState === "loading" ? (
+              <>
+                <Clock className="mx-auto h-8 w-8 text-stone-300" strokeWidth={1.5} />
+                <p className="mt-3 text-sm font-semibold text-stone-500">Memuat data booking…</p>
+              </>
+            ) : (
+              <>
+                <ShieldAlert className="mx-auto h-8 w-8 text-rose-400" strokeWidth={1.5} />
+                <h2 className="mt-3 text-base font-extrabold text-brand-cocoa">Booking tidak ditemukan</h2>
+                <p className="mx-auto mt-2 max-w-md text-xs text-stone-500">
+                  Kode <span className="font-bold text-brand-cocoa">{decodedCode}</span> tidak ada di daftar
+                  booking, baik di perangkat ini maupun di database. Periksa kembali kodenya lewat Daftar
+                  Transaksi Booking.
+                </p>
+                <Link
+                  href="/booking"
+                  className="mt-5 inline-flex h-9 items-center rounded-xl bg-brand-pink px-4 text-xs font-bold text-white hover:brightness-110 transition"
+                >
+                  Buka Daftar Booking
+                </Link>
+              </>
+            )}
+          </section>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell eyebrow="Manajemen Transaksi" title={`Rincian Booking ${booking.code}`}>
       <div className="space-y-5">
-        
+
         {/* Back Link */}
         <div>
           <Link

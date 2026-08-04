@@ -5,7 +5,6 @@ const publicApiPrefixes = [
   "/api/auth/logout",
   "/api/packages",
   "/api/revision-notes",
-  "/api/reset-all-data",
   "/api/bookings",
   "/api/schedules",
 ];

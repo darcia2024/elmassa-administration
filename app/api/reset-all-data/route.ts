@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
+import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
 
 export async function POST() {
+  if (!isDataResetAllowed()) {
+    return dataResetBlockedResponse();
+  }
+
   const client = await getPool().connect();
   try {
     await client.query("TRUNCATE TABLE published_packages;");
