@@ -185,14 +185,19 @@ grep -rl 'source: "dummy"' app/api
 
 ### 6.2 Utang teknis & keamanan
 
-- **Token nggak bisa dicabut.** `proxy.ts` cuma verifikasi tanda tangan, nggak cek
-  ke database. Staf yang dinonaktifkan/dihapus masih bisa akses sampai token
-  kedaluwarsa (maks 12 jam). Kalau perlu langsung putus, tambah pengecekan status
-  ke DB — **tapi `proxy.ts` jalan di Edge runtime, dan `pg` butuh raw TCP socket
-  yang nggak didukung di Edge.** Nggak bisa `getPool().query()` langsung dari
-  proxy. Perlu pendekatan lain: `fetch` ke satu API route Node.js yang query
-  `staff_users`, atau pindahin proxy ke Node.js runtime kalau Next 16
-  mendukungnya buat file ini. Belum dikerjain — baru ketauan kendalanya.
+- ✅ **Token bisa dicabut — SELESAI per 2026-08-04.** `proxy.ts` sekarang cek
+  `staff_users.status` ke DB tiap request lewat `isStaffActive()`
+  (`lib/auth/staff-store.ts`), bukan cuma verifikasi tanda tangan token.
+  Catatan penting yang sempat salah: dokumen ini sebelumnya bilang `proxy.ts`
+  jalan di Edge runtime dan nggak bisa connect DB — itu **asumsi yang nggak
+  pernah dicek**, dan salah. Next 16 bikin `proxy.ts` default ke **Node.js
+  runtime** (lihat `node_modules/next/dist/docs/.../file-conventions/proxy.md`,
+  changelog v16.0.0), jadi `pg`/`getPool()` jalan normal di sana. Fail-closed
+  kalau query DB-nya error (anggap nggak aktif) — konsekuensinya satu query
+  tiap request ke API yang butuh login, sesuai perkiraan awal di dokumen ini.
+  Diverifikasi manual: login → deaktivasi akun langsung di DB (token tetap
+  valid & belum expired) → API langsung nolak 401 → reaktivasi → akses balik
+  normal.
 - **`lib/seed-data/`** — 11 file tersisa (dari 16) setelah Pelanggan/Pembayaran/
   Invoice/Laporan tersambung: `receipts.ts`, `installments.ts`, `invoices.ts`,
   `customer-history.ts`, `staff-users.ts` udah dihapus (nol importer). Sisanya

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/auth/session";
+import { isStaffActive } from "@/lib/auth/staff-store";
 
 const publicApiPrefixes = [
   "/api/auth/login",
@@ -16,8 +17,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Any staff account with a valid, unexpired signature is accepted — the list
-  // of who exists lives in the database, not in a hardcoded set here.
   const claims = await verifySessionToken(readSessionToken(request));
   const userId = claims?.sub ?? null;
 
@@ -25,6 +24,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Autentikasi diperlukan",
+      },
+      { status: 401 },
+    );
+  }
+
+  // A valid signature only proves the server issued this token at some point —
+  // it says nothing about whether the account is still active right now. Next
+  // 16 runs proxy on the Node.js runtime (not Edge), so this can check the
+  // database directly instead of trusting the token alone for up to 12h.
+  let active: boolean;
+  try {
+    active = await isStaffActive(userId);
+  } catch {
+    // DB unreachable: fail closed. Every route this gate protects needs the
+    // same database anyway, so an outage here isn't a new failure mode.
+    active = false;
+  }
+
+  if (!active) {
+    return NextResponse.json(
+      {
+        error: "Sesi tidak valid — akun mungkin sudah dinonaktifkan. Silakan login ulang.",
       },
       { status: 401 },
     );

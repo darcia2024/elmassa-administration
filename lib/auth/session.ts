@@ -1,10 +1,18 @@
 /**
  * Signed session tokens.
  *
- * The proxy runs on the edge runtime and cannot open a database connection, so
- * the token has to prove on its own that the server issued it. Payload and
- * HMAC-SHA256 signature, both base64url, joined by a dot. Web Crypto is used
- * throughout so the exact same code verifies in the proxy and in route handlers.
+ * Payload and HMAC-SHA256 signature, both base64url, joined by a dot. Web
+ * Crypto is used throughout so the exact same code verifies in proxy.ts and
+ * in route handlers.
+ *
+ * A valid signature only proves the server issued the token, not that the
+ * account is still active -- proxy.ts additionally checks staff_users.status
+ * on every request (see isStaffActive in lib/auth/staff-store.ts) so a
+ * deactivated account is locked out immediately instead of waiting out the
+ * token's 12h expiry. That's only possible because Next 16's proxy runs on
+ * the Node.js runtime by default (not Edge, despite what "proxy" suggests) --
+ * an earlier version of this comment assumed Edge and said a DB check wasn't
+ * possible here at all, which was never actually verified against the docs.
  */
 
 export type SessionClaims = {

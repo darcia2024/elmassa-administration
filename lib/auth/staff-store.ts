@@ -111,6 +111,18 @@ export async function markStaffLoggedIn(id: string) {
   await getPool().query(`UPDATE staff_users SET last_login_at = NOW() WHERE id = $1;`, [id]);
 }
 
+/**
+ * Used by proxy.ts on every authenticated request so a deactivated/deleted
+ * staff account loses access immediately instead of waiting out the token's
+ * 12h expiry. Returns false for both "row missing" and "status != Aktif" --
+ * callers don't need to distinguish the two.
+ */
+export async function isStaffActive(id: string): Promise<boolean> {
+  await ensureStaffTable();
+  const res = await getPool().query(`SELECT status FROM staff_users WHERE id = $1 LIMIT 1;`, [id]);
+  return res.rows[0]?.status === "Aktif";
+}
+
 export async function createStaff(input: {
   name: string;
   email: string;
