@@ -1,4 +1,5 @@
 import { getPool } from "@/lib/db/connection";
+import { isoDateInDays, parseIndonesianDate } from "@/lib/format/date";
 
 /**
  * Invoices, stored in the `invoices` table the Drizzle migrations already
@@ -132,7 +133,14 @@ export async function generateInvoiceFromBooking(
 
   const totalAmount = Number(booking.rows[0].totalAmount);
   const issueDate = new Date().toISOString().slice(0, 10);
-  const dueDate = options?.dueDate || booking.rows[0].departure || issueDate;
+
+  // `departure` is free text ("01 Oktober 2026"), so it has to be parsed before
+  // it can go into a date column. When it cannot be read, fall back to 30 days
+  // rather than writing a guess or failing the whole invoice.
+  const dueDate =
+    parseIndonesianDate(options?.dueDate) ??
+    parseIndonesianDate(booking.rows[0].departure) ??
+    isoDateInDays(30);
 
   const res = await getPool().query(
     `INSERT INTO invoices (booking_code, invoice_number, issue_date, due_date, subtotal, discount_amount, total_amount, status, notes)
