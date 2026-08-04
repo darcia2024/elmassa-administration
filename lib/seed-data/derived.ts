@@ -1,7 +1,5 @@
 import { listBookingRows, listParticipantsForBooking } from "@/lib/seed-data/bookings";
 import { listCustomerRows } from "@/lib/seed-data/customers";
-import { listInstallmentRows } from "@/lib/seed-data/installments";
-import { listInvoiceRows } from "@/lib/seed-data/invoices";
 import { listPackageRows } from "@/lib/seed-data/packages";
 import { listPaymentRows } from "@/lib/seed-data/payments";
 import { listAllScheduleRows } from "@/lib/seed-data/schedules";
@@ -221,92 +219,6 @@ export function getCustomerPageRows() {
       totalBookings: customerBookings.length || 1,
     };
   });
-}
-
-export function getIncomeReportRows() {
-  return listPaymentRows().map((payment) => ({
-    id: payment.receiptNumber.replace("KW", "INC"),
-    serviceType: "Umrah",
-    packageName: payment.packageName,
-    bookingCode: payment.bookingCode,
-    customer: payment.customerName,
-    date: formatLongDate(payment.date),
-    dateValue: payment.date,
-    amount: payment.amount,
-    margin: Math.round(payment.amount * 0.168),
-    status: payment.status === "Terverifikasi" ? "Parsial" : "Menunggu Cek",
-  }));
-}
-
-export function getBookingDepartureReportRows() {
-  const bookings = listBookingRows();
-
-  return listAllScheduleRows().map((schedule) => {
-    const scheduleBookings = bookings.filter((booking) => booking.scheduleId === schedule.id);
-    const booked = scheduleBookings.reduce((total, booking) => total + booking.participantCount, 0);
-    const paidBookings = scheduleBookings.filter((booking) => booking.status === "Lunas").length;
-    const receivable = scheduleBookings.reduce(
-      (total, booking) => total + Math.max(booking.totalPrice - booking.paidAmount, 0),
-      0,
-    );
-    const pkg = listPackageRows().find((item) => item.id === schedule.packageId);
-
-    return {
-      scheduleId: schedule.id,
-      packageName: pkg?.name ?? "Paket tidak ditemukan",
-      departureDate: formatLongDate(schedule.departureDate),
-      departureDateValue: schedule.departureDate,
-      quota: schedule.quota,
-      booked,
-      paidBookings,
-      receivable,
-      status: schedule.status,
-    };
-  });
-}
-
-export function getManifestReportRows() {
-  return listBookingRows().flatMap((booking) =>
-    listParticipantsForBooking(booking.id).map((participant) => ({
-      participant: participant.name,
-      bookingCode: booking.code,
-      packageName: booking.packageName,
-      departure: formatLongDate(booking.departureDate),
-      departureDateValue: booking.departureDate,
-      passport: participant.passportNumber,
-      documentStatus: participant.documentStatus,
-      paymentStatus: booking.status,
-    })),
-  );
-}
-
-export function getPaymentPageRows() {
-  return listPaymentRows().map((payment) => ({
-    receipt: payment.receiptNumber,
-    bookingCode: payment.bookingCode,
-    customer: payment.customerName,
-    packageName: payment.packageName,
-    date: formatLongDate(payment.date),
-    amountDisplay: payment.amountDisplay,
-    method: payment.paymentMethod,
-    account: payment.account,
-    status: payment.status,
-  }));
-}
-
-export function getInvoicePageRows() {
-  return listInvoiceRows().map((invoice) => ({
-    number: invoice.number,
-    bookingCode: invoice.bookingCode,
-    customer: invoice.customer,
-    packageName: invoice.packageName,
-    issueDate: invoice.issueDate,
-    dueDate: invoice.dueDate,
-    totalDisplay: invoice.totalDisplay,
-    paidDisplay: invoice.paidDisplay,
-    remainingDisplay: invoice.remainingDisplay,
-    status: invoice.status,
-  }));
 }
 
 export function getSchedulePageRows() {
