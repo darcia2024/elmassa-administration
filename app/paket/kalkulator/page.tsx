@@ -77,7 +77,7 @@ export default function PackageCalculatorPage() {
   const [makkahNights, setMakkahNights] = useState(5);
   const [madinahNights, setMadinahNights] = useState(4);
   const [targetPax, setTargetPax] = useState(45);
-  const [sarExchangeRate, setSarExchangeRate] = useState(4300); // 1 SAR = Rp 4.300
+  const [sarExchangeRate, setSarExchangeRate] = useState(4780); // 1 SAR = Rp 4.780
 
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
 
