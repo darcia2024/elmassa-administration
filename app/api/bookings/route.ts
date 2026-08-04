@@ -73,7 +73,9 @@ export async function POST(req: Request) {
       const code = b.code || `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       const totalAmount = Number(b.totalAmount) || 33500000;
       const paidAmount = Number(b.paidAmount) || 0;
-      const remainingAmount = Number(b.remainingAmount) ?? Math.max(0, totalAmount - paidAmount);
+      const remainingAmount = Number.isFinite(Number(b.remainingAmount))
+        ? Number(b.remainingAmount)
+        : Math.max(0, totalAmount - paidAmount);
       const status = b.status || (remainingAmount <= 0 ? "Lunas" : paidAmount > 0 ? "DP" : "Belum Bayar");
 
       await client.query(

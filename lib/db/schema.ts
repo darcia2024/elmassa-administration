@@ -45,6 +45,29 @@ export const scheduleDepartures = pgTable("schedule_departures", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Mirrors the ad-hoc table created by `ensureTable()` in app/api/bookings/route.ts.
+// This is the booking table actually written to in production — the Drizzle
+// `bookings` table above is unused (see HANDOFF.md section 2). Declared here so
+// payments/installments/invoices can reference it and so this file stays a
+// truthful map of the database instead of describing a table nothing writes to.
+export const realBookings = pgTable("real_bookings", {
+  code: text("code").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  phone: text("phone").notNull().default(""),
+  nik: text("nik").notNull().default(""),
+  packageId: text("package_id").notNull().default(""),
+  packageName: text("package_name").notNull(),
+  departure: text("departure").notNull().default(""),
+  roomType: text("room_type").notNull().default("Quad (4 Orang)"),
+  participants: integer("participants").notNull().default(1),
+  totalAmount: integer("total_amount").notNull().default(0),
+  paidAmount: integer("paid_amount").notNull().default(0),
+  remainingAmount: integer("remaining_amount").notNull().default(0),
+  status: text("status").notNull().default("Belum Bayar"),
+  umrahMeStatus: text("umrah_me_status").notNull().default("Aktif 🟢"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const customers = pgTable("customers", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
@@ -181,9 +204,9 @@ export const users = pgTable("users", {
 
 export const invoices = pgTable("invoices", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookingId: uuid("booking_id")
+  bookingCode: text("booking_code")
     .notNull()
-    .references(() => bookings.id, { onDelete: "cascade" }),
+    .references(() => realBookings.code, { onDelete: "cascade" }),
   invoiceNumber: text("invoice_number").notNull(),
   issueDate: date("issue_date").notNull(),
   dueDate: date("due_date").notNull(),
@@ -199,9 +222,9 @@ export const invoices = pgTable("invoices", {
 
 export const installments = pgTable("installments", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookingId: uuid("booking_id")
+  bookingCode: text("booking_code")
     .notNull()
-    .references(() => bookings.id, { onDelete: "cascade" }),
+    .references(() => realBookings.code, { onDelete: "cascade" }),
   invoiceId: uuid("invoice_id").references(() => invoices.id, { onDelete: "set null" }),
   sequence: integer("sequence").notNull(),
   label: text("label").notNull().default(""),
@@ -216,9 +239,9 @@ export const installments = pgTable("installments", {
 
 export const payments = pgTable("payments", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookingId: uuid("booking_id")
+  bookingCode: text("booking_code")
     .notNull()
-    .references(() => bookings.id, { onDelete: "cascade" }),
+    .references(() => realBookings.code, { onDelete: "cascade" }),
   invoiceId: uuid("invoice_id").references(() => invoices.id, { onDelete: "set null" }),
   installmentId: uuid("installment_id").references(() => installments.id, { onDelete: "set null" }),
   bankAccountId: uuid("bank_account_id").references(() => bankAccounts.id, { onDelete: "set null" }),
@@ -282,14 +305,17 @@ export const bookingsRelations = relations(bookings, ({ many, one }) => ({
     fields: [bookings.customerId],
     references: [customers.id],
   }),
-  installments: many(installments),
-  invoices: many(invoices),
-  payments: many(payments),
   participants: many(participants),
   schedule: one(schedules, {
     fields: [bookings.scheduleId],
     references: [schedules.id],
   }),
+}));
+
+export const realBookingsRelations = relations(realBookings, ({ many }) => ({
+  installments: many(installments),
+  invoices: many(invoices),
+  payments: many(payments),
 }));
 
 export const participantsRelations = relations(participants, ({ one }) => ({
@@ -311,18 +337,18 @@ export const bankAccountsRelations = relations(bankAccounts, ({ many }) => ({
 }));
 
 export const invoicesRelations = relations(invoices, ({ many, one }) => ({
-  booking: one(bookings, {
-    fields: [invoices.bookingId],
-    references: [bookings.id],
+  booking: one(realBookings, {
+    fields: [invoices.bookingCode],
+    references: [realBookings.code],
   }),
   installments: many(installments),
   payments: many(payments),
 }));
 
 export const installmentsRelations = relations(installments, ({ many, one }) => ({
-  booking: one(bookings, {
-    fields: [installments.bookingId],
-    references: [bookings.id],
+  booking: one(realBookings, {
+    fields: [installments.bookingCode],
+    references: [realBookings.code],
   }),
   invoice: one(invoices, {
     fields: [installments.invoiceId],
@@ -336,9 +362,9 @@ export const paymentsRelations = relations(payments, ({ many, one }) => ({
     fields: [payments.bankAccountId],
     references: [bankAccounts.id],
   }),
-  booking: one(bookings, {
-    fields: [payments.bookingId],
-    references: [bookings.id],
+  booking: one(realBookings, {
+    fields: [payments.bookingCode],
+    references: [realBookings.code],
   }),
   installment: one(installments, {
     fields: [payments.installmentId],
@@ -364,6 +390,8 @@ export type Schedule = typeof schedules.$inferSelect;
 export type NewSchedule = typeof schedules.$inferInsert;
 export type ScheduleDeparture = typeof scheduleDepartures.$inferSelect;
 export type NewScheduleDeparture = typeof scheduleDepartures.$inferInsert;
+export type RealBooking = typeof realBookings.$inferSelect;
+export type NewRealBooking = typeof realBookings.$inferInsert;
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type Booking = typeof bookings.$inferSelect;
