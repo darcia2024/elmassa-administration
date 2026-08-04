@@ -1,4 +1,4 @@
-import { findReceiptDetail } from "@/lib/seed-data/receipts";
+import { findReceiptDetail } from "@/lib/receipts/store";
 
 type ReceiptPdfRouteProps = {
   params: Promise<{
@@ -52,7 +52,7 @@ function createPdf(lines: string[]) {
 
 export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
   const { paymentId } = await params;
-  const data = findReceiptDetail(decodeURIComponent(paymentId));
+  const data = await findReceiptDetail(decodeURIComponent(paymentId));
 
   if (!data) {
     return Response.json({ error: "Kuitansi tidak ditemukan" }, { status: 404 });
@@ -62,12 +62,11 @@ export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
     `Nomor: ${data.receipt.number}`,
     `Tanggal: ${data.receipt.date}`,
     `Diterima dari: ${data.receipt.receivedFrom}`,
-    `Nominal: ${data.receipt.amountDisplay}`,
+    `Nominal: Rp ${data.receipt.amount.toLocaleString("id-ID")}`,
     `Terbilang: ${data.receipt.amountWords}`,
     `Untuk pembayaran: ${data.receipt.paymentFor}`,
     `Kode booking: ${data.payment.bookingCode}`,
     `Metode: ${data.receipt.paymentMethod}`,
-    `Rekening: ${data.receipt.account}`,
     `Admin: ${data.receipt.staff}`,
     `Status: ${data.receipt.status}`,
   ];

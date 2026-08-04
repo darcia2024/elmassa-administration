@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findReceiptDetail } from "@/lib/seed-data/receipts";
+import { findReceiptDetail } from "@/lib/receipts/store";
 
 type ReceiptRouteProps = {
   params: Promise<{
@@ -9,7 +9,7 @@ type ReceiptRouteProps = {
 
 export async function GET(_: Request, { params }: ReceiptRouteProps) {
   const { paymentId } = await params;
-  const data = findReceiptDetail(decodeURIComponent(paymentId));
+  const data = await findReceiptDetail(decodeURIComponent(paymentId));
 
   if (!data) {
     return NextResponse.json({ error: "Kuitansi tidak ditemukan" }, { status: 404 });
@@ -19,7 +19,7 @@ export async function GET(_: Request, { params }: ReceiptRouteProps) {
     {
       data,
       meta: {
-        source: "dummy",
+        source: "supabase",
       },
     },
     {

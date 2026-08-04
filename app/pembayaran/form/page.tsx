@@ -1,42 +1,105 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, CreditCard, DollarSign, ReceiptText, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 
-const activeBookings = [
-  { code: "BK-2407-018", customer: "H. Rusli Suparman & Rombongan (40 Pax)", remaining: 688000000 },
-  { code: "BK-2407-019", customer: "Ahmad Fauzi", remaining: 15000000 },
-];
+type ActiveBooking = {
+  code: string;
+  customer: string;
+  remaining: number;
+};
 
-const bankAccounts = [
-  "BCA Cab. Pangkalpinang - 8820912381 (a.n PT El Massa Tour)",
-  "Mandiri Cab. Pangkalpinang - 16900281928 (a.n PT El Massa Tour)",
-  "Bank Syariah Indonesia (BSI) - 7192839102 (a.n PT El Massa Tour)",
-];
+const fallbackBankAccounts = ["Transfer Bank (rekening belum diatur di Identitas Perusahaan)"];
 
 export default function PaymentFormPage() {
   const router = useRouter();
-  const [selectedBookingCode, setSelectedBookingCode] = useState("BK-2407-018");
-  const [paymentDate, setPaymentDate] = useState("2026-07-08");
-  const [amount, setAmount] = useState(500000000);
+  const [activeBookings, setActiveBookings] = useState<ActiveBooking[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<string[]>(fallbackBankAccounts);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [selectedBookingCode, setSelectedBookingCode] = useState("");
+  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank");
-  const [selectedAccount, setSelectedAccount] = useState(bankAccounts[0]);
-  const [bankRef, setBankRef] = useState("TRX-BCA-9824001");
-  const [notes, setNotes] = useState("Setoran DP 40 Jamaah Umrah Spesial Muharram asal Bangka Belitung");
+  const [selectedAccount, setSelectedAccount] = useState(fallbackBankAccounts[0]);
+  const [bankRef, setBankRef] = useState("");
+  const [notes, setNotes] = useState("");
   const [isSuccessToast, setIsSuccessToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const selectedBooking = activeBookings.find((b) => b.code === selectedBookingCode) ?? activeBookings[0];
-  const newRemaining = Math.max(selectedBooking.remaining - amount, 0);
+  useEffect(() => {
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        const unpaid = rows
+          .filter((b) => Number(b.remainingAmount) > 0)
+          .map((b) => ({ code: b.code, customer: b.customerName, remaining: Number(b.remainingAmount) }));
+        setActiveBookings(unpaid);
+        if (unpaid.length > 0) setSelectedBookingCode(unpaid[0].code);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoadingBookings(false));
 
-  const handleSubmit = (e: React.FormEvent) => {
+    try {
+      const saved = localStorage.getItem("el_massa_company_identity");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const names = (parsed.bankAccounts ?? [])
+          .map((b: any) => [b.bankName || b.bank, b.branch, b.accountNumber, b.accountName].filter(Boolean).join(" - "))
+          .filter(Boolean);
+        if (names.length > 0) {
+          setBankAccounts(names);
+          setSelectedAccount(names[0]);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const selectedBooking = activeBookings.find((b) => b.code === selectedBookingCode) ?? null;
+  const newRemaining = selectedBooking ? Math.max(selectedBooking.remaining - amount, 0) : 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSuccessToast(true);
-    setTimeout(() => {
-      router.push("/pembayaran");
-    }, 1500);
+    if (!selectedBooking || amount <= 0) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingCode: selectedBooking.code,
+          date: paymentDate,
+          amount,
+          method: paymentMethod,
+          referenceNumber: bankRef,
+          notes: `${notes}${notes ? " " : ""}[Rekening: ${selectedAccount}]`.trim(),
+        }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        setSubmitError(json.error ?? "Gagal menyimpan pembayaran");
+        return;
+      }
+
+      setIsSuccessToast(true);
+      setTimeout(() => {
+        router.push("/pembayaran");
+      }, 1500);
+    } catch (err) {
+      setSubmitError("Gagal menyimpan pembayaran, cek koneksi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -50,9 +113,21 @@ export default function PaymentFormPage() {
               <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" strokeWidth={1.5} />
               <div>
                 <p className="text-xs font-bold">Kuitansi Pembayaran Berhasil Diterbitkan!</p>
-                <p className="text-[11px] text-emerald-700">Kuitansi KW-2407-089 terverifikasi. Mengalihkan ke halaman pembayaran...</p>
+                <p className="text-[11px] text-emerald-700">Tersimpan ke database. Mengalihkan ke halaman pembayaran...</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 text-xs font-semibold">
+            {submitError}
+          </div>
+        )}
+
+        {!loadingBookings && activeBookings.length === 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 text-xs font-semibold">
+            Belum ada booking dengan sisa tagihan. Buat booking dulu di halaman Booking.
           </div>
         )}
 
@@ -72,11 +147,11 @@ export default function PaymentFormPage() {
               <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3.5 space-y-2 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-stone-500">No. Kuitansi</span>
-                  <span className="font-mono font-bold text-brand-cocoa">KW-2407-089</span>
+                  <span className="font-mono font-bold text-brand-cocoa">Otomatis saat disimpan</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-stone-500">Sisa Tagihan Saat Ini</span>
-                  <span className="font-bold text-rose-600">Rp {selectedBooking.remaining.toLocaleString("id-ID")}</span>
+                  <span className="font-bold text-rose-600">Rp {(selectedBooking?.remaining ?? 0).toLocaleString("id-ID")}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-stone-200/60 pt-2">
                   <span className="text-stone-500">Nominal Diterima</span>
@@ -114,7 +189,10 @@ export default function PaymentFormPage() {
                   className="w-full h-9 rounded-xl border border-stone-200 bg-white px-3.5 text-xs text-brand-cocoa font-bold outline-none focus:border-brand-pink transition shadow-2xs"
                   value={selectedBookingCode}
                   onChange={(e) => setSelectedBookingCode(e.target.value)}
+                  disabled={loadingBookings || activeBookings.length === 0}
                 >
+                  {loadingBookings && <option>Memuat booking...</option>}
+                  {!loadingBookings && activeBookings.length === 0 && <option>Tidak ada booking dengan sisa tagihan</option>}
                   {activeBookings.map((b) => (
                     <option key={b.code} value={b.code}>
                       {b.code} — {b.customer} — (Sisa Tagihan: Rp {b.remaining.toLocaleString("id-ID")})
@@ -200,9 +278,10 @@ export default function PaymentFormPage() {
               </button>
               <button
                 type="submit"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+                disabled={isSubmitting || !selectedBooking || amount <= 0}
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Terbitkan Kuitansi Pembayaran
+                {isSubmitting ? "Menyimpan..." : "Terbitkan Kuitansi Pembayaran"}
               </button>
             </div>
           </form>

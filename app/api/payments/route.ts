@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPaymentRow, listPaymentRows } from "@/lib/seed-data/payments";
+import { createPayment, listPayments } from "@/lib/payments/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
   const page = Math.max(Number(searchParams.get("page") ?? 1), 1);
   const pageSize = Math.min(Math.max(Number(searchParams.get("pageSize") ?? 10), 1), 100);
 
-  const filtered = listPaymentRows().filter((item) => {
-    const searchable = `${item.receiptNumber} ${item.bookingCode} ${item.customerName} ${item.packageName} ${item.account}`.toLowerCase();
+  const all = await listPayments();
+
+  const filtered = all.filter((item) => {
+    const searchable = `${item.receiptNumber ?? ""} ${item.bookingCode} ${item.customerName} ${item.packageName}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesStatus = !status || status === "Semua" || item.status === status;
     const matchesBooking = !bookingCode || item.bookingCode === bookingCode;
@@ -20,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   const start = (page - 1) * pageSize;
   const data = filtered.slice(start, start + pageSize);
-  const totalAmount = filtered.reduce((total, item) => total + item.amount, 0);
+  const totalAmount = filtered.reduce((total, item) => total + Number(item.amount), 0);
 
   return NextResponse.json(
     {
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
         page,
         pageSize,
         totalPages: Math.max(Math.ceil(filtered.length / pageSize), 1),
-        source: "dummy",
+        source: "supabase",
         filters: {
           bookingCode: bookingCode ?? null,
           q: query,
@@ -43,47 +45,41 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
 
-  if (!body.bookingCode || !body.customerName || !body.packageName || body.amount === undefined) {
+  if (!body.bookingCode || body.amount === undefined || !body.date) {
     return NextResponse.json(
-      {
-        error: "bookingCode, customerName, packageName, dan amount wajib diisi",
-      },
-      {
-        status: 400,
-      },
+      { error: "bookingCode, date, dan amount wajib diisi" },
+      { status: 400 },
     );
   }
 
-  const data = createPaymentRow({
-    receiptNumber: body.receiptNumber === undefined ? undefined : String(body.receiptNumber),
-    bookingCode: String(body.bookingCode),
-    customerName: String(body.customerName),
-    customerPhone: String(body.customerPhone ?? ""),
-    packageName: String(body.packageName),
-    date: String(body.date ?? new Date().toISOString().slice(0, 10)),
-    amount: Number(body.amount),
-    amountDisplay: body.amountDisplay === undefined ? undefined : String(body.amountDisplay),
-    amountWords: String(body.amountWords ?? ""),
-    paymentFor: String(body.paymentFor ?? "Pembayaran booking"),
-    paymentMethod: String(body.paymentMethod ?? "Transfer"),
-    account: String(body.account ?? ""),
-    staff: String(body.staff ?? ""),
-    status: String(body.status ?? "Menunggu Cek"),
-    referenceNumber: body.referenceNumber === undefined ? undefined : String(body.referenceNumber),
-    proofUrl: body.proofUrl === undefined ? undefined : String(body.proofUrl),
-    notes: body.notes === undefined ? undefined : String(body.notes),
-  });
+  const amount = Number(body.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ error: "amount harus lebih dari 0" }, { status: 400 });
+  }
 
-  return NextResponse.json({ data }, { status: 201 });
+  try {
+    const data = await createPayment({
+      bookingCode: String(body.bookingCode),
+      date: String(body.date),
+      amount,
+      method: body.method === undefined ? undefined : String(body.method),
+      referenceNumber: body.referenceNumber === undefined ? undefined : String(body.referenceNumber),
+      proofUrl: body.proofUrl === undefined ? undefined : String(body.proofUrl),
+      status: body.status === undefined ? undefined : String(body.status),
+      receivedBy: body.receivedBy === undefined ? undefined : String(body.receivedBy),
+      notes: body.notes === undefined ? undefined : String(body.notes),
+      paymentFor: body.paymentFor === undefined ? undefined : String(body.paymentFor),
+    });
+
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? "Gagal menyimpan pembayaran" }, { status: 500 });
+  }
 }

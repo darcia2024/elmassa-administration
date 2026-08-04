@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listReceiptDetails } from "@/lib/seed-data/receipts";
+import { listReceiptDetails } from "@/lib/receipts/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,9 +7,11 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get("status")?.trim();
   const bookingCode = searchParams.get("bookingCode")?.trim();
 
-  const data = listReceiptDetails().filter((item) => {
+  const all = await listReceiptDetails();
+
+  const data = all.filter((item) => {
     const searchable =
-      `${item.receipt.number} ${item.payment.bookingCode} ${item.receipt.receivedFrom} ${item.payment.packageName} ${item.receipt.account}`.toLowerCase();
+      `${item.receipt.number} ${item.payment.bookingCode} ${item.receipt.receivedFrom} ${item.payment.packageName}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesStatus = !status || status === "Semua" || item.receipt.status === status;
     const matchesBooking = !bookingCode || item.payment.bookingCode === bookingCode;
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
       },
       meta: {
         total: data.length,
-        source: "dummy",
+        source: "supabase",
         filters: {
           bookingCode: bookingCode ?? null,
           q: query,
@@ -37,10 +39,6 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }

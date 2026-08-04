@@ -2,66 +2,55 @@
 
 import { Download, Printer, ReceiptText } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
-type ReceiptItem = {
-  number: string;
-  date: string;
-  bookingCode: string;
-  receivedFrom: string;
-  amountDisplay: string;
-  amountWords: string;
-  paymentFor: string;
-  paymentMethod: string;
-  account: string;
-  staff: string;
-  customerPhone: string;
-  status: string;
+type ReceiptDetail = {
+  receipt: {
+    id: string;
+    number: string;
+    date: string;
+    receivedFrom: string;
+    amount: number;
+    amountWords: string;
+    paymentFor: string;
+    paymentMethod: string;
+    staff: string;
+    status: string;
+  };
+  payment: {
+    id: string;
+    bookingCode: string;
+    customerName: string;
+    customerPhone: string;
+    packageName: string;
+  };
 };
 
-import { useEffect } from "react";
-
 export default function ReceiptPage() {
-  const [receipts, setReceipts] = useState<ReceiptItem[]>([]);
+  const [receipts, setReceipts] = useState<ReceiptDetail[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedReceiptNumber, setSelectedReceiptNumber] = useState("");
 
   useEffect(() => {
-    try {
-      const savedStr = localStorage.getItem("el_massa_real_bookings");
-      if (savedStr) {
-        const savedBookings = JSON.parse(savedStr);
-        if (Array.isArray(savedBookings) && savedBookings.length > 0) {
-          const dynamicReceipts: ReceiptItem[] = savedBookings
-            .filter((b: any) => (b.paidAmount || 0) > 0)
-            .map((b: any) => ({
-              number: `KW-${b.code}`,
-              date: b.createdDate || "Hari ini",
-              bookingCode: b.code,
-              receivedFrom: b.customer || "Jamaah Terdaftar",
-              amountDisplay: b.paidDisplay || `Rp ${(b.paidAmount || 0).toLocaleString("id-ID")}`,
-              amountWords: `${b.paidDisplay || "Uang Muka/Pelunasan"} (Terbayar Sah)`,
-              paymentFor: `Pembayaran DP / Pelunasan Paket ${b.packageName || "Umrah Spesial"}`,
-              paymentMethod: "Transfer Bank",
-              account: "BCA El Massa",
-              staff: "Kasir Admin",
-              customerPhone: b.phone || "-",
-              status: b.status || "DP",
-            }));
-
-          setReceipts(dynamicReceipts);
-          if (dynamicReceipts.length > 0) {
-            setSelectedReceiptNumber(dynamicReceipts[0].number);
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    fetch("/api/receipts")
+      .then((res) => res.json())
+      .then((json) => {
+        const data = (json.data ?? []) as ReceiptDetail[];
+        setReceipts(data);
+        if (data.length > 0) setSelectedReceiptNumber(data[0].receipt.number);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
   }, []);
 
-  const receipt = receipts.find((item) => item.number === selectedReceiptNumber) ?? receipts[0];
+  const item = receipts.find((r) => r.receipt.number === selectedReceiptNumber) ?? receipts[0];
+  const receipt = item?.receipt;
+  const payment = item?.payment;
   const handlePrint = () => window.print();
+  const handleDownload = () => {
+    if (payment) window.open(`/api/receipts/${payment.id}/pdf`, "_blank");
+  };
 
   return (
     <AppShell eyebrow="Dokumen Keuangan" title="Kuitansi Operasional">
@@ -80,7 +69,7 @@ export default function ReceiptPage() {
                 <Printer className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
                 Cetak
               </button>
-              <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition" type="button" onClick={handlePrint}>
+              <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition" type="button" onClick={handleDownload}>
                 <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
                 Unduh PDF
               </button>
@@ -88,7 +77,9 @@ export default function ReceiptPage() {
           </div>
         </section>
 
-        {receipts.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-xs text-stone-400 py-12">Memuat kuitansi...</p>
+        ) : receipts.length === 0 || !receipt || !payment ? (
           <div className="rounded-2xl border border-stone-200/70 bg-white p-12 text-center shadow-2xs space-y-4">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-brand-pink">
               <ReceiptText className="h-7 w-7" strokeWidth={1.5} />
@@ -111,25 +102,25 @@ export default function ReceiptPage() {
             <aside className="print-hidden rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
               <h3 className="text-xs font-bold text-brand-cocoa uppercase tracking-wider mb-3">Daftar Kuitansi</h3>
               <div className="space-y-2">
-                {receipts.map((item) => {
-                  const isSelected = item.number === receipt?.number;
+                {receipts.map((r) => {
+                  const isSelected = r.receipt.number === receipt.number;
 
                   return (
                     <button
-                      key={item.number}
+                      key={r.receipt.number}
                       className={`w-full rounded-xl border p-3.5 text-left text-xs transition ${
                         isSelected
                           ? "border-brand-pink bg-rose-50/40 text-brand-cocoa font-semibold"
                           : "border-stone-200/70 bg-white text-stone-700 hover:border-stone-300"
                       }`}
                       type="button"
-                      onClick={() => setSelectedReceiptNumber(item.number)}
+                      onClick={() => setSelectedReceiptNumber(r.receipt.number)}
                     >
-                      <span className="block font-bold text-brand-cocoa">{item.number}</span>
-                      <span className="mt-0.5 block text-[11px] text-stone-500">{item.receivedFrom}</span>
+                      <span className="block font-bold text-brand-cocoa">{r.receipt.number}</span>
+                      <span className="mt-0.5 block text-[11px] text-stone-500">{r.receipt.receivedFrom}</span>
                       <span className="mt-2 flex justify-between gap-3 text-[11px]">
-                        <span className="font-semibold text-emerald-700">{item.amountDisplay}</span>
-                        <span className="text-stone-400">{item.status}</span>
+                        <span className="font-semibold text-emerald-700">Rp {r.receipt.amount.toLocaleString("id-ID")}</span>
+                        <span className="text-stone-400">{r.receipt.status}</span>
                       </span>
                     </button>
                   );
@@ -169,7 +160,7 @@ export default function ReceiptPage() {
             <div className="space-y-4 text-xs">
               <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
                 <span className="font-semibold text-stone-500">Telah Diterima Dari</span>
-                <span className="font-bold text-brand-cocoa">{receipt.receivedFrom} ({receipt.customerPhone})</span>
+                <span className="font-bold text-brand-cocoa">{receipt.receivedFrom} ({payment.customerPhone})</span>
               </div>
 
               <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
@@ -181,7 +172,7 @@ export default function ReceiptPage() {
 
               <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
                 <span className="font-semibold text-stone-500">Untuk Pembayaran</span>
-                <span className="font-medium text-stone-700">{receipt.paymentFor} (Kode: {receipt.bookingCode})</span>
+                <span className="font-medium text-stone-700">{receipt.paymentFor} (Kode: {payment.bookingCode})</span>
               </div>
             </div>
 
@@ -189,7 +180,7 @@ export default function ReceiptPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t border-stone-200/60 pt-4">
               <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 px-4 py-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Total Terbayar</span>
-                <p className="text-xl font-extrabold text-brand-pink">{receipt.amountDisplay}</p>
+                <p className="text-xl font-extrabold text-brand-pink">Rp {receipt.amount.toLocaleString("id-ID")}</p>
               </div>
 
               <div className="text-right text-xs">

@@ -6,22 +6,22 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
 type PaymentItem = {
-  receipt: string;
+  id: string;
+  receiptNumber: string | null;
   bookingCode: string;
-  customer: string;
+  customerName: string;
   packageName: string;
   date: string;
-  amountDisplay: string;
+  amount: number;
   method: string;
-  account: string;
   status: string;
 };
-
-const payments: PaymentItem[] = [];
 
 export default function PaymentsPage() {
   const [bankAccountsCount, setBankAccountsCount] = useState(0);
   const [bankNamesNote, setBankNamesNote] = useState("Belum Ada Rekening");
+  const [payments, setPayments] = useState<PaymentItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Load real bank accounts created by user from localStorage / company identity
   useEffect(() => {
@@ -43,11 +43,27 @@ export default function PaymentsPage() {
     setBankNamesNote("Belum Ada Rekening");
   }, []);
 
+  useEffect(() => {
+    fetch("/api/payments")
+      .then((res) => res.json())
+      .then((json) => setPayments(json.data ?? []))
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalMasuk = payments
+    .filter((p) => p.status === "Terverifikasi")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalMenunggu = payments
+    .filter((p) => p.status !== "Terverifikasi")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const receiptCount = payments.filter((p) => p.receiptNumber).length;
+
   const paymentSummary = [
-    { label: "Pembayaran Masuk", value: "Rp 0", note: "Total dana diterima", icon: CircleDollarSign },
-    { label: "Menunggu Cek", value: "Rp 0", note: "Perlu validasi staf", icon: WalletCards },
+    { label: "Pembayaran Masuk", value: `Rp ${totalMasuk.toLocaleString("id-ID")}`, note: "Total dana diterima", icon: CircleDollarSign },
+    { label: "Menunggu Cek", value: `Rp ${totalMenunggu.toLocaleString("id-ID")}`, note: "Perlu validasi staf", icon: WalletCards },
     { label: "Rekening Bank", value: `${bankAccountsCount} Rekening`, note: bankNamesNote, icon: CreditCard },
-    { label: "Kuitansi Diterbitkan", value: "0 Kuitansi", note: "Siap cetak & kirim", icon: ReceiptText },
+    { label: "Kuitansi Diterbitkan", value: `${receiptCount} Kuitansi`, note: "Siap cetak & kirim", icon: ReceiptText },
   ];
   return (
     <AppShell eyebrow="Keuangan" title="Pembayaran & Cicilan">
@@ -93,90 +109,95 @@ export default function PaymentsPage() {
             </div>
           </div>
 
-          {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
-          <div className="space-y-3 block md:hidden">
-            {payments.map((item) => (
-              <div
-                key={item.receipt}
-                className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-2.5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="font-mono text-[10px] font-bold text-stone-400 block">{item.receipt} • {item.bookingCode}</span>
-                    <h4 className="font-bold text-xs text-stone-900">{item.customer}</h4>
-                  </div>
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
-                    item.status === "Terverifikasi"
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200/60"
-                      : "bg-amber-50 text-amber-800 border-amber-200/60"
-                  }`}>
-                    {item.status}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-medium">Nominal Bayar</span>
-                    <span className="font-bold text-emerald-700">{item.amountDisplay}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-stone-400 block font-medium">Metode & Bank</span>
-                    <span className="font-bold text-stone-800">{item.method} ({item.account})</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-stone-100 text-stone-500">
-                  <span className="truncate max-w-[180px]">{item.packageName}</span>
-                  <span>{item.date}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
-            <table className="w-full min-w-[800px] border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
-                  <th className="py-2.5 pl-3 pr-2">Kuitansi & Booking</th>
-                  <th className="py-2.5 pr-2">Pelanggan</th>
-                  <th className="py-2.5 pr-2">Paket Wisata</th>
-                  <th className="py-2.5 pr-2">Tanggal Bayar</th>
-                  <th className="py-2.5 pr-2">Nominal</th>
-                  <th className="py-2.5 pr-2">Metode & Rekening</th>
-                  <th className="py-2.5 pr-3 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 font-normal">
+          {loading ? (
+            <p className="px-3 py-6 text-xs text-stone-400">Memuat pembayaran...</p>
+          ) : payments.length === 0 ? (
+            <p className="px-3 py-6 text-xs text-stone-400">Belum ada pembayaran tercatat.</p>
+          ) : (
+            <>
+              {/* 📱 NATIVE MOBILE TOUCH CARDS (Hidden on Desktop) */}
+              <div className="space-y-3 block md:hidden">
                 {payments.map((item) => (
-                  <tr key={item.receipt} className="transition hover:bg-stone-50/60">
-                    <td className="py-3 pl-3 pr-2">
-                      <p className="font-semibold text-brand-cocoa">{item.receipt}</p>
-                      <p className="font-mono text-[10px] text-stone-400">{item.bookingCode}</p>
-                    </td>
-                    <td className="py-3 pr-2 font-medium text-stone-700">{item.customer}</td>
-                    <td className="py-3 pr-2 text-stone-500">{item.packageName}</td>
-                    <td className="py-3 pr-2 text-stone-600">{item.date}</td>
-                    <td className="py-3 pr-2 font-semibold text-emerald-700">{item.amountDisplay}</td>
-                    <td className="py-3 pr-2 font-medium text-stone-700">
-                      <p>{item.method}</p>
-                      <p className="text-[10px] text-stone-400">{item.account}</p>
-                    </td>
-                    <td className="py-3 pr-3 text-right">
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-mono text-[10px] font-bold text-stone-400 block">{item.receiptNumber ?? "—"} • {item.bookingCode}</span>
+                        <h4 className="font-bold text-xs text-stone-900">{item.customerName}</h4>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
                         item.status === "Terverifikasi"
-                          ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
-                          : "bg-amber-50/80 text-amber-800 border-amber-200/60"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200/60"
+                          : "bg-amber-50 text-amber-800 border-amber-200/60"
                       }`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Terverifikasi" ? "bg-emerald-500" : "bg-amber-500"}`} />
                         {item.status}
                       </span>
-                    </td>
-                  </tr>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                      <div>
+                        <span className="text-[10px] text-stone-400 block font-medium">Nominal Bayar</span>
+                        <span className="font-bold text-emerald-700">Rp {Number(item.amount).toLocaleString("id-ID")}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-stone-400 block font-medium">Metode</span>
+                        <span className="font-bold text-stone-800">{item.method}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-stone-100 text-stone-500">
+                      <span className="truncate max-w-[180px]">{item.packageName}</span>
+                      <span>{item.date}</span>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+
+              {/* 🖥️ DESKTOP DATA TABLE (Hidden on Mobile) */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200/60">
+                <table className="w-full min-w-[800px] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
+                      <th className="py-2.5 pl-3 pr-2">Kuitansi & Booking</th>
+                      <th className="py-2.5 pr-2">Pelanggan</th>
+                      <th className="py-2.5 pr-2">Paket Wisata</th>
+                      <th className="py-2.5 pr-2">Tanggal Bayar</th>
+                      <th className="py-2.5 pr-2">Nominal</th>
+                      <th className="py-2.5 pr-2">Metode</th>
+                      <th className="py-2.5 pr-3 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 font-normal">
+                    {payments.map((item) => (
+                      <tr key={item.id} className="transition hover:bg-stone-50/60">
+                        <td className="py-3 pl-3 pr-2">
+                          <p className="font-semibold text-brand-cocoa">{item.receiptNumber ?? "—"}</p>
+                          <p className="font-mono text-[10px] text-stone-400">{item.bookingCode}</p>
+                        </td>
+                        <td className="py-3 pr-2 font-medium text-stone-700">{item.customerName}</td>
+                        <td className="py-3 pr-2 text-stone-500">{item.packageName}</td>
+                        <td className="py-3 pr-2 text-stone-600">{item.date}</td>
+                        <td className="py-3 pr-2 font-semibold text-emerald-700">Rp {Number(item.amount).toLocaleString("id-ID")}</td>
+                        <td className="py-3 pr-2 font-medium text-stone-700">{item.method}</td>
+                        <td className="py-3 pr-3 text-right">
+                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                            item.status === "Terverifikasi"
+                              ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
+                              : "bg-amber-50/80 text-amber-800 border-amber-200/60"
+                          }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Terverifikasi" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                            {item.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </section>
       </div>
     </AppShell>
