@@ -247,12 +247,14 @@ export function PackageList() {
   };
 
   const handleReturnToCalculator = (pkg: PackageCardItem) => {
+    // localStorage is only a cache for instant paint — the package id in the URL is
+    // what keeps the calculator in edit mode across refreshes.
     try {
       localStorage.setItem("el_massa_edit_hpp_package", JSON.stringify(pkg));
     } catch (e) {
       console.error(e);
     }
-    window.location.href = "/paket/kalkulator";
+    window.location.href = `/paket/kalkulator?edit=${encodeURIComponent(pkg.id)}`;
   };
 
   const allPackages = useMemo(() => {

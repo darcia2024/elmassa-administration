@@ -42,6 +42,25 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { generateDefaultItinerary, ItineraryDayItem } from "@/lib/itinerary-generator";
 
+// Airline choices. A saved package can hold a value outside these lists (older
+// packages, renamed options) — it must still show in the dropdown instead of
+// silently falling back to the first entry and misreporting the flight.
+const DOMESTIC_AIRLINES = [
+  { value: "Garuda Indonesia (Feeder PGK ⇄ CGK)", label: "Garuda Indonesia (PGK ⇄ CGK)" },
+  { value: "Lion Air (Feeder PGK ⇄ CGK)", label: "Lion Air (PGK ⇄ CGK)" },
+  { value: "Batik Air (Feeder PGK ⇄ CGK)", label: "Batik Air (PGK ⇄ CGK)" },
+  { value: "Sriwijaya Air (Feeder PGK ⇄ CGK)", label: "Sriwijaya Air (PGK ⇄ CGK)" },
+  { value: "Citilink (Feeder PGK ⇄ CGK)", label: "Citilink (PGK ⇄ CGK)" },
+];
+
+const INTERNATIONAL_AIRLINES = [
+  { value: "Saudia Airlines (SV-815 / Direct Saudi)", label: "Saudia Airlines (SV-815 / Direct Saudi)" },
+  { value: "Garuda Indonesia (GA-980 / Direct Saudi)", label: "Garuda Indonesia (GA-980 / Direct Saudi)" },
+  { value: "Lion Air Premium (JT-110 / Direct Saudi)", label: "Lion Air Premium (JT-110 / Direct Saudi)" },
+  { value: "Emirates (EK-357 / Transit Dubai)", label: "Emirates (EK-357 / Transit Dubai)" },
+  { value: "Qatar Airways (QR-958 / Transit Doha)", label: "Qatar Airways (QR-958 / Transit Doha)" },
+];
+
 export default function PackageCalculatorPage() {
   // 1. Basic Package Meta
   const [packageName, setPackageName] = useState("Umrah Spesial November 12 Hari");
@@ -225,12 +244,18 @@ export default function PackageCalculatorPage() {
 
   const [originalCatalogPrice, setOriginalCatalogPrice] = useState("");
 
-  // Load package from localStorage if returning to Kalkulator HPP for editing
+  // Catalog record of the package being edited. Kept so re-publishing from here
+  // does not wipe meta that lives outside the HPP form (poster, banner, bonus).
+  const [originalPackage, setOriginalPackage] = useState<any>(null);
+
+  // Load the package being edited. Source of truth is ?edit=<packageId> in the URL,
+  // so refreshing or navigating back keeps edit mode alive instead of silently
+  // dropping the form back to the blank template.
   useEffect(() => {
-    try {
-      const editStr = localStorage.getItem("el_massa_edit_hpp_package");
-      if (editStr) {
-        const pkg = JSON.parse(editStr);
+    const editId = new URLSearchParams(window.location.search).get("edit");
+
+    const applyPackage = (pkg: any) => {
+      try {
         if (pkg) {
           const cData = pkg.costingData || pkg.costing_data || pkg;
           const targetId = pkg.id || cData.id;
@@ -262,6 +287,12 @@ export default function PackageCalculatorPage() {
 
           const intAir = readVal("internationalAirline", "international_airline") || readVal("airline", "airline");
           if (intAir) setInternationalAirline(intAir);
+
+          const routeVal = readVal("flightRoute", "flight_route");
+          if (routeVal) setFlightRoute(routeVal);
+
+          const dpVal = readVal("dpMinimum", "dp_minimum");
+          if (dpVal) setPubDpMinimum(dpVal);
 
           const catVal = readVal("categoryName", "category_name") || readVal("category", "category");
           if (catVal) {
@@ -397,12 +428,57 @@ export default function PackageCalculatorPage() {
             setItineraryList(itinVal);
           }
 
-          localStorage.removeItem("el_massa_edit_hpp_package");
+          setOriginalPackage(pkg);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    if (!editId) {
+      // Designing a brand-new package: drop any leftover payload so the template stays clean
+      try {
+        localStorage.removeItem("el_massa_edit_hpp_package");
+      } catch (e) {
+        console.error(e);
+      }
+      return;
+    }
+
+    // 1. Paint instantly from the payload handed over by the catalog (no network wait)
+    let appliedFromCache = false;
+    try {
+      const cachedStr = localStorage.getItem("el_massa_edit_hpp_package");
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (cached && cached.id === editId) {
+          applyPackage(cached);
+          appliedFromCache = true;
         }
       }
     } catch (e) {
       console.error(e);
     }
+
+    // 2. Re-read from Supabase so a refresh or a shared link still restores the package
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok || !Array.isArray(res.data)) return;
+        const fresh = res.data.find((item: any) => item.id === editId);
+        if (!fresh) return;
+        if (appliedFromCache) {
+          setOriginalPackage(fresh);
+        } else {
+          applyPackage(fresh);
+        }
+        try {
+          localStorage.setItem("el_massa_edit_hpp_package", JSON.stringify(fresh));
+        } catch (e) {
+          console.error(e);
+        }
+      })
+      .catch((e) => console.error(e));
   }, []);
 
   // 4. Calculations (Live Computed 0ms)
@@ -638,7 +714,7 @@ export default function PackageCalculatorPage() {
       returnDate: returnDate,
       price: formatRupiah(calculations.sellingPriceQuad),
       numericPrice: calculations.sellingPriceQuad,
-      dpMinimum: pubDpMinimum || "Rp 5.000.000",
+      dpMinimum: pubDpMinimum || originalPackage?.dpMinimum || "Rp 5.000.000",
       makkahHotel: makkahHotelName,
       madinahHotel: madinahHotelName,
       airline: `${domesticAirline} + ${internationalAirline}`,
@@ -725,14 +801,18 @@ export default function PackageCalculatorPage() {
         itineraryList: itineraryList,
       },
       itinerary: itineraryList,
-      bonusHighlights: [
-        "Free City Tour Thaif & Pabrik Parfum",
-        "Free City Tour Jabal Magnet & Ayam Albaik",
-        "Free Air Zamzam 5L & Perlengkapan Complete",
-      ],
-      posterImg: "/poster-el-massa.png",
-      bannerImg: "/banner-el-massa.png",
-      featured: true,
+      // Meta below is not part of the HPP form — keep whatever the catalog already
+      // has (poster upload, bonus wording, featured flag) instead of resetting it.
+      bonusHighlights: originalPackage?.bonusHighlights?.length
+        ? originalPackage.bonusHighlights
+        : [
+            "Free City Tour Thaif & Pabrik Parfum",
+            "Free City Tour Jabal Magnet & Ayam Albaik",
+            "Free Air Zamzam 5L & Perlengkapan Complete",
+          ],
+      posterImg: originalPackage?.posterImg || "/poster-el-massa.png",
+      bannerImg: originalPackage?.bannerImg || "/banner-el-massa.png",
+      featured: originalPackage?.featured ?? true,
       includes: [
         `Tiket Feeder Domestik PP PGK ⇄ CGK (${domesticAirline})`,
         `Tiket Utama Internasional PP CGK ⇄ JED/MED (${internationalAirline})`,
@@ -744,11 +824,13 @@ export default function PackageCalculatorPage() {
         "Handling Bandara CGK, JED & MED",
         "Bus AC Modern Terbaru",
       ],
-      excludes: [
-        "Biaya pembuatan paspor",
-        "Biaya suntik vaksin (jika diperlukan)",
-        "Kebutuhan pribadi & bagasi berlebih",
-      ],
+      excludes: originalPackage?.excludes?.length
+        ? originalPackage.excludes
+        : [
+            "Biaya pembuatan paspor",
+            "Biaya suntik vaksin (jika diperlukan)",
+            "Kebutuhan pribadi & bagasi berlebih",
+          ],
     };
 
     try {
@@ -793,15 +875,14 @@ export default function PackageCalculatorPage() {
   };
 
   const handleCancelEditPackage = () => {
-    setEditingPackageId("");
-    setPackageName("Umrah Spesial November 12 Hari");
-    setCategoryName("November");
-    setDepartureDate("2026-11-03");
-    setReturnDate("2026-11-14");
-    setMakkahHotelName("Grand Al Massa");
-    setMadinahHotelName("Daar El Naeem");
-    setPubPackageName("");
-    localStorage.removeItem("el_massa_edit_hpp_package");
+    // Drop the edit payload and reload the bare calculator so every costing field
+    // resets to the template — not just the handful of meta fields.
+    try {
+      localStorage.removeItem("el_massa_edit_hpp_package");
+    } catch (e) {
+      console.error(e);
+    }
+    window.location.href = "/paket/kalkulator";
   };
 
   return (
@@ -1191,11 +1272,14 @@ export default function PackageCalculatorPage() {
                     onChange={(e) => setDomesticAirline(e.target.value)}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   >
-                    <option value="Garuda Indonesia (Feeder PGK ⇄ CGK)">Garuda Indonesia (PGK ⇄ CGK)</option>
-                    <option value="Lion Air (Feeder PGK ⇄ CGK)">Lion Air (PGK ⇄ CGK)</option>
-                    <option value="Batik Air (Feeder PGK ⇄ CGK)">Batik Air (PGK ⇄ CGK)</option>
-                    <option value="Sriwijaya Air (Feeder PGK ⇄ CGK)">Sriwijaya Air (PGK ⇄ CGK)</option>
-                    <option value="Citilink (Feeder PGK ⇄ CGK)">Citilink (PGK ⇄ CGK)</option>
+                    {!DOMESTIC_AIRLINES.some((opt) => opt.value === domesticAirline) && (
+                      <option value={domesticAirline}>{domesticAirline}</option>
+                    )}
+                    {DOMESTIC_AIRLINES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1206,11 +1290,14 @@ export default function PackageCalculatorPage() {
                     onChange={(e) => setInternationalAirline(e.target.value)}
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-semibold text-brand-cocoa outline-none focus:border-brand-pink"
                   >
-                    <option value="Saudia Airlines (SV-815 / Direct Saudi)">Saudia Airlines (SV-815 / Direct Saudi)</option>
-                    <option value="Garuda Indonesia (GA-980 / Direct Saudi)">Garuda Indonesia (GA-980 / Direct Saudi)</option>
-                    <option value="Lion Air Premium (JT-110 / Direct Saudi)">Lion Air Premium (JT-110 / Direct Saudi)</option>
-                    <option value="Emirates (EK-357 / Transit Dubai)">Emirates (EK-357 / Transit Dubai)</option>
-                    <option value="Qatar Airways (QR-958 / Transit Doha)">Qatar Airways (QR-958 / Transit Doha)</option>
+                    {!INTERNATIONAL_AIRLINES.some((opt) => opt.value === internationalAirline) && (
+                      <option value={internationalAirline}>{internationalAirline}</option>
+                    )}
+                    {INTERNATIONAL_AIRLINES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
