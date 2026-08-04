@@ -67,33 +67,23 @@ export default function StaffAndSubUsersPage() {
   const [accounts, setAccounts] = useState<UserAccount[]>(initialAccounts);
   const [activeTab, setActiveTab] = useState<"Semua" | "Admin Master" | "Sub-User Tim">("Semua");
 
-  // Sync with localStorage
-  useEffect(() => {
+  // Accounts live in Supabase — these are the credentials people log in with, so
+  // they cannot sit in one browser's storage.
+  const reloadAccounts = async () => {
     try {
-      const saved = localStorage.getItem("el_massa_staff_users");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setAccounts(parsed);
-        } else {
-          localStorage.setItem("el_massa_staff_users", JSON.stringify(initialAccounts));
-        }
-      } else {
-        localStorage.setItem("el_massa_staff_users", JSON.stringify(initialAccounts));
+      const res = await fetch("/api/staff-users");
+      const payload = await res.json();
+      if (Array.isArray(payload?.data)) {
+        setAccounts(payload.data);
       }
     } catch (e) {
       console.error("Failed to load staff users:", e);
     }
-  }, []);
-
-  const updateAccountsState = (newAccounts: UserAccount[]) => {
-    setAccounts(newAccounts);
-    try {
-      localStorage.setItem("el_massa_staff_users", JSON.stringify(newAccounts));
-    } catch (e) {
-      console.error("Failed to save staff users:", e);
-    }
   };
+
+  useEffect(() => {
+    reloadAccounts();
+  }, []);
   
   // Account Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -154,65 +144,111 @@ export default function StaffAndSubUsersPage() {
       branch: acc.branch,
       status: acc.status,
       teamDivision: acc.teamDivision,
-      password: acc.password || "admin123",
+      password: "",
     });
     setIsModalOpen(true);
   };
 
   const handleOpenPasswordModal = (acc: UserAccount) => {
     setPasswordTargetUser(acc);
-    setNewPassword(acc.password || "admin123");
+    // Existing passwords are hashes, so the field starts blank for a fresh one.
+    setNewPassword("");
     setIsPasswordModalOpen(true);
   };
 
-  const handleSaveAccount = (e: React.FormEvent) => {
+  const handleSaveAccount = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingId) {
-      updateAccountsState(
-        accounts.map((acc) =>
-          acc.id === editingId
-            ? { ...acc, ...formData }
-            : acc
-        )
-      );
-      showToast(`Data Sub-User "${formData.name}" berhasil diperbarui!`);
-    } else {
-      const newAcc: UserAccount = {
-        id: `acc-${Date.now()}`,
-        ...formData,
-      };
-      updateAccountsState([...accounts, newAcc]);
-      showToast(`Sub-User baru "${formData.name}" berhasil didaftarkan! Password: ${formData.password || "admin123"}`);
-    }
+    try {
+      if (editingId) {
+        const res = await fetch(`/api/staff-users/${encodeURIComponent(editingId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            role: formData.role,
+            branch: formData.branch,
+            status: formData.status,
+          }),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(payload?.error ?? "Gagal memperbarui staf.");
+          return;
+        }
+        showToast(`Data Sub-User "${formData.name}" berhasil diperbarui!`);
+      } else {
+        const res = await fetch("/api/staff-users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role,
+            branch: formData.branch,
+            status: formData.status,
+          }),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(payload?.fields?.password ?? payload?.error ?? "Gagal menambah staf.");
+          return;
+        }
+        showToast(`Sub-User baru "${formData.name}" berhasil didaftarkan.`);
+      }
 
-    setIsModalOpen(false);
+      await reloadAccounts();
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Tidak bisa menghubungi server.");
+    }
   };
 
-  const handleSavePassword = (e: React.FormEvent) => {
+  const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordTargetUser || !newPassword.trim()) return;
 
-    updateAccountsState(
-      accounts.map((acc) =>
-        acc.id === passwordTargetUser.id
-          ? { ...acc, password: newPassword.trim() }
-          : acc
-      )
-    );
+    try {
+      const res = await fetch(`/api/staff-users/${encodeURIComponent(passwordTargetUser.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword.trim() }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(payload?.fields?.password ?? payload?.error ?? "Gagal mengubah password.");
+        return;
+      }
 
-    showToast(`Password untuk sub-user ${passwordTargetUser.name} berhasil diubah!`);
-    setIsPasswordModalOpen(false);
+      showToast(`Password untuk sub-user ${passwordTargetUser.name} berhasil diubah!`);
+      setIsPasswordModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Tidak bisa menghubungi server.");
+    }
   };
 
-  const handleDeleteAccount = (acc: UserAccount) => {
+  const handleDeleteAccount = async (acc: UserAccount) => {
     if (acc.role === "Admin Master") {
       alert("Akun CEO / Admin Master tidak dapat dihapus!");
       return;
     }
-    if (confirm(`Yakin ingin menghapus sub-user "${acc.name}"?`)) {
-      updateAccountsState(accounts.filter((a) => a.id !== acc.id));
+    if (!confirm(`Yakin ingin menghapus sub-user "${acc.name}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/staff-users/${encodeURIComponent(acc.id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("Gagal menghapus staf.");
+        return;
+      }
+      await reloadAccounts();
       showToast(`Sub-user "${acc.name}" telah dihapus dari sistem.`);
+    } catch (err) {
+      console.error(err);
+      alert("Tidak bisa menghubungi server.");
     }
   };
 
@@ -347,7 +383,7 @@ export default function StaffAndSubUsersPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-1 text-xs border-t border-stone-100">
-                  <span className="font-mono text-[10px] text-stone-500">Pass: {acc.password || "admin123"}</span>
+                  <span className="font-mono text-[10px] text-stone-400">Pass: ••••••••</span>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
@@ -400,8 +436,11 @@ export default function StaffAndSubUsersPage() {
                       {acc.email} <span className="text-stone-400">• {acc.phone}</span>
                     </td>
                     <td className="py-3 pr-2 text-center whitespace-nowrap">
-                      <span className="font-mono text-[11px] bg-stone-100 px-2 py-0.5 rounded text-stone-700 font-semibold border border-stone-200">
-                        {acc.password || "admin123"}
+                      <span
+                        className="font-mono text-[11px] bg-stone-100 px-2 py-0.5 rounded text-stone-500 font-semibold border border-stone-200"
+                        title="Password disimpan sebagai hash dan tidak bisa ditampilkan. Gunakan Ubah Password untuk mengganti."
+                      >
+                        ••••••••
                       </span>
                     </td>
                     <td className="py-3 pr-3 text-right whitespace-nowrap space-x-1">

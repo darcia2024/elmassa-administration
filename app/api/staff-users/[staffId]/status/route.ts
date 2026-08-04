@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateStaffUserRow } from "@/lib/seed-data/staff-users";
+import { updateStaff } from "@/lib/auth/staff-store";
 
 type StaffUserStatusRouteProps = {
   params: Promise<{
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: StaffUserStatusRou
     );
   }
 
-  const data = updateStaffUserRow(decodeURIComponent(staffId), { status });
+  const data = await updateStaff(decodeURIComponent(staffId), { status });
 
   if (!data) {
     return NextResponse.json({ error: "Staf pengguna tidak ditemukan" }, { status: 404 });

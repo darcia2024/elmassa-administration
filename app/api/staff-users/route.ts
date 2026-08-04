@@ -1,66 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createStaffUserRow, listStaffUserRows, parseStaffUserPayload } from "@/lib/seed-data/staff-users";
+import { createStaff, listStaff } from "@/lib/auth/staff-store";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
-  const role = searchParams.get("role")?.trim();
-  const branch = searchParams.get("branch")?.trim();
-  const status = searchParams.get("status")?.trim();
-
-  const data = listStaffUserRows().filter((item) => {
-    const searchable = `${item.name} ${item.email} ${item.phone} ${item.role} ${item.branch}`.toLowerCase();
-    const matchesQuery = query.length === 0 || searchable.includes(query);
-    const matchesRole = !role || role === "Semua" || item.role === role;
-    const matchesBranch = !branch || branch === "Semua" || item.branch === branch;
-    const matchesStatus = !status || status === "Semua" || item.status === status;
-
-    return matchesQuery && matchesRole && matchesBranch && matchesStatus;
-  });
+export async function GET() {
+  const data = await listStaff();
 
   return NextResponse.json(
-    {
-      data,
-      summary: {
-        staffCount: data.length,
-        activeCount: data.filter((item) => item.status === "Aktif").length,
-        financeAdminCount: data.filter((item) => item.role === "Sub-User Keuangan" && item.status === "Aktif").length,
-      },
-      meta: {
-        total: data.length,
-        source: "dummy",
-        filters: {
-          q: query,
-          role: role ?? null,
-          branch: branch ?? null,
-          status: status ?? null,
-        },
-      },
-    },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { data, meta: { total: data.length, source: "supabase" } },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const parsed = parseStaffUserPayload(body);
+  const body = await request.json().catch(() => ({}));
+  const name = String(body.name ?? "").trim();
+  const email = String(body.email ?? "").trim();
+  const password = String(body.password ?? "");
+  const fields: Record<string, string> = {};
 
-  if ("errors" in parsed) {
-    return NextResponse.json({ error: "Payload staf pengguna tidak valid", fields: parsed.errors }, { status: 400 });
+  if (!name) fields.name = "Nama wajib diisi";
+  if (!email) {
+    fields.email = "Email wajib diisi";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    fields.email = "Format email tidak valid";
+  }
+  if (password.length < 8) {
+    fields.password = "Password minimal 8 karakter";
   }
 
-  const data = createStaffUserRow({
-    name: parsed.data.name!,
-    email: parsed.data.email!,
-    phone: parsed.data.phone ?? "",
-    role: parsed.data.role!,
-    branch: parsed.data.branch!,
-    status: parsed.data.status!,
-  });
+  if (Object.keys(fields).length > 0) {
+    return NextResponse.json({ error: "Data staf tidak valid", fields }, { status: 400 });
+  }
 
-  return NextResponse.json({ data }, { status: 201 });
+  try {
+    const data = await createStaff({
+      name,
+      email,
+      password,
+      role: body.role ? String(body.role) : undefined,
+      branch: body.branch ? String(body.branch) : undefined,
+      status: body.status ? String(body.status) : undefined,
+    });
+
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      return NextResponse.json(
+        { error: "Email tersebut sudah dipakai staf lain", fields: { email: "Email sudah terdaftar" } },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ error: err?.message ?? "Gagal menyimpan staf" }, { status: 500 });
+  }
 }
