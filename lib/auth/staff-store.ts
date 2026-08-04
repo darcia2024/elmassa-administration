@@ -98,6 +98,16 @@ export async function findStaffByEmail(email: string): Promise<StaffRowWithSecre
   return res.rows[0] ?? null;
 }
 
+export async function findStaffById(id: string): Promise<StaffRowWithSecret | null> {
+  await ensureStaffTable();
+  const res = await getPool().query(
+    `SELECT ${SELECT_PUBLIC}, password_hash as "passwordHash", password_salt as "passwordSalt"
+     FROM staff_users WHERE id = $1 LIMIT 1;`,
+    [id],
+  );
+  return res.rows[0] ?? null;
+}
+
 export function verifyStaffPassword(row: StaffRowWithSecret, password: string): boolean {
   // Rows that predate the password columns cannot log in until one is set.
   if (!row.passwordHash || !row.passwordSalt) return false;

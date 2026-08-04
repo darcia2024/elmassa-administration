@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, KeyRound, LockKeyhole, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
@@ -16,6 +16,8 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const checks = useMemo(
     () => ({
@@ -31,13 +33,43 @@ export default function ChangePasswordPage() {
   const isConfirmValid = confirmPassword.length > 0 && confirmPassword === newPassword;
   const canSubmit = currentPassword.length > 0 && isPasswordValid && isConfirmValid;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setError("");
+
     if (!canSubmit) {
       setSubmitted(false);
       return;
     }
 
-    setSubmitted(true);
+    // The old password is checked against the stored hash on the server; the
+    // form used to just flip a flag and report success without saving anything.
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const firstField = payload?.fields ? Object.values(payload.fields)[0] : null;
+        setError(String(firstField ?? payload?.error ?? "Gagal mengganti password."));
+        setSubmitted(false);
+        return;
+      }
+
+      setSubmitted(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e) {
+      console.error(e);
+      setError("Tidak bisa menghubungi server.");
+      setSubmitted(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,7 +78,7 @@ export default function ChangePasswordPage() {
         <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <p className="text-sm font-semibold text-stone-500">Status Form</p>
           <p className="mt-3 text-2xl font-bold text-brand-cocoa">{canSubmit ? "Valid" : "Belum Valid"}</p>
-          <p className="mt-2 text-sm text-stone-500">Validasi lokal dummy</p>
+          <p className="mt-2 text-sm text-stone-500">Diverifikasi ulang oleh server</p>
         </article>
         <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <p className="text-sm font-semibold text-stone-500">Syarat Terpenuhi</p>
@@ -94,16 +126,23 @@ export default function ChangePasswordPage() {
             </div>
           ) : null}
 
-          {submitted ? (
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <p>Password dummy berhasil divalidasi.</p>
+          {error ? (
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+              <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <p>{error}</p>
             </div>
           ) : null}
 
-          <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-stone-300" type="submit" disabled={!canSubmit}>
+          {submitted ? (
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <p>Password berhasil diganti. Gunakan password baru saat login berikutnya.</p>
+            </div>
+          ) : null}
+
+          <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-stone-300" type="submit" disabled={!canSubmit || isSubmitting}>
             <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-            Simpan password dummy
+            {isSubmitting ? "Menyimpan…" : "Simpan Password Baru"}
           </button>
         </form>
 

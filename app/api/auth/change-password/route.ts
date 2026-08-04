@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { findAuthUserById, toSessionUser, updateAuthUserPassword, verifyAuthUserPassword } from "@/lib/seed-data/auth-users";
+import { findStaffById, updateStaff, verifyStaffPassword } from "@/lib/auth/staff-store";
 
 export async function POST(request: NextRequest) {
   const headerList = await headers();
   const userId = headerList.get("x-el-massa-user-id");
-  const user = userId ? findAuthUserById(userId) : null;
+  const user = userId ? await findStaffById(userId) : null;
 
   if (!user) {
     return NextResponse.json({ error: "Autentikasi diperlukan" }, { status: 401 });
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Payload ganti password tidak valid", fields }, { status: 400 });
   }
 
-  if (!verifyAuthUserPassword(user, currentPassword)) {
+  if (!verifyStaffPassword(user, currentPassword)) {
     return NextResponse.json(
       {
         error: "Password lama tidak cocok",
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (verifyAuthUserPassword(user, newPassword)) {
+  if (verifyStaffPassword(user, newPassword)) {
     return NextResponse.json(
       {
         error: "Password baru tidak boleh sama dengan password lama",
@@ -61,15 +61,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const updated = updateAuthUserPassword(user.id, newPassword) ?? user;
+  const updated = (await updateStaff(user.id, { password: newPassword })) ?? user;
 
   return NextResponse.json({
     data: {
       changed: true,
-      user: toSessionUser(updated),
+      user: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        role: updated.role,
+      },
     },
     meta: {
-      source: "dummy",
+      source: "supabase",
     },
   });
 }
