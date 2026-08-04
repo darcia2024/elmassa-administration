@@ -1,0 +1,35 @@
+import { Pool } from "pg";
+
+/**
+ * Single source of truth for the database connection.
+ *
+ * The connection string must come from DATABASE_URL (.env.local locally, project
+ * environment variables on the host). Never hardcode it in source — anything
+ * committed once stays in the git history for good, even after it is deleted.
+ */
+export function getDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL;
+
+  if (!url) {
+    throw new Error(
+      "DATABASE_URL is not set. Copy .env.example to .env.local and fill in the Supabase connection string.",
+    );
+  }
+
+  return url;
+}
+
+// One pool per server process, shared by every route, created on first use so a
+// missing DATABASE_URL fails the individual request instead of the whole build.
+let pool: Pool | undefined;
+
+export function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: getDatabaseUrl(),
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+
+  return pool;
+}

@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
+import { getPool } from "@/lib/db/connection";
 
 // Ensure table exists
 async function ensureTable() {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS jamaah_accounts (
@@ -48,7 +40,7 @@ async function ensureTable() {
 export async function GET() {
   try {
     await ensureTable();
-    const res = await pool.query(
+    const res = await getPool().query(
       `SELECT id, nama, nomor_jamaah as "nomorJamaah", nik, paspor, tgl_lahir_usia as "tglLahirUsia", golongan_darah as "golonganDarah", telepon, kontak_darurat as "kontakDarurat", alamat_lengkap as "alamatLengkap", batch, rombongan, bus, kamar, flight, e_visa as "eVisa", titik_kumpul as "titikKumpul", status, tanggal_terbit as "tanggalTerbit" FROM jamaah_accounts ORDER BY created_at DESC;`
     );
     return NextResponse.json({ ok: true, data: res.rows });
@@ -64,7 +56,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const accounts = Array.isArray(body) ? body : [body];
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       await client.query("BEGIN");
       for (const acc of accounts) {
@@ -125,7 +117,7 @@ export async function DELETE(req: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ ok: false, error: "ID required" }, { status: 400 });
 
-    await pool.query("DELETE FROM jamaah_accounts WHERE id = $1;", [id]);
+    await getPool().query("DELETE FROM jamaah_accounts WHERE id = $1;", [id]);
     return NextResponse.json({ ok: true, message: `Account ${id} deleted from Supabase` });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });

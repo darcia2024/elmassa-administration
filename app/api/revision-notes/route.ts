@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
+import { getPool } from "@/lib/db/connection";
 
 // Ensure table exists
 async function ensureTable() {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS page_revision_notes (
@@ -62,7 +54,7 @@ export async function GET(req: Request) {
 
     query += ` ORDER BY created_at DESC;`;
 
-    const res = await pool.query(query, params);
+    const res = await getPool().query(query, params);
     return NextResponse.json({ ok: true, data: res.rows });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
@@ -75,7 +67,7 @@ export async function POST(req: Request) {
     await ensureTable();
     const note = await req.json();
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       const id = note.id || `rev-${Date.now()}`;
       await client.query(
@@ -117,7 +109,7 @@ export async function PATCH(req: Request) {
     const { id, status } = await req.json();
     if (!id || !status) return NextResponse.json({ ok: false, error: "id and status required" }, { status: 400 });
 
-    await pool.query(`UPDATE page_revision_notes SET status = $1 WHERE id = $2;`, [status, id]);
+    await getPool().query(`UPDATE page_revision_notes SET status = $1 WHERE id = $2;`, [status, id]);
     return NextResponse.json({ ok: true, message: `Status revisi ${id} diubah ke ${status}` });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
@@ -132,7 +124,7 @@ export async function DELETE(req: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ ok: false, error: "id required" }, { status: 400 });
 
-    await pool.query(`DELETE FROM page_revision_notes WHERE id = $1;`, [id]);
+    await getPool().query(`DELETE FROM page_revision_notes WHERE id = $1;`, [id]);
     return NextResponse.json({ ok: true, message: `Catatan revisi ${id} berhasil dihapus` });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });

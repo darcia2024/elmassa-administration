@@ -1,8 +1,16 @@
 import pg from "pg";
 const { Pool } = pg;
 
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
+// Standalone script — run it with the env var set, e.g.
+//   node --env-file=.env.local scratch/init-db.mjs
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error(
+    "DATABASE_URL is not set. Run with: node --env-file=.env.local scratch/init-db.mjs",
+  );
+  process.exit(1);
+}
 
 const pool = new Pool({
   connectionString,

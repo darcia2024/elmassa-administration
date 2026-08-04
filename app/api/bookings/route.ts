@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
+import { getPool } from "@/lib/db/connection";
 
 async function ensureTable() {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS real_bookings (
@@ -42,7 +34,7 @@ async function ensureTable() {
 export async function GET() {
   try {
     await ensureTable();
-    const res = await pool.query(`
+    const res = await getPool().query(`
       SELECT 
         code,
         customer_name as "customerName",
@@ -75,7 +67,7 @@ export async function POST(req: Request) {
     await ensureTable();
     const b = await req.json();
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       const code = b.code || `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       const totalAmount = Number(b.totalAmount) || 33500000;
@@ -137,12 +129,12 @@ export async function PATCH(req: Request) {
     if (!code) return NextResponse.json({ ok: false, error: "code required" }, { status: 400 });
 
     if (paidAmount !== undefined && remainingAmount !== undefined) {
-      await pool.query(
+      await getPool().query(
         `UPDATE real_bookings SET paid_amount = $1, remaining_amount = $2, status = $3 WHERE code = $4;`,
         [Number(paidAmount), Number(remainingAmount), status, code]
       );
     } else if (status) {
-      await pool.query(`UPDATE real_bookings SET status = $1 WHERE code = $2;`, [status, code]);
+      await getPool().query(`UPDATE real_bookings SET status = $1 WHERE code = $2;`, [status, code]);
     }
 
     return NextResponse.json({ ok: true, message: `Booking ${code} updated` });
@@ -160,13 +152,13 @@ export async function DELETE(req: Request) {
     const wipeAll = searchParams.get("all") === "true" || searchParams.get("clearAll") === "true" || code === "ALL";
 
     if (wipeAll) {
-      await pool.query("TRUNCATE TABLE real_bookings;");
+      await getPool().query("TRUNCATE TABLE real_bookings;");
       return NextResponse.json({ ok: true, message: "All bookings wiped from Supabase Cloud DB" });
     }
 
     if (!code) return NextResponse.json({ ok: false, error: "code required" }, { status: 400 });
 
-    await pool.query("DELETE FROM real_bookings WHERE code = $1;", [code]);
+    await getPool().query("DELETE FROM real_bookings WHERE code = $1;", [code]);
     return NextResponse.json({ ok: true, message: `Booking ${code} deleted from Supabase` });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });

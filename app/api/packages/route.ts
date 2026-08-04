@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
+import { getPool } from "@/lib/db/connection";
 
 let isTableEnsured = false;
 
@@ -15,7 +7,7 @@ let isTableEnsured = false;
 async function ensureTable() {
   if (isTableEnsured) return;
   try {
-    await pool.query(`
+    await getPool().query(`
       CREATE TABLE IF NOT EXISTS published_packages (
         id VARCHAR(100) PRIMARY KEY,
         name TEXT NOT NULL,
@@ -67,7 +59,7 @@ export async function OPTIONS() {
 export async function GET() {
   try {
     await ensureTable();
-    const res = await pool.query(
+    const res = await getPool().query(
       `SELECT 
         id, 
         name, 
@@ -109,7 +101,7 @@ export async function POST(req: Request) {
     await ensureTable();
     const pkg = await req.json();
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       await client.query(
         `INSERT INTO published_packages (
@@ -188,12 +180,12 @@ export async function DELETE(req: Request) {
     const wipeAll = searchParams.get("all") === "true" || searchParams.get("clearAll") === "true" || id === "ALL";
 
     if (wipeAll) {
-      await pool.query("TRUNCATE TABLE published_packages;");
+      await getPool().query("TRUNCATE TABLE published_packages;");
       return NextResponse.json({ ok: true, message: "All packages wiped from Supabase Cloud Database" }, { headers: corsHeaders });
     }
 
     if (id) {
-      await pool.query("DELETE FROM published_packages WHERE id = $1;", [id]);
+      await getPool().query("DELETE FROM published_packages WHERE id = $1;", [id]);
       return NextResponse.json({ ok: true, message: `Package ${id} deleted from Supabase Cloud Database` }, { headers: corsHeaders });
     }
 

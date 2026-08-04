@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const connectionString =
-  "postgresql://postgres.dekeoqlowiozsjpsqdsl:l7FItz7zmhhB2Yfo@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres";
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
+import { getPool } from "@/lib/db/connection";
 
 export async function POST() {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query("TRUNCATE TABLE published_packages;");
     await client.query("TRUNCATE TABLE real_bookings;");
