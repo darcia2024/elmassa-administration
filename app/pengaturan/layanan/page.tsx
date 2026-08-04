@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
 type ServiceType = {
@@ -40,7 +40,23 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function ServiceTypesPage() {
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState<ServiceType[]>([]);
+
+  // Service types drive the document templates used on invoices, so they are
+  // shared configuration rather than something each browser keeps its own copy of.
+  const reloadServices = async () => {
+    try {
+      const res = await fetch("/api/service-types");
+      const payload = await res.json();
+      if (Array.isArray(payload?.data)) setServices(payload.data);
+    } catch (e) {
+      console.error("Gagal memuat jenis layanan:", e);
+    }
+  };
+
+  useEffect(() => {
+    reloadServices();
+  }, []);
   const [form, setForm] = useState<Omit<ServiceType, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -48,35 +64,38 @@ export default function ServiceTypesPage() {
   const draftCount = useMemo(() => services.filter((service) => service.status === "Draft").length, [services]);
   const selectedService = editingId ? services.find((service) => service.id === editingId) : null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim() || !form.documentTemplate.trim()) {
       return;
     }
 
-    if (editingId) {
-      setServices((current) =>
-        current.map((service) =>
-          service.id === editingId
-            ? {
-                ...service,
-                ...form,
-              }
-            : service,
-        ),
-      );
+    try {
+      const res = editingId
+        ? await fetch(`/api/service-types/${encodeURIComponent(editingId)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          })
+        : await fetch("/api/service-types", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        const firstField = payload?.fields ? Object.values(payload.fields)[0] : null;
+        alert(String(firstField ?? payload?.error ?? "Gagal menyimpan jenis layanan."));
+        return;
+      }
+
+      await reloadServices();
       setEditingId(null);
       setForm(emptyForm);
-      return;
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
     }
-
-    setServices((current) => [
-      ...current,
-      {
-        ...form,
-        id: `srv-${crypto.randomUUID()}`,
-      },
-    ]);
-    setForm(emptyForm);
   };
 
   const handleEdit = (service: ServiceType) => {
@@ -90,8 +109,22 @@ export default function ServiceTypesPage() {
     });
   };
 
-  const handleDelete = (serviceId: string) => {
-    setServices((current) => current.filter((service) => service.id !== serviceId));
+  const handleDelete = async (serviceId: string) => {
+    if (!confirm("Hapus jenis layanan ini?")) return;
+
+    try {
+      const res = await fetch(`/api/service-types/${encodeURIComponent(serviceId)}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("Gagal menghapus jenis layanan.");
+        return;
+      }
+      await reloadServices();
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
+      return;
+    }
+
     if (editingId === serviceId) {
       setEditingId(null);
       setForm(emptyForm);

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  deleteServiceTypeRow,
-  findServiceTypeRow,
-  parseServiceTypePayload,
-  updateServiceTypeRow,
-} from "@/lib/seed-data/service-types";
+import { parseServiceTypePayload } from "@/lib/seed-data/service-types";
+import { deleteServiceType, listServiceTypes, updateServiceType } from "@/lib/settings/reference";
 
 type ServiceTypeDetailRouteProps = {
   params: Promise<{
@@ -14,7 +10,8 @@ type ServiceTypeDetailRouteProps = {
 
 export async function GET(_: NextRequest, { params }: ServiceTypeDetailRouteProps) {
   const { serviceTypeId } = await params;
-  const data = findServiceTypeRow(decodeURIComponent(serviceTypeId));
+  const wantedId = decodeURIComponent(serviceTypeId);
+  const data = (await listServiceTypes()).find((row) => row.id === wantedId);
 
   if (!data) {
     return NextResponse.json({ error: "Jenis layanan tidak ditemukan" }, { status: 404 });
@@ -32,7 +29,7 @@ export async function PATCH(request: NextRequest, { params }: ServiceTypeDetailR
     return NextResponse.json({ error: "Payload jenis layanan tidak valid", fields: parsed.errors }, { status: 400 });
   }
 
-  const data = updateServiceTypeRow(decodeURIComponent(serviceTypeId), {
+  const data = await updateServiceType(decodeURIComponent(serviceTypeId), {
     name: parsed.data.name,
     category: parsed.data.category,
     defaultDuration: parsed.data.defaultDuration,
@@ -51,7 +48,7 @@ export async function PATCH(request: NextRequest, { params }: ServiceTypeDetailR
 export async function DELETE(_: NextRequest, { params }: ServiceTypeDetailRouteProps) {
   const { serviceTypeId } = await params;
   const decodedId = decodeURIComponent(serviceTypeId);
-  const deleted = deleteServiceTypeRow(decodedId);
+  const deleted = await deleteServiceType(decodedId);
 
   if (!deleted) {
     return NextResponse.json({ error: "Jenis layanan tidak ditemukan" }, { status: 404 });

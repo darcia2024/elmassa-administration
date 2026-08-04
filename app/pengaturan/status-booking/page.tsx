@@ -1,31 +1,32 @@
 import { AlertTriangle, CheckCircle2, CircleDashed, ClipboardList, Lock, RefreshCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { listBookingStatuses } from "@/lib/settings/reference";
 
-const bookingStatuses = [
-  {
-    name: "Prospek",
-    stage: "Pra-booking",
-    description: "Pelanggan baru masuk pipeline, belum ada jadwal atau tagihan final.",
-    paymentImpact: "Belum ditagih",
-    documentImpact: "Belum diminta",
-    owner: "Sales",
-    status: "Aktif",
-  },
-];
-
-const workflow = [
-  { label: "Prospek", icon: CircleDashed },
-];
+// Icons are presentation only; the statuses themselves come from the database.
+const stageIcons: Record<string, typeof CircleDashed> = {
+  Prospek: CircleDashed,
+  "Belum Bayar": ClipboardList,
+  DP: RefreshCcw,
+  Lunas: CheckCircle2,
+  Dibatalkan: XCircle,
+  Refund: AlertTriangle,
+};
 
 const statusStyles: Record<string, string> = {
   Aktif: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   Manual: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
-export default function BookingStatusesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function BookingStatusesPage() {
+  const bookingStatuses = await listBookingStatuses();
   const activeCount = bookingStatuses.filter((item) => item.status === "Aktif").length;
   const manualCount = bookingStatuses.filter((item) => item.status === "Manual").length;
+  const workflow = bookingStatuses
+    .filter((item) => item.status === "Aktif")
+    .map((item) => ({ label: item.name, icon: stageIcons[item.name] ?? CircleDashed }));
 
   return (
     <AppShell eyebrow="Pengaturan Master" title="Status Booking">

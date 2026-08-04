@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listBookingStatusRows } from "@/lib/seed-data/booking-statuses";
+import { listBookingStatuses } from "@/lib/settings/reference";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,12 +7,14 @@ export async function GET(request: NextRequest) {
   const stage = searchParams.get("stage")?.trim();
   const mode = searchParams.get("mode")?.trim();
 
-  const data = listBookingStatusRows().filter((item) => {
+  const all = await listBookingStatuses();
+
+  const data = all.filter((item) => {
     const searchable =
-      `${item.name} ${item.stage} ${item.description} ${item.paymentImpact} ${item.documentImpact} ${item.ownerRole}`.toLowerCase();
+      `${item.name} ${item.stage} ${item.description} ${item.paymentImpact} ${item.documentImpact} ${item.owner}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesStage = !stage || stage === "Semua" || item.stage === stage;
-    const matchesMode = !mode || mode === "Semua" || item.mode === mode;
+    const matchesMode = !mode || mode === "Semua" || item.status === mode;
 
     return matchesQuery && matchesStage && matchesMode;
   });
@@ -20,15 +22,15 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
       data,
-      workflow: data.filter((item) => item.mode === "Aktif").map((item) => item.name),
+      workflow: data.filter((item) => item.status === "Aktif").map((item) => item.name),
       summary: {
         statusCount: data.length,
-        automaticCount: data.filter((item) => item.mode === "Aktif").length,
-        manualCount: data.filter((item) => item.mode === "Manual").length,
+        automaticCount: data.filter((item) => item.status === "Aktif").length,
+        manualCount: data.filter((item) => item.status === "Manual").length,
       },
       meta: {
         total: data.length,
-        source: "dummy",
+        source: "supabase",
         readonly: true,
         filters: {
           q: query,

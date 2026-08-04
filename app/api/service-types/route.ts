@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  createServiceTypeRow,
-  listServiceTypeRows,
-  parseServiceTypePayload,
-} from "@/lib/seed-data/service-types";
+import { parseServiceTypePayload } from "@/lib/seed-data/service-types";
+import { createServiceType, listServiceTypes } from "@/lib/settings/reference";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,7 +8,9 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get("category")?.trim();
   const status = searchParams.get("status")?.trim();
 
-  const data = listServiceTypeRows().filter((item) => {
+  const all = await listServiceTypes();
+
+  const data = all.filter((item) => {
     const searchable = `${item.name} ${item.category} ${item.defaultDuration} ${item.documentTemplate} ${item.notes}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesCategory = !category || category === "Semua" || item.category === category;
@@ -30,7 +29,7 @@ export async function GET(request: NextRequest) {
       },
       meta: {
         total: data.length,
-        source: "dummy",
+        source: "supabase",
         filters: {
           q: query,
           category: category ?? null,
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Payload jenis layanan tidak valid", fields: parsed.errors }, { status: 400 });
   }
 
-  const data = createServiceTypeRow({
+  const data = await createServiceType({
     name: parsed.data.name!,
     category: parsed.data.category!,
     defaultDuration: parsed.data.defaultDuration ?? "",
