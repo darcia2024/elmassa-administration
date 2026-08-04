@@ -13,7 +13,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 import { exportToCSV } from "@/lib/export-excel";
@@ -25,15 +25,12 @@ type IncomeRowItem = {
   bookingCode: string;
   customer: string;
   date: string;
+  gross: number;
   grossDisplay: string;
+  paid: number;
   paidDisplay: string;
-  marginDisplay: string;
   status: string;
 };
-
-const incomeRows: IncomeRowItem[] = [];
-
-const serviceSummary: Array<{ label: string; totalOmzet: string; count: string; share: string }> = [];
 
 const statusStyles: Record<string, string> = {
   "Final / Lunas": "bg-emerald-50/80 text-emerald-800 border border-emerald-200/60",
@@ -42,7 +39,34 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function IncomeReportPage() {
+  const [incomeRows, setIncomeRows] = useState<IncomeRowItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    fetch("/api/reports/income")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        setIncomeRows(
+          rows.map((r) => ({
+            id: r.id,
+            serviceType: r.serviceType,
+            packageName: r.packageName,
+            bookingCode: r.bookingCode,
+            customer: r.customer,
+            date: r.date,
+            gross: r.amount,
+            grossDisplay: r.amountDisplay,
+            paid: r.paid,
+            paidDisplay: r.paidDisplay,
+            status: r.status,
+          })),
+        );
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredRows = useMemo(() => {
     return incomeRows.filter((r) => {
@@ -54,7 +78,10 @@ export default function IncomeReportPage() {
         r.packageName.toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [incomeRows, query]);
+
+  const totalOmzet = useMemo(() => filteredRows.reduce((sum, r) => sum + r.gross, 0), [filteredRows]);
+  const totalKasMasuk = useMemo(() => filteredRows.reduce((sum, r) => sum + r.paid, 0), [filteredRows]);
 
   return (
     <AppShell eyebrow="Laporan & Analytics" title="Laporan Pendapatan & Gross Profit Omzet">
@@ -86,7 +113,7 @@ export default function IncomeReportPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const headers = ["ID", "Jenis Layanan", "Paket Umrah", "Kode Booking", "Jamaah", "Tgl Transaksi", "Total Omzet", "Realisasi Kas", "Margin Profit", "Status"];
+                  const headers = ["ID", "Jenis Layanan", "Paket Umrah", "Kode Booking", "Jamaah", "Tgl Transaksi", "Total Omzet", "Realisasi Kas", "Status"];
                   const rows = filteredRows.map((r) => [
                     r.id,
                     r.serviceType,
@@ -96,7 +123,6 @@ export default function IncomeReportPage() {
                     r.date,
                     r.grossDisplay,
                     r.paidDisplay,
-                    r.marginDisplay,
                     r.status,
                   ]);
                   exportToCSV("Laporan_Pendapatan_Omset_El_Massa", headers, rows);
@@ -118,7 +144,7 @@ export default function IncomeReportPage() {
               <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-xl font-extrabold text-brand-cocoa">
-              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+              Rp {totalOmzet.toLocaleString("id-ID")}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Total nilai kontrak paket</p>
           </article>
@@ -129,7 +155,7 @@ export default function IncomeReportPage() {
               <BarChart3 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-xl font-extrabold text-emerald-700">
-              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+              Rp {totalKasMasuk.toLocaleString("id-ID")}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Pemasukan kas terverifikasi</p>
           </article>
@@ -139,36 +165,20 @@ export default function IncomeReportPage() {
               <p className="text-xs font-semibold text-stone-500">Estimasi Gross Margin</p>
               <TrendingUp className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-pink">
-              {filteredRows.length > 0 ? "Rp 0" : "Rp 0"}
+            <p className="mt-1 text-sm font-semibold text-stone-400">
+              Data belum tersedia
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Margin kotor travel (~16.5%)</p>
+            <p className="mt-1 text-[11px] text-stone-400">Kalkulator HPP belum menyimpan breakdown biaya ke database</p>
           </article>
 
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Jamaah</p>
+              <p className="text-xs font-semibold text-stone-500">Total Booking</p>
               <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-sky-800">{filteredRows.length} Jamaah</p>
+            <p className="mt-1 text-2xl font-bold text-sky-800">{filteredRows.length} Booking</p>
             <p className="mt-1 text-[11px] text-stone-400">Periode real operasional</p>
           </article>
-        </section>
-
-        {/* Category Breakdown Grid */}
-        <section className="grid gap-4 md:grid-cols-3">
-          {serviceSummary.map((item) => (
-            <article key={item.label} className="rounded-2xl border border-stone-200/70 bg-white p-4 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-brand-cocoa">{item.label}</span>
-                <span className="rounded-full bg-rose-50 text-brand-pink border border-brand-pink/20 px-2 py-0.5 text-[10px] font-bold">
-                  {item.share} Market Share
-                </span>
-              </div>
-              <p className="text-lg font-extrabold text-brand-pink">{item.totalOmzet}</p>
-              <p className="text-[11px] text-stone-500">{item.count}</p>
-            </article>
-          ))}
         </section>
 
         {/* Table Card */}
@@ -200,11 +210,20 @@ export default function IncomeReportPage() {
                   <th className="py-2.5 pr-2">Tgl Berangkat</th>
                   <th className="py-2.5 pr-2">Total Omzet Gross</th>
                   <th className="py-2.5 pr-2">Kas Terbayar</th>
-                  <th className="py-2.5 pr-2">Estimasi Margin</th>
                   <th className="py-2.5 pr-3 text-right">Status Bayar</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
+                {loading && (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-stone-400">Memuat laporan pendapatan...</td>
+                  </tr>
+                )}
+                {!loading && filteredRows.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-stone-400">Belum ada data booking.</td>
+                  </tr>
+                )}
                 {filteredRows.map((r) => (
                   <tr key={r.id} className="transition hover:bg-stone-50/60">
                     <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa whitespace-nowrap">{r.bookingCode}</td>
@@ -213,7 +232,6 @@ export default function IncomeReportPage() {
                     <td className="py-3 pr-2 text-stone-500 whitespace-nowrap">{r.date}</td>
                     <td className="py-3 pr-2 font-bold text-stone-900 whitespace-nowrap">{r.grossDisplay}</td>
                     <td className="py-3 pr-2 font-semibold text-emerald-700 whitespace-nowrap">{r.paidDisplay}</td>
-                    <td className="py-3 pr-2 font-bold text-brand-pink whitespace-nowrap">{r.marginDisplay}</td>
                     <td className="py-3 pr-3 text-right whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusStyles[r.status]}`}>
                         {r.status}

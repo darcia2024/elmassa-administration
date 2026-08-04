@@ -1,30 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listBookingRows } from "@/lib/seed-data/bookings";
-
-const dueDatesByBooking: Record<string, string> = {
-  "BK-2407-014": "2026-08-05",
-  "BK-2407-015": "2026-08-20",
-  "BK-2407-016": "2026-07-31",
-  "BK-2407-018": "2026-07-28",
-};
-
-const displayDatesByBooking: Record<string, string> = {
-  "BK-2407-014": "05 Agu 2026",
-  "BK-2407-015": "20 Agu 2026",
-  "BK-2407-016": "31 Jul 2026",
-  "BK-2407-018": "28 Jul 2026",
-};
+import { listReceivables } from "@/lib/reports/store";
 
 function formatRupiah(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    currency: "IDR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(value);
-}
-
-function calculateRemainingAmount(totalPrice: number, paidAmount: number) {
-  return Math.max(totalPrice - paidAmount, 0);
+  return new Intl.NumberFormat("id-ID", { currency: "IDR", maximumFractionDigits: 0, style: "currency" }).format(value);
 }
 
 export async function GET(request: NextRequest) {
@@ -36,33 +14,29 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
   const status = searchParams.get("status")?.trim();
 
-  const rows = listBookingRows()
-    .map((booking) => {
-      const remainingAmount = calculateRemainingAmount(booking.totalPrice, booking.paidAmount);
-      const dueDateValue = dueDatesByBooking[booking.code] ?? booking.departureDate;
+  const all = await listReceivables();
 
-      return {
-        bookingCode: booking.code,
-        customerId: booking.customerId,
-        customerName: booking.customerName,
-        packageName: booking.packageName,
-        scheduleId: booking.scheduleId,
-        departureDate: booking.departureDate,
-        bookingDate: booking.bookingDate,
-        dueDate: displayDatesByBooking[booking.code] ?? dueDateValue,
-        dueDateValue,
-        totalPrice: booking.totalPrice,
-        totalDisplay: formatRupiah(booking.totalPrice),
-        paidAmount: booking.paidAmount,
-        paidDisplay: formatRupiah(booking.paidAmount),
-        remainingAmount,
-        remainingDisplay: formatRupiah(remainingAmount),
-        status: booking.status,
-      };
-    })
-    .filter((row) => row.remainingAmount > 0)
-    .filter((row) => !startDate || row.dueDateValue >= startDate)
-    .filter((row) => !endDate || row.dueDateValue <= endDate)
+  const rows = all
+    .map((row) => ({
+      bookingCode: row.bookingCode,
+      customerName: row.customer,
+      packageName: row.packageName,
+      departureDate: row.departureDate,
+      dueDate: row.dueDate ?? "-",
+      dueDateValue: row.dueDate ?? "",
+      totalPrice: row.total,
+      totalDisplay: formatRupiah(row.total),
+      paidAmount: row.paid,
+      paidDisplay: formatRupiah(row.paid),
+      remainingAmount: row.remaining,
+      remainingDisplay: formatRupiah(row.remaining),
+      ageDays: row.ageDays,
+      priority: row.priority,
+      status: row.status,
+      phone: row.phone,
+    }))
+    .filter((row) => !startDate || !row.dueDateValue || row.dueDateValue >= startDate)
+    .filter((row) => !endDate || !row.dueDateValue || row.dueDateValue <= endDate)
     .filter((row) => !customer || customer === "semua pelanggan" || row.customerName.toLowerCase() === customer)
     .filter((row) => !packageName || packageName === "semua paket" || row.packageName.toLowerCase() === packageName)
     .filter((row) => !status || status === "Semua" || row.status === status)
@@ -70,7 +44,7 @@ export async function GET(request: NextRequest) {
       const searchable = `${row.bookingCode} ${row.customerName} ${row.packageName}`.toLowerCase();
       return query.length === 0 || searchable.includes(query);
     })
-    .sort((first, second) => first.dueDateValue.localeCompare(second.dueDateValue));
+    .sort((first, second) => (first.dueDateValue || "9999").localeCompare(second.dueDateValue || "9999"));
 
   const totalRemaining = rows.reduce((total, row) => total + row.remainingAmount, 0);
   const totalPaid = rows.reduce((total, row) => total + row.paidAmount, 0);
@@ -94,7 +68,7 @@ export async function GET(request: NextRequest) {
         statusBreakdown,
       },
       meta: {
-        source: "dummy",
+        source: "supabase",
         filters: {
           customer: customer ?? null,
           endDate: endDate ?? null,
@@ -105,10 +79,6 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }

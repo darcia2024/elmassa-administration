@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, BarChart3, Download, FileSpreadsheet, Search } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 import { exportToCSV } from "@/lib/export-excel";
-import { formatRupiah } from "@/lib/seed-data/derived";
+
+function formatRupiah(value: number) {
+  return `Rp ${value.toLocaleString("id-ID")}`;
+}
 
 type TransactionItem = {
   id: string;
@@ -14,14 +18,40 @@ type TransactionItem = {
   category: string;
   bookingCode: string;
   customer: string;
-  account: string;
+  amount: number;
   amountDisplay: string;
   status: string;
 };
 
-const transactions: TransactionItem[] = [];
-
 export default function TransactionReportPage() {
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/payments")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        setTransactions(
+          rows.map((p) => ({
+            id: p.receiptNumber ?? p.id,
+            date: p.date,
+            type: "Pemasukan",
+            category: p.method,
+            bookingCode: p.bookingCode,
+            customer: p.customerName,
+            amount: Number(p.amount),
+            amountDisplay: formatRupiah(Number(p.amount)),
+            status: p.status,
+          })),
+        );
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalPemasukan = transactions.reduce((sum, t) => sum + t.amount, 0);
+
   return (
     <AppShell eyebrow="Laporan" title="Laporan Transaksi Arus Kas">
       <div className="space-y-5">
@@ -40,7 +70,7 @@ export default function TransactionReportPage() {
               <ArrowDownCircle className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-700">
-              {formatRupiah(0)}
+              {formatRupiah(totalPemasukan)}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Pembayaran jamaah masuk</p>
           </article>
@@ -52,12 +82,12 @@ export default function TransactionReportPage() {
             <p className="mt-1 text-2xl font-bold text-rose-600">
               {formatRupiah(0)}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Operasional perjalanan</p>
+            <p className="mt-1 text-[11px] text-stone-400">Belum ada fitur pencatatan biaya operasional</p>
           </article>
           <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
             <p className="text-xs font-semibold text-stone-500">Saldo Arus Kas</p>
             <p className="mt-1 text-2xl font-bold text-brand-cocoa">
-              {formatRupiah(0)}
+              {formatRupiah(totalPemasukan)}
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Net selisih arus kas</p>
           </article>
@@ -72,7 +102,7 @@ export default function TransactionReportPage() {
             </div>
             <button
               onClick={() => {
-                const headers = ["ID Transaksi", "Tanggal", "Tipe", "Kategori", "Kode Booking", "Pelanggan", "Akun Bank", "Nominal", "Status"];
+                const headers = ["ID Transaksi", "Tanggal", "Tipe", "Kategori", "Kode Booking", "Pelanggan", "Nominal", "Status"];
                 const rows = transactions.map((t) => [
                   t.id,
                   t.date,
@@ -80,7 +110,6 @@ export default function TransactionReportPage() {
                   t.category,
                   t.bookingCode,
                   t.customer,
-                  t.account,
                   t.amountDisplay,
                   t.status,
                 ]);
@@ -109,6 +138,16 @@ export default function TransactionReportPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
+                {loading && (
+                  <tr>
+                    <td colSpan={8} className="py-6 text-center text-stone-400">Memuat transaksi...</td>
+                  </tr>
+                )}
+                {!loading && transactions.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-6 text-center text-stone-400">Belum ada transaksi.</td>
+                  </tr>
+                )}
                 {transactions.map((trx) => (
                   <tr key={trx.id} className="transition hover:bg-stone-50/60">
                     <td className="py-3 pl-3 pr-2 font-mono font-semibold text-brand-cocoa whitespace-nowrap">{trx.id}</td>

@@ -17,7 +17,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ReportNav } from "@/components/report-nav";
 import { exportToCSV } from "@/lib/export-excel";
@@ -39,8 +39,6 @@ type ReceivableItem = {
   phone: string;
 };
 
-const receivables: ReceivableItem[] = [];
-
 const priorityStyles: Record<string, string> = {
   Tinggi: "bg-rose-50/80 text-rose-700 border border-rose-200/60",
   Normal: "bg-emerald-50/80 text-emerald-700 border border-emerald-200/60",
@@ -53,22 +51,52 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function ReportsPage() {
-  const [startDate, setStartDate] = useState("2026-06-01");
-  const [endDate, setEndDate] = useState("2026-08-31");
+  const [receivables, setReceivables] = useState<ReceivableItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState("2026-01-01");
+  const [endDate, setEndDate] = useState("2026-12-31");
   const [selectedStatus, setSelectedStatus] = useState("Semua Status");
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    fetch("/api/reports/receivables")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        setReceivables(
+          rows.map((r) => ({
+            bookingCode: r.bookingCode,
+            customer: r.customerName,
+            packageName: r.packageName,
+            departureDate: r.departureDate,
+            totalDisplay: r.totalDisplay,
+            paidDisplay: r.paidDisplay,
+            remainingDisplay: r.remainingDisplay,
+            remainingAmount: r.remainingAmount,
+            dueDate: r.dueDate,
+            dueDateValue: r.dueDateValue,
+            age: `${r.ageDays} hari`,
+            status: r.status,
+            priority: r.priority,
+            phone: r.phone,
+          })),
+        );
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredReceivables = useMemo(
     () =>
       receivables.filter((row) => {
-        const matchesDate = row.dueDateValue >= startDate && row.dueDateValue <= endDate;
+        const matchesDate = !row.dueDateValue || (row.dueDateValue >= startDate && row.dueDateValue <= endDate);
         const matchesStatus = selectedStatus === "Semua Status" || row.status === selectedStatus;
         const searchable = `${row.bookingCode} ${row.customer} ${row.packageName}`.toLowerCase();
         const matchesQuery = query.trim().length === 0 || searchable.includes(query.trim().toLowerCase());
 
         return matchesDate && matchesStatus && matchesQuery;
       }),
-    [startDate, endDate, selectedStatus, query],
+    [receivables, startDate, endDate, selectedStatus, query],
   );
 
   const totalPiutang = useMemo(() => filteredReceivables.reduce((acc, r) => acc + r.remainingAmount, 0), [filteredReceivables]);
@@ -239,6 +267,16 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
+                {loading && (
+                  <tr>
+                    <td colSpan={10} className="py-6 text-center text-stone-400">Memuat laporan piutang...</td>
+                  </tr>
+                )}
+                {!loading && filteredReceivables.length === 0 && (
+                  <tr>
+                    <td colSpan={10} className="py-6 text-center text-stone-400">Tidak ada piutang tersisa.</td>
+                  </tr>
+                )}
                 {filteredReceivables.map((r) => (
                   <tr key={r.bookingCode} className="transition hover:bg-stone-50/60">
                     <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa whitespace-nowrap">{r.bookingCode}</td>
