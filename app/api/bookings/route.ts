@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
+import { upsertCustomerFromBooking } from "@/lib/customers/store";
 
 async function ensureTable() {
   const client = await getPool().connect();
@@ -111,6 +112,14 @@ export async function POST(req: Request) {
           b.umrahMeStatus || "Aktif 🟢",
         ]
       );
+
+      // Keep the customer master list in step with reality. Without this the
+      // Pelanggan page stays empty no matter how many jamaah register.
+      await upsertCustomerFromBooking({
+        customerName: b.customerName || b.customer,
+        phone: b.phone,
+        city: b.city,
+      });
 
       return NextResponse.json({ ok: true, message: "Booking saved to Supabase Cloud DB", code });
     } finally {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCustomerRow, listCustomerRows } from "@/lib/seed-data/customers";
+import { createCustomer, listCustomers } from "@/lib/customers/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,10 +7,12 @@ export async function GET(request: NextRequest) {
   const customerType = searchParams.get("type")?.trim();
   const status = searchParams.get("status")?.trim();
 
-  const data = listCustomerRows().filter((item) => {
-    const searchable = `${item.name} ${item.phone} ${item.email ?? ""} ${item.city} ${item.address}`.toLowerCase();
+  const all = await listCustomers();
+
+  const data = all.filter((item) => {
+    const searchable = `${item.name} ${item.phone} ${item.email} ${item.city} ${item.address}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
-    const matchesType = !customerType || customerType === "Semua" || item.customerType === customerType;
+    const matchesType = !customerType || customerType === "Semua" || item.type === customerType;
     const matchesStatus = !status || status === "Semua" || item.status === status;
 
     return matchesQuery && matchesType && matchesStatus;
@@ -21,45 +23,40 @@ export async function GET(request: NextRequest) {
       data,
       meta: {
         total: data.length,
-        source: "dummy",
-        filters: {
-          q: query,
-          type: customerType ?? null,
-          status: status ?? null,
-        },
+        source: "supabase",
+        filters: { q: query, type: customerType ?? null, status: status ?? null },
       },
     },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
+  const name = String(body.name ?? "").trim();
+  const phone = String(body.phone ?? "").trim();
+  const fields: Record<string, string> = {};
 
-  if (!body.name || !body.phone) {
-    return NextResponse.json(
-      {
-        error: "name dan phone wajib diisi",
-      },
-      {
-        status: 400,
-      },
-    );
+  if (!name) fields.name = "Nama wajib diisi";
+  if (!phone) fields.phone = "Nomor telepon wajib diisi";
+
+  if (Object.keys(fields).length > 0) {
+    return NextResponse.json({ error: "Data pelanggan tidak valid", fields }, { status: 400 });
   }
 
-  const data = createCustomerRow({
-    name: String(body.name),
-    phone: String(body.phone),
-    email: body.email === undefined || body.email === null ? null : String(body.email),
-    address: String(body.address ?? ""),
-    city: String(body.city ?? ""),
-    customerType: String(body.customerType ?? "Individu"),
-    status: String(body.status ?? "Prospek"),
-  });
+  try {
+    const data = await createCustomer({
+      name,
+      phone,
+      email: body.email === undefined ? undefined : String(body.email),
+      address: body.address === undefined ? undefined : String(body.address),
+      city: body.city === undefined ? undefined : String(body.city),
+      type: body.type === undefined ? undefined : String(body.type),
+      status: body.status === undefined ? undefined : String(body.status),
+    });
 
-  return NextResponse.json({ data }, { status: 201 });
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? "Gagal menyimpan pelanggan" }, { status: 500 });
+  }
 }
