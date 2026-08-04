@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, FileText, Layers, Mail, MapPin, Phone, Plane, QrCode, ShieldCheck, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { findCustomerRow } from "@/lib/seed-data/customers";
+import { findCustomer } from "@/lib/customers/store";
 import { listParticipantsForBooking } from "@/lib/seed-data/bookings";
 
 type CustomerDetailPageProps = {
@@ -11,12 +11,16 @@ type CustomerDetailPageProps = {
   }>;
 };
 
+// Read fresh on every visit — same reasoning as the list page: a jamaah's
+// data can change from another device and this page must not serve a stale
+// build-time snapshot.
+export const dynamic = "force-dynamic";
+
 export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
   const { id } = await params;
-  const customer = findCustomerRow(id);
+  const customer = await findCustomer(id);
 
   if (!customer) {
-    // Fallback for default demo
     notFound();
   }
 
