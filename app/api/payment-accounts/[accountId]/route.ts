@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteBankAccountRow, findBankAccountRow, updateBankAccountRow } from "@/lib/seed-data/bank-accounts";
+import { deleteBankAccount, listBankAccounts, updateBankAccount } from "@/lib/settings/store";
 
 type PaymentAccountDetailRouteProps = {
   params: Promise<{
@@ -9,7 +9,8 @@ type PaymentAccountDetailRouteProps = {
 
 export async function GET(_: NextRequest, { params }: PaymentAccountDetailRouteProps) {
   const { accountId } = await params;
-  const data = findBankAccountRow(decodeURIComponent(accountId));
+  const id = decodeURIComponent(accountId);
+  const data = (await listBankAccounts()).find((row) => row.id === id);
 
   if (!data) {
     return NextResponse.json({ error: "Rekening pembayaran tidak ditemukan" }, { status: 404 });
@@ -21,7 +22,7 @@ export async function GET(_: NextRequest, { params }: PaymentAccountDetailRouteP
 export async function PATCH(request: NextRequest, { params }: PaymentAccountDetailRouteProps) {
   const { accountId } = await params;
   const body = await request.json();
-  const data = updateBankAccountRow(decodeURIComponent(accountId), {
+  const data = await updateBankAccount(decodeURIComponent(accountId), {
     bankName: body.bankName === undefined ? undefined : String(body.bankName),
     accountNumber: body.accountNumber === undefined ? undefined : String(body.accountNumber),
     accountName: body.accountName === undefined ? undefined : String(body.accountName),
@@ -41,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: PaymentAccountDeta
 export async function DELETE(_: NextRequest, { params }: PaymentAccountDetailRouteProps) {
   const { accountId } = await params;
   const decodedId = decodeURIComponent(accountId);
-  const deleted = deleteBankAccountRow(decodedId);
+  const deleted = await deleteBankAccount(decodedId);
 
   if (!deleted) {
     return NextResponse.json({ error: "Rekening pembayaran tidak ditemukan" }, { status: 404 });

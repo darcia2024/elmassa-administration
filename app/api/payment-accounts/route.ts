@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createBankAccountRow, listBankAccountRows } from "@/lib/seed-data/bank-accounts";
+import { createBankAccount, listBankAccounts } from "@/lib/settings/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,7 +7,9 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get("status")?.trim();
   const primary = searchParams.get("primary")?.trim();
 
-  const data = listBankAccountRows().filter((item) => {
+  const all = await listBankAccounts();
+
+  const data = all.filter((item) => {
     const searchable = `${item.bankName} ${item.accountNumber} ${item.accountName} ${item.branch}`.toLowerCase();
     const matchesQuery = query.length === 0 || searchable.includes(query);
     const matchesStatus = !status || status === "Semua" || item.status === status;
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
       },
       meta: {
         total: data.length,
-        source: "dummy",
+        source: "supabase",
         filters: {
           q: query,
           status: status ?? null,
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const data = createBankAccountRow({
+  const data = await createBankAccount({
     bankName: String(body.bankName),
     accountNumber: String(body.accountNumber ?? ""),
     accountName: String(body.accountName),

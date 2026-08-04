@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, ExternalLink, FileText, ImageUp, MapPin, RotateCcw, Save, Sparkles, Upload } from "lucide-react";
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
 const initialIdentity = {
@@ -21,6 +21,46 @@ export default function IdentitySettingsPage() {
   const [identity, setIdentity] = useState(initialIdentity);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState("Logo EM Official");
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState("");
+
+  // These details are printed on invoices and receipts, so they belong in the
+  // database, not in a constant that needs a redeploy to change.
+  useEffect(() => {
+    fetch("/api/company-identity")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload?.data) setIdentity((current) => ({ ...current, ...payload.data }));
+      })
+      .catch((e) => console.error("Gagal memuat identitas:", e));
+  }, []);
+
+  const handleSaveIdentity = async () => {
+    setIsSaving(true);
+    setSavedAt("");
+    try {
+      const res = await fetch("/api/company-identity", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(identity),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const firstField = payload?.fields ? Object.values(payload.fields)[0] : null;
+        alert(firstField ?? payload?.error ?? "Gagal menyimpan identitas.");
+        return;
+      }
+
+      if (payload?.data) setIdentity((current) => ({ ...current, ...payload.data }));
+      setSavedAt(new Date().toLocaleTimeString("id-ID"));
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const contactLine = useMemo(
     () => [identity.phone, identity.email, identity.website].filter(Boolean).join(" • "),
@@ -173,12 +213,26 @@ export default function IdentitySettingsPage() {
               
               <button
                 type="button"
+                onClick={handleSaveIdentity}
+                disabled={isSaving}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-bold text-white hover:brightness-110 disabled:opacity-60 transition"
+              >
+                <Save className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span>{isSaving ? "Menyimpan…" : "Simpan Identitas"}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => { setIdentity(initialIdentity); setLogoPreview(null); setLogoName("Logo EM Official"); }}
                 className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs font-semibold text-stone-600 hover:bg-stone-100 transition"
               >
                 <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
                 <span>Reset Default</span>
               </button>
+
+              {savedAt ? (
+                <span className="text-xs font-semibold text-emerald-700">Tersimpan {savedAt}</span>
+              ) : null}
             </div>
           </form>
 

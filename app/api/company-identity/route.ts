@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
-import { getCompanyIdentity, updateCompanyIdentity } from "@/lib/seed-data/company-identity";
+import { getCompanyIdentity, updateCompanyIdentity } from "@/lib/settings/store";
 
 const logoMimeExtensions: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -13,9 +13,9 @@ const logoMimeExtensions: Record<string, string> = {
 export async function GET() {
   return NextResponse.json(
     {
-      data: getCompanyIdentity(),
+      data: await getCompanyIdentity(),
       meta: {
-        source: "dummy",
+        source: "supabase",
       },
     },
     {
@@ -34,7 +34,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Payload identitas dokumen tidak valid", fields: parsed.errors }, { status: 400 });
   }
 
-  const data = updateCompanyIdentity({
+  const data = await updateCompanyIdentity({
     address: parsed.data.address,
     documentFooter: parsed.data.documentFooter,
     email: parsed.data.email,
@@ -43,6 +43,9 @@ export async function PATCH(request: NextRequest) {
     name: parsed.data.name,
     phone: parsed.data.phone,
     website: parsed.data.website,
+    kemenkumham: parsed.data.kemenkumham,
+    ppiu: parsed.data.ppiu,
+    gmapsUrl: parsed.data.gmapsUrl,
   });
 
   return NextResponse.json({ data });
@@ -99,7 +102,7 @@ export async function POST(request: NextRequest) {
   await writeFile(filePath, bytes);
 
   const logoUrl = `/uploads/logos/${fileName}`;
-  const data = updateCompanyIdentity({ logoUrl });
+  const data = await updateCompanyIdentity({ logoUrl });
 
   return NextResponse.json(
     {
@@ -126,6 +129,9 @@ function parseCompanyIdentityPayload(payload: Record<string, unknown>) {
     name: readTrimmed(payload.name),
     phone: readTrimmed(payload.phone),
     website: readTrimmed(payload.website),
+    kemenkumham: readTrimmed(payload.kemenkumham),
+    ppiu: readTrimmed(payload.ppiu),
+    gmapsUrl: readTrimmed(payload.gmapsUrl),
   };
 
   if (data.name !== undefined && data.name.length === 0) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { CreditCard, Pencil, Plus, Star, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
 type BankAccount = {
@@ -41,44 +41,62 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function PaymentAccountsPage() {
-  const [accounts, setAccounts] = useState(initialAccounts);
+  const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [form, setForm] = useState<Omit<BankAccount, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // The primary account here is the one printed on invoices, so it has to be
+  // shared across every device rather than kept per browser.
+  const reloadAccounts = async () => {
+    try {
+      const res = await fetch("/api/payment-accounts");
+      const payload = await res.json();
+      if (Array.isArray(payload?.data)) setAccounts(payload.data);
+    } catch (e) {
+      console.error("Gagal memuat rekening:", e);
+    }
+  };
+
+  useEffect(() => {
+    reloadAccounts();
+  }, []);
   const activeCount = useMemo(() => accounts.filter((account) => account.status === "Aktif").length, [accounts]);
   const primaryAccount = useMemo(() => accounts.find((account) => account.isPrimary), [accounts]);
 
   const selectedAccount = editingId ? accounts.find((account) => account.id === editingId) : null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.bankName.trim() || !form.accountName.trim()) {
       return;
     }
 
-    if (editingId) {
-      setAccounts((current) =>
-        current.map((account) =>
-          account.id === editingId
-            ? {
-                ...account,
-                ...form,
-              }
-            : account,
-        ),
-      );
+    try {
+      const res = editingId
+        ? await fetch(`/api/payment-accounts/${encodeURIComponent(editingId)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          })
+        : await fetch("/api/payment-accounts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            // The first account saved becomes the one printed on documents.
+            body: JSON.stringify({ ...form, isPrimary: form.isPrimary || accounts.length === 0 }),
+          });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        alert(payload?.error ?? "Gagal menyimpan rekening.");
+        return;
+      }
+
+      await reloadAccounts();
       setEditingId(null);
       setForm(emptyForm);
-      return;
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
     }
-
-    setAccounts((current) => [
-      ...current,
-      {
-        ...form,
-        id: `rek-${crypto.randomUUID()}`,
-        isPrimary: accounts.length === 0,
-      },
-    ]);
-    setForm(emptyForm);
   };
 
   const handleEdit = (account: BankAccount) => {
@@ -93,33 +111,56 @@ export default function PaymentAccountsPage() {
     });
   };
 
-  const handleDelete = (accountId: string) => {
-    setAccounts((current) => {
-      const deletedAccount = current.find((account) => account.id === accountId);
-      const remainingAccounts = current.filter((account) => account.id !== accountId);
+  const handleDelete = async (accountId: string) => {
+    const target = accounts.find((account) => account.id === accountId);
+    if (!confirm(`Hapus rekening ${target?.bankName ?? ""} ${target?.accountNumber ?? ""}?`)) return;
 
-      if (!deletedAccount?.isPrimary || remainingAccounts.length === 0) {
-        return remainingAccounts;
+    try {
+      const res = await fetch(`/api/payment-accounts/${encodeURIComponent(accountId)}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("Gagal menghapus rekening.");
+        return;
       }
 
-      return remainingAccounts.map((account, index) => ({
-        ...account,
-        isPrimary: index === 0,
-      }));
-    });
+      const remaining = accounts.filter((account) => account.id !== accountId);
+
+      // Never leave the list without a primary — documents would have no account to print.
+      if (target?.isPrimary && remaining.length > 0) {
+        await fetch(`/api/payment-accounts/${encodeURIComponent(remaining[0].id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isPrimary: true }),
+        });
+      }
+
+      await reloadAccounts();
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
+    }
+
     if (editingId === accountId) {
       setEditingId(null);
       setForm(emptyForm);
     }
   };
 
-  const handleSetPrimary = (accountId: string) => {
-    setAccounts((current) =>
-      current.map((account) => ({
-        ...account,
-        isPrimary: account.id === accountId,
-      })),
-    );
+  const handleSetPrimary = async (accountId: string) => {
+    try {
+      const res = await fetch(`/api/payment-accounts/${encodeURIComponent(accountId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPrimary: true }),
+      });
+      if (!res.ok) {
+        alert("Gagal mengubah rekening utama.");
+        return;
+      }
+      await reloadAccounts();
+    } catch (e) {
+      console.error(e);
+      alert("Tidak bisa menghubungi server.");
+    }
   };
 
   return (
