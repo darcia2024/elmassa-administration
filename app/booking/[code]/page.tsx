@@ -118,36 +118,44 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
       setLoadState("found");
     };
 
-    // 1. Try this browser's cache first so the page paints instantly
+    // 1. Paint instantly from this browser's cache, but treat it as a preview
+    // only — Supabase still gets asked and overwrites it.
+    let paintedFromCache = false;
     try {
       const savedStr = localStorage.getItem("el_massa_real_bookings");
       const cached = savedStr ? findByCode(JSON.parse(savedStr)) : undefined;
       if (cached) {
         apply(cached);
-        return () => {
-          cancelled = true;
-        };
+        paintedFromCache = true;
       }
     } catch (e) {
       console.error("Failed loading booking from localStorage:", e);
     }
 
-    // 2. Not in this browser — the booking may have been created on another
-    // device, so ask Supabase before giving up.
-    fetch("/api/bookings")
-      .then((res) => res.json())
-      .then((res) => {
+    // 2. Supabase is the record. Ask for this one booking by code rather than
+    // pulling the whole list and searching it client-side.
+    fetch(`/api/bookings/${encodeURIComponent(decodedCode)}`)
+      .then(async (res) => {
         if (cancelled) return;
-        const remote = findByCode(res?.data);
+
+        if (res.status === 404) {
+          // A cached row for a booking the database no longer has is stale, not truth.
+          setLoadState("notFound");
+          return;
+        }
+
+        const payload = await res.json().catch(() => null);
+        const remote = payload?.data?.booking;
+
         if (remote) {
           apply(remote);
-        } else {
+        } else if (!paintedFromCache) {
           setLoadState("notFound");
         }
       })
       .catch((e) => {
         console.error("Failed loading booking from Supabase:", e);
-        if (!cancelled) setLoadState("notFound");
+        if (!cancelled && !paintedFromCache) setLoadState("notFound");
       });
 
     return () => {

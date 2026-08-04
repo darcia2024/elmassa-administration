@@ -89,29 +89,44 @@ export default function BookingsPage() {
       if (savedStr) localBookings = JSON.parse(savedStr);
     } catch (e) {}
 
+    // Paint the cached copy first so the table is not blank while the request
+    // is in flight.
+    if (localBookings.length > 0) setBookings(localBookings);
+
     fetch("/api/bookings")
       .then((res) => res.json())
       .then((res) => {
         if (res.ok && Array.isArray(res.data)) {
-          const mergedMap = new Map<string, BookingItem>();
-          res.data.forEach((b: BookingItem) => mergedMap.set(b.code, b));
-          localBookings.forEach((b: BookingItem) => mergedMap.set(b.code, b));
-          const finalBookings = Array.from(mergedMap.values());
-          setBookings(finalBookings);
+          // Supabase replaces the cache outright. Merging the local copy over it
+          // used to let a stale row — including one deleted elsewhere — win.
+          setBookings(res.data);
           try {
-            localStorage.setItem("el_massa_real_bookings", JSON.stringify(finalBookings));
+            localStorage.setItem("el_massa_real_bookings", JSON.stringify(res.data));
           } catch (e) {}
-        } else if (localBookings.length > 0) {
-          setBookings(localBookings);
         }
       })
       .catch(() => {
-        if (localBookings.length > 0) setBookings(localBookings);
+        // Offline: whatever was painted from cache stays on screen.
       });
   }, []);
 
-  const handleDeleteBooking = (code: string) => {
+  const handleDeleteBooking = async (code: string) => {
     if (!confirm(`Apakah Anda yakin ingin menghapus data transaksi booking ${code}?`)) return;
+
+    // Delete in Supabase first. Clearing the local copy before the server agreed
+    // used to make a booking look deleted while it was still live for everyone else.
+    try {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(code)}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("Gagal menghapus booking di server. Data tidak diubah.");
+        return;
+      }
+    } catch (e) {
+      console.error("Cloud delete booking error:", e);
+      alert("Tidak bisa menghubungi server. Data tidak diubah.");
+      return;
+    }
+
     const updated = bookings.filter((b) => b.code !== code);
     setBookings(updated);
     try {
@@ -119,10 +134,6 @@ export default function BookingsPage() {
     } catch (e) {
       console.error(e);
     }
-
-    fetch(`/api/bookings?code=${encodeURIComponent(code)}`, {
-      method: "DELETE",
-    }).catch((e) => console.error("Cloud delete booking error:", e));
   };
 
   const filteredBookings = useMemo(() => {

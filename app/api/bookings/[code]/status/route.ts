@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateBookingManualStatus } from "@/lib/seed-data/bookings";
+import { updateBookingByCode } from "@/lib/bookings/store";
 
 const allowedManualStatuses = ["Dibatalkan", "Refund"] as const;
 
@@ -26,7 +26,7 @@ export async function PATCH(request: NextRequest, { params }: BookingStatusRoute
     );
   }
 
-  const data = updateBookingManualStatus(decodeURIComponent(code), status);
+  const data = await updateBookingByCode(decodeURIComponent(code), { status });
 
   if (!data) {
     return NextResponse.json({ error: "Booking tidak ditemukan" }, { status: 404 });

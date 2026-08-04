@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findBookingRow, listParticipantsForBooking, updateBookingRow } from "@/lib/seed-data/bookings";
+import { deleteBookingByCode, findBookingByCode, updateBookingByCode } from "@/lib/bookings/store";
 
 type BookingDetailRouteProps = {
   params: Promise<{
@@ -9,7 +9,7 @@ type BookingDetailRouteProps = {
 
 export async function GET(_: NextRequest, { params }: BookingDetailRouteProps) {
   const { code } = await params;
-  const booking = findBookingRow(decodeURIComponent(code));
+  const booking = await findBookingByCode(decodeURIComponent(code));
 
   if (!booking) {
     return NextResponse.json({ error: "Booking tidak ditemukan" }, { status: 404 });
@@ -18,29 +18,33 @@ export async function GET(_: NextRequest, { params }: BookingDetailRouteProps) {
   return NextResponse.json({
     data: {
       booking,
-      participants: listParticipantsForBooking(booking.id),
+      // Per-jamaah rows are not stored yet — real_bookings only keeps a head
+      // count. The `participants` table exists but nothing writes to it.
+      participants: [],
       summary: {
-        participantCount: listParticipantsForBooking(booking.id).length,
-        remainingBalance: booking.totalPrice - booking.paidAmount,
+        participantCount: booking.participants,
+        remainingBalance: booking.remainingAmount,
       },
     },
+    meta: { source: "supabase" },
   });
 }
 
 export async function PATCH(request: NextRequest, { params }: BookingDetailRouteProps) {
   const { code } = await params;
-  const body = await request.json();
-  const data = updateBookingRow(decodeURIComponent(code), {
-    customerId: body.customerId === undefined ? undefined : String(body.customerId),
+  const body = await request.json().catch(() => ({}));
+
+  const data = await updateBookingByCode(decodeURIComponent(code), {
     customerName: body.customerName === undefined ? undefined : String(body.customerName),
+    phone: body.phone === undefined ? undefined : String(body.phone),
+    nik: body.nik === undefined ? undefined : String(body.nik),
     packageName: body.packageName === undefined ? undefined : String(body.packageName),
-    scheduleId: body.scheduleId === undefined ? undefined : String(body.scheduleId),
-    departureDate: body.departureDate === undefined ? undefined : String(body.departureDate),
-    status: body.status === undefined ? undefined : String(body.status),
-    totalPrice: body.totalPrice === undefined ? undefined : Number(body.totalPrice),
+    departure: body.departure === undefined ? undefined : String(body.departure),
+    roomType: body.roomType === undefined ? undefined : String(body.roomType),
+    participants: body.participants === undefined ? undefined : Number(body.participants),
+    totalAmount: body.totalAmount === undefined ? undefined : Number(body.totalAmount),
     paidAmount: body.paidAmount === undefined ? undefined : Number(body.paidAmount),
-    participantCount: body.participantCount === undefined ? undefined : Number(body.participantCount),
-    bookingDate: body.bookingDate === undefined ? undefined : String(body.bookingDate),
+    umrahMeStatus: body.umrahMeStatus === undefined ? undefined : String(body.umrahMeStatus),
   });
 
   if (!data) {
@@ -48,4 +52,15 @@ export async function PATCH(request: NextRequest, { params }: BookingDetailRoute
   }
 
   return NextResponse.json({ data });
+}
+
+export async function DELETE(_: NextRequest, { params }: BookingDetailRouteProps) {
+  const { code } = await params;
+  const removed = await deleteBookingByCode(decodeURIComponent(code));
+
+  if (!removed) {
+    return NextResponse.json({ error: "Booking tidak ditemukan" }, { status: 404 });
+  }
+
+  return NextResponse.json({ data: { code: decodeURIComponent(code) } });
 }
