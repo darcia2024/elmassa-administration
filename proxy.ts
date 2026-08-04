@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySessionToken } from "@/lib/auth/session";
 
 const publicApiPrefixes = [
   "/api/auth/login",
@@ -8,19 +9,19 @@ const publicApiPrefixes = [
   "/api/bookings",
   "/api/schedules",
 ];
-const knownUserIds = new Set(["user-azri"]);
-
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (!pathname.startsWith("/api") || publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     return NextResponse.next();
   }
 
-  const token = readSessionToken(request);
-  const userId = token ? parseSessionUserId(token) : null;
+  // Any staff account with a valid, unexpired signature is accepted — the list
+  // of who exists lives in the database, not in a hardcoded set here.
+  const claims = await verifySessionToken(readSessionToken(request));
+  const userId = claims?.sub ?? null;
 
-  if (!userId || !knownUserIds.has(userId)) {
+  if (!userId) {
     return NextResponse.json(
       {
         error: "Autentikasi diperlukan",
@@ -31,6 +32,7 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-el-massa-user-id", userId);
+  requestHeaders.set("x-el-massa-user-role", claims?.role ?? "");
 
   return NextResponse.next({
     request: {
@@ -51,17 +53,4 @@ function readSessionToken(request: NextRequest) {
   }
 
   return request.cookies.get("el-massa-session")?.value ?? null;
-}
-
-function parseSessionUserId(token: string) {
-  try {
-    const normalized = token.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    const decoded = atob(padded);
-    const [userId] = decoded.split(":");
-
-    return userId || null;
-  } catch {
-    return null;
-  }
 }

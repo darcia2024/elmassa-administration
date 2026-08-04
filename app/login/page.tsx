@@ -4,21 +4,15 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound } from "lu
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const defaultAdminMaster = {
-  email: "azriandri@elmassa.test",
-  name: "Azriandri",
-  password: "admin123",
-  role: "Admin Master",
-};
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     const inputEmail = email.trim().toLowerCase();
 
@@ -27,42 +21,45 @@ export default function LoginPage() {
       return;
     }
 
-    // Get current staff list from localStorage
-    let activeStaffList = [defaultAdminMaster];
+    // The server checks the password against the hashed value in Supabase and
+    // sets the httpOnly session cookie. The browser never sees a password hash,
+    // and staff accounts are no longer stored per-device.
+    setIsSubmitting(true);
     try {
-      const saved = localStorage.getItem("el_massa_staff_users");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          activeStaffList = parsed;
-        }
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: inputEmail, password }),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(payload?.error || "Email atau password tidak cocok.");
+        return;
       }
-    } catch (e) {
-      console.error(e);
+
+      const user = payload?.data?.user;
+
+      // Mirrored for the sidebar/greeting only; the cookie is what actually grants access.
+      window.localStorage.setItem(
+        "el-massa-session",
+        JSON.stringify({
+          email: user?.email ?? inputEmail,
+          loggedInAt: new Date().toISOString(),
+          name: user?.name ?? "Staf",
+          role: user?.role ?? "Sub-User Operasional",
+        })
+      );
+      window.localStorage.setItem("el_massa_user_role", user?.role ?? "Sub-User Operasional");
+
+      const nextPath = new URLSearchParams(window.location.search).get("next");
+      router.push(nextPath?.startsWith("/") ? nextPath : "/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError("Tidak bisa menghubungi server. Periksa koneksi internet Anda.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Check matching email & password
-    const matchedUser = activeStaffList.find(
-      (u) => u.email.toLowerCase() === inputEmail && (u.password || "admin123") === password
-    );
-
-    if (!matchedUser) {
-      setError("Email atau password tidak terdaftar / salah. Silakan hubungi Admin Master.");
-      return;
-    }
-
-    window.localStorage.setItem(
-      "el-massa-session",
-      JSON.stringify({
-        email: matchedUser.email,
-        loggedInAt: new Date().toISOString(),
-        name: matchedUser.name,
-        role: matchedUser.role,
-      })
-    );
-
-    const nextPath = new URLSearchParams(window.location.search).get("next");
-    router.push(nextPath?.startsWith("/") ? nextPath : "/dashboard");
   };
 
   return (
