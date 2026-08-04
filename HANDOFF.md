@@ -71,15 +71,22 @@ node --env-file=.env.local -e "import('pg').then(async({default:pg})=>{const p=n
 
 ---
 
-## 3. Yang sudah dikerjakan (5 commit)
+## 3. Yang sudah dikerjakan
 
-| Commit | Isi |
-|---|---|
-| `337e192` | Kalkulator HPP: mode edit nggak balik ke template lagi |
-| `49a57c0` | Kredensial database keluar dari source → `DATABASE_URL` |
-| `7ed85e2` | Kurs SAR template 4300 → 4780 |
-| `48829f0` | Detail booking salah jamaah + endpoint hapus-massal ditutup |
-| `f22183e` | Akun staf pindah ke Supabase (login + manajemen staf) |
+Jangan percaya daftar commit manual di sini — dokumen ini sudah pernah ketinggalan
+satu commit penuh (fitur Pelanggan tersambung ke Supabase sempat kekerjain tanpa
+kecatat di sini sama sekali). Cek langsung:
+
+```bash
+git log --oneline -20
+```
+
+Ringkasan per 2026-08-04: Pelanggan, Pembayaran + Kuitansi, Invoice + Dokumen, dan
+Laporan (Piutang/Pendapatan/Transaksi) semuanya sudah tersambung ke Supabase —
+lihat bagian 6.1 di bawah, sudah dicoret. Booking/Okupansi Seat, Manifest, dan
+Audit Log Staf dikasih placeholder "Segera Hadir" yang jujur, bukan disambungin —
+lihat bagian 6.2 buat alasannya (butuh data model baru, bukan cuma nyambungin ke
+tabel yang sudah ada).
 
 Detail yang perlu diingat:
 
@@ -146,19 +153,29 @@ await (await fetch('/api/staff-users')).json()
 
 ## 6. Yang belum dikerjakan, urut prioritas
 
-### 6.1 Nyambungin fitur (pekerjaan utama)
+### 6.1 Nyambungin fitur (pekerjaan utama) — SELESAI per 2026-08-04
 
 Polanya sama tiap fitur: **tabel (sudah ada) → API baca tabel itu → UI dipanggil ke API**.
+Semua 4 poin di bawah beres — detail & bukti verifikasi ada di pesan commit masing-masing
+(`git log`), jangan diringkas ulang di sini biar nggak basi lagi.
 
-1. **Pelanggan** — tabel `customers` ada & kosong; `app/api/customers/route.ts` masih
-   `source: "dummy"` (array in-memory di `lib/seed-data/customers.ts`); halaman
-   `app/pelanggan/customer-list.tsx` masih localStorage. Dipakai booking & invoice,
-   jadi kerjain duluan.
-2. **Pembayaran + Kuitansi** — tabel `payments`, `receipts`, `installments`.
-   Ini yang megang uang jamaah, paling butuh benar.
-3. **Invoice & Dokumen** — tabel `invoices`.
-4. **Laporan & Manifest** — tabel `manifest_exports`; laporan sebaiknya
-   dihitung dari data 1–3, bukan tabel sendiri. Kerjakan paling akhir.
+1. ✅ **Pelanggan** — `lib/customers/store.ts`, list + detail halaman.
+2. ✅ **Pembayaran + Kuitansi** — `lib/payments/store.ts`, `lib/receipts/store.ts`,
+   `lib/installments/store.ts` (Cicilan awalnya nggak punya form input sama sekali,
+   dibikinin dari nol). Kuitansi terbit otomatis per pembayaran, terbilang Rupiah asli.
+3. ✅ **Invoice & Dokumen** — `lib/invoices/store.ts`. Paid/remaining/status dihitung
+   live dari `real_bookings`, nggak disimpan dobel.
+4. ✅ **Laporan** (Piutang/Pendapatan/Transaksi) — `lib/reports/store.ts`, dihitung
+   dari data 1–3 sesuai saran di atas, bukan tabel sendiri. Margin/HPP ditandain
+   "belum tersedia" (bukan angka fiktif) karena nggak ada data cost di Supabase.
+   **Booking/Okupansi Seat, Manifest, dan Audit Log Staf TIDAK disambungin** —
+   kebentur data model yang belum ada sama sekali (kuota seat per jadwal, data
+   paspor per-jamaah, sistem audit-log). Sekarang halaman itu (+ `/manifest`,
+   `/manifest/cetak`) nampilin placeholder "Segera Hadir" yang jujur lewat
+   `components/coming-soon.tsx`, bukan data dummy yang keliatan asli. Ini
+   keputusan scope, bukan kelupaan — kalau mau beneran dibangun, itu proyek baru
+   (nangkep data participant per booking, kuota per jadwal, dst), bukan "connect
+   ke tabel yang sudah ada".
 
 Ada 26 route yang masih balikin `source: "dummy"`. Cari semua:
 
@@ -171,11 +188,26 @@ grep -rl 'source: "dummy"' app/api
 - **Token nggak bisa dicabut.** `proxy.ts` cuma verifikasi tanda tangan, nggak cek
   ke database. Staf yang dinonaktifkan/dihapus masih bisa akses sampai token
   kedaluwarsa (maks 12 jam). Kalau perlu langsung putus, tambah pengecekan status
-  ke DB di proxy — konsekuensinya satu query tiap request.
-- **`lib/seed-data/`** (16 file) jadi kode mati begitu semua fitur tersambung.
-  Hapus bertahap, jangan sekaligus.
-- **`lib/db/index.ts` (Drizzle)** ada tapi nggak dipakai satu route pun. Tentukan:
-  pakai Drizzle konsisten, atau buang dan tetap raw `pg`. Sekarang campur.
+  ke DB — **tapi `proxy.ts` jalan di Edge runtime, dan `pg` butuh raw TCP socket
+  yang nggak didukung di Edge.** Nggak bisa `getPool().query()` langsung dari
+  proxy. Perlu pendekatan lain: `fetch` ke satu API route Node.js yang query
+  `staff_users`, atau pindahin proxy ke Node.js runtime kalau Next 16
+  mendukungnya buat file ini. Belum dikerjain — baru ketauan kendalanya.
+- **`lib/seed-data/`** — 11 file tersisa (dari 16) setelah Pelanggan/Pembayaran/
+  Invoice/Laporan tersambung: `receipts.ts`, `installments.ts`, `invoices.ts`,
+  `customer-history.ts`, `staff-users.ts` udah dihapus (nol importer). Sisanya
+  (`bookings.ts`, `schedules.ts`, `packages.ts`, `customers.ts`, `payments.ts`,
+  dll) masih dipakai `derived.ts` buat Dashboard dan halaman lain yang belum
+  disentuh — jangan dihapus sampai halaman itu ikut tersambung.
+- **Drizzle vs raw `pg` — DIPUTUSIN: raw `pg` doang.** Nggak ada satupun route
+  yang query lewat Drizzle (`lib/db/index.ts` udah dihapus, 0 importer).
+  `drizzle-kit` & `drizzle.config.ts` juga udah dibuang — migrasi sekarang raw
+  SQL manual ke Supabase, direfleksiin ke `schema.ts` manual sesudahnya (lihat
+  komentar di atas `schema.ts`). `schema.ts` sendiri **dipertahankan** cuma
+  buat tipe (`$inferSelect`) & dokumentasi bentuk tabel — makanya dependency
+  `drizzle-orm` masih ada di `package.json`, cuma `drizzle-kit` yang hilang.
+  File SQL lama di `/drizzle` dibiarin sebagai arsip historis, bukan sesuatu
+  yang masih dijalanin.
 - **Gate auth di halaman masih client-side.** `components/app-shell.tsx` cuma
   ngecek objek di localStorage, jadi orang bisa nyuntik lewat DevTools dan lihat
   UI-nya. Data tetap aman karena API sudah dijaga cookie, tapi idealnya halaman
@@ -191,9 +223,11 @@ grep -rl 'source: "dummy"' app/api
   Program" di form berisi 12 dan itinerary-nya juga 12 hari. Kartu paket jadi
   kontradiktif. Belum diubah karena ini teks yang dibaca jamaah.
   Lokasi: `app/paket/kalkulator/page.tsx`, di `handleConfirmPublish`.
-- **22 halaman hardcoded** mau disambungin beneran, atau sementara dikasih label
-  "belum aktif" biar klien nggak salah kira? Kondisi sekarang paling nggak enak:
-  kelihatan berfungsi padahal nggak nyimpan apa-apa.
+- **Sisa halaman hardcoded** (Booking/Okupansi Seat, Manifest, Audit Log Staf)
+  per 2026-08-04 udah dikasih label "Segera Hadir" (lihat 6.1) — bukan diputusin
+  disambungin, karena butuh data model baru (kuota seat, data paspor per-jamaah,
+  audit-log). Kalau bang Daru mau salah satu dari ini beneran dibangun, itu kerjaan
+  baru: rancang dulu data apa yang perlu ditangkep, baru sambungin.
 - **Paket Oktober masih pakai kurs 4300.** Template sudah 4780. Kalau paket itu
   mau ikut naik, harus dibuka di mode edit lalu diterbitkan ulang — dan harga
   jualnya naik dari Rp 34.526.744 jadi Rp 35.483.174 (+Rp 956.430/pax).

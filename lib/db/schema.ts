@@ -1,6 +1,21 @@
 import { relations } from "drizzle-orm";
 import { boolean, date, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+/**
+ * This file is a typed map of the database, not a query layer -- every
+ * route in this app reads/writes through raw `pg` via lib/db/connection.ts
+ * (getPool()), never through Drizzle. Kept for its `$inferSelect` types and
+ * as documentation of table shape + relations.
+ *
+ * There is no live migration tool: `drizzle-kit` and drizzle.config.ts were
+ * removed since schema changes (e.g. the payments/installments/invoices
+ * booking_id -> booking_code migration) are applied as one-off raw SQL run
+ * directly against Supabase, then reflected here by hand. The old
+ * drizzle-kit-generated migrations under /drizzle are historical only --
+ * running `drizzle-kit generate` against this file would not produce
+ * anything meant to be applied.
+ */
+
 export const packages = pgTable("packages", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
