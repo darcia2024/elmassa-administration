@@ -9,11 +9,13 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// Ensure table exists
+let isTableEnsured = false;
+
+// Ensure table exists (runs once per server instance)
 async function ensureTable() {
-  const client = await pool.connect();
+  if (isTableEnsured) return;
   try {
-    await client.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS published_packages (
         id VARCHAR(100) PRIMARY KEY,
         name TEXT NOT NULL,
@@ -44,10 +46,9 @@ async function ensureTable() {
       );
       ALTER TABLE published_packages ADD COLUMN IF NOT EXISTS costing_data JSONB DEFAULT '{}'::jsonb;
     `);
+    isTableEnsured = true;
   } catch (err) {
     console.error("Error creating published_packages table:", err);
-  } finally {
-    client.release();
   }
 }
 
@@ -55,6 +56,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Cache-Control": "public, s-maxage=5, stale-while-revalidate=59",
 };
 
 export async function OPTIONS() {
