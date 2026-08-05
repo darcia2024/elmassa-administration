@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCustomer, listCustomers } from "@/lib/customers/store";
+import { createCustomer, hasEnoughDigitsToBeAPhone, listCustomers } from "@/lib/customers/store";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
   if (!name) fields.name = "Nama wajib diisi";
   if (!phone) fields.phone = "Nomor telepon wajib diisi";
+  else if (!hasEnoughDigitsToBeAPhone(phone)) fields.phone = "Nomor telepon tidak valid";
 
   if (Object.keys(fields).length > 0) {
     return NextResponse.json({ error: "Data pelanggan tidak valid", fields }, { status: 400 });

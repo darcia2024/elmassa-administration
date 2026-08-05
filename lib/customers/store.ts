@@ -51,6 +51,17 @@ function normalisePhone(phone: string): string {
   return String(phone ?? "").trim();
 }
 
+/**
+ * A phone number is how a customer is identified (see upsertCustomerFromBooking
+ * below) — placeholders like "-" or "0" pass a truthy/non-empty check but are
+ * not real numbers, and two different jamaah who both leave the field as "-"
+ * would otherwise collapse into one customer record. Digit count is a cheap,
+ * good-enough bar; this is not meant to validate real Indonesian numbers.
+ */
+export function hasEnoughDigitsToBeAPhone(phone: string): boolean {
+  return normalisePhone(phone).replace(/\D/g, "").length >= 6;
+}
+
 export async function listCustomers(): Promise<CustomerRecord[]> {
   const res = await getPool().query(`${DERIVED_QUERY} ORDER BY c.created_at DESC;`);
   return res.rows;
@@ -151,7 +162,10 @@ export async function upsertCustomerFromBooking(booking: {
   const name = String(booking.customerName ?? booking.customer ?? "").trim();
   const phone = normalisePhone(booking.phone ?? "");
 
-  if (!name || !phone) return;
+  // A placeholder phone ("-", "0", "N/A"...) is not an identity two different
+  // jamaah can safely share — skip the sync rather than merge them. The
+  // booking itself still saves; it just won't have a Pelanggan record yet.
+  if (!name || !hasEnoughDigitsToBeAPhone(phone)) return;
 
   const existing = await getPool().query(`SELECT id FROM customers WHERE phone = $1 LIMIT 1;`, [phone]);
 
