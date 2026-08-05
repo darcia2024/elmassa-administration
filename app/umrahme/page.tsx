@@ -60,6 +60,22 @@ export type DetailedIssuedAccount = {
 
 const initialAccounts: DetailedIssuedAccount[] = [];
 
+function AccountStatusBadge({ status }: { status: DetailedIssuedAccount["status"] }) {
+  const isActive = status === "Aktif";
+  const style = isActive
+    ? { bg: "bg-emerald-50 text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500 animate-pulse" }
+    : { bg: "bg-amber-50 text-amber-700", border: "border-amber-200", dot: "bg-amber-500" };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${style.bg} ${style.border}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+      {isActive ? "🟢 Aktif" : "🟡 Pending"}
+    </span>
+  );
+}
+
 export default function PenerbitanUmrahmePage() {
   const [accounts, setAccounts] = useState<DetailedIssuedAccount[]>(initialAccounts);
   const [searchQuery, setSearchQuery] = useState("");
@@ -241,6 +257,9 @@ export default function PenerbitanUmrahmePage() {
       acc.rombongan.toLowerCase().includes(q)
     );
   });
+
+  const activeAccountsCount = accounts.filter((acc) => acc.status === "Aktif").length;
+  const pendingAccountsCount = accounts.length - activeAccountsCount;
 
   function handleGenerateAccount(e: React.FormEvent) {
     e.preventDefault();
@@ -947,8 +966,13 @@ export default function PenerbitanUmrahmePage() {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-stone-900">Daftar Akun Digital UmrahMe Diterbitkan</h3>
                 <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  🟢 {accounts.length} Akun Aktif
+                  🟢 {activeAccountsCount} Akun Aktif
                 </span>
+                {pendingAccountsCount > 0 && (
+                  <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    🟡 {pendingAccountsCount} Pending
+                  </span>
+                )}
               </div>
               <p className="text-xs text-stone-500">Klik 'Detail' untuk melihat/mengedit informasi lengkap personal & keberangkatan jamaah.</p>
             </div>
@@ -1005,10 +1029,7 @@ export default function PenerbitanUmrahmePage() {
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <span className="inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          🟢 Aktif
-                        </span>
+                        <AccountStatusBadge status={acc.status} />
                       </td>
 
                       <td className="py-3.5 px-3">
