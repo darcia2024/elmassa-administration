@@ -113,13 +113,17 @@ export const bookings = pgTable("bookings", {
 
 export const participants = pgTable("participants", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookingId: uuid("booking_id")
+  bookingCode: text("booking_code")
     .notNull()
-    .references(() => bookings.id, { onDelete: "cascade" }),
+    .references(() => realBookings.code, { onDelete: "cascade" }),
   name: text("name").notNull(),
   passportNumber: text("passport_number").notNull().default(""),
   contact: text("contact").notNull().default(""),
   documentStatus: text("document_status").notNull().default("Belum Lengkap"),
+  visaNumber: text("visa_number").notNull().default(""),
+  visaExpiry: date("visa_expiry"),
+  ticketNumber: text("ticket_number").notNull().default(""),
+  roomType: text("room_type").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -331,12 +335,13 @@ export const realBookingsRelations = relations(realBookings, ({ many }) => ({
   installments: many(installments),
   invoices: many(invoices),
   payments: many(payments),
+  participants: many(participants),
 }));
 
 export const participantsRelations = relations(participants, ({ one }) => ({
-  booking: one(bookings, {
-    fields: [participants.bookingId],
-    references: [bookings.id],
+  booking: one(realBookings, {
+    fields: [participants.bookingCode],
+    references: [realBookings.code],
   }),
 }));
 

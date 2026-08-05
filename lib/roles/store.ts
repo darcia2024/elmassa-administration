@@ -313,13 +313,13 @@ export async function deleteRole(id: string): Promise<{ ok: true } | { ok: false
 export async function getStaffAuthForModule(
   staffId: string,
   moduleId: string | null,
-): Promise<{ active: boolean; role: string | null; permissions: ModulePermissionSet | null }> {
+): Promise<{ active: boolean; role: string | null; name: string | null; permissions: ModulePermissionSet | null }> {
   await ensureTables();
 
   const res = await getPool().query(
     `
     SELECT
-      su.status, su.role,
+      su.status, su.role, su.name,
       rp.can_view AS "canView", rp.can_edit AS "canEdit",
       rp.can_approve AS "canApprove", rp.can_delete AS "canDelete"
     FROM staff_users su
@@ -332,14 +332,14 @@ export async function getStaffAuthForModule(
   );
 
   const row = res.rows[0];
-  if (!row) return { active: false, role: null, permissions: null };
+  if (!row) return { active: false, role: null, name: null, permissions: null };
 
   const active = row.status === "Aktif";
-  if (moduleId === null) return { active, role: row.role, permissions: null };
+  if (moduleId === null) return { active, role: row.role, name: row.name, permissions: null };
 
   // No matching role or no permission row for this module -- fail closed,
   // not "everything allowed".
-  if (row.canView === null) return { active, role: row.role, permissions: emptyPermissions() };
+  if (row.canView === null) return { active, role: row.role, name: row.name, permissions: emptyPermissions() };
 
-  return { active, role: row.role, permissions: toPermissionSet(row) };
+  return { active, role: row.role, name: row.name, permissions: toPermissionSet(row) };
 }

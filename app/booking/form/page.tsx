@@ -26,43 +26,57 @@ export default function BookingFormPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [savedCode, setSavedCode] = useState("");
 
-  // Load custom published packages dynamically from localStorage
+  // Real published packages from Supabase -- a fresh browser/device has no
+  // localStorage cache to fall back on, so reading only localStorage here (as
+  // this used to) meant a booking made from a new session could only ever
+  // point at the 3 fake defaultPackagesOptions, never a real package. Falls
+  // back to the localStorage cache, then the hardcoded defaults, only if the
+  // live fetch genuinely comes back empty -- same ordering /paket/seat uses.
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("el_massa_published_packages");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const customFormatted = parsed.map((pkg: any) => {
-            // Clean short name
-            const rawName = pkg.name || pkg.packageName || "Paket Umrah";
-            const cleanName = rawName.split("—")[0].split("(")[0].trim();
+    const formatPackages = (parsed: any[]) =>
+      parsed.map((pkg: any) => {
+        const rawName = pkg.name || pkg.packageName || "Paket Umrah";
+        const cleanName = rawName.split("—")[0].split("(")[0].trim();
 
-            // Clean short date
-            const rawDate = pkg.departureDate || pkg.departuresDate || "";
-            const cleanDate = rawDate.includes("s/d")
-              ? rawDate.split("s/d")[0].trim()
-              : rawDate.split("(")[0].trim() || "Terjadwal";
+        const rawDate = pkg.departureDate || pkg.departuresDate || "";
+        const cleanDate = rawDate.includes("s/d")
+          ? rawDate.split("s/d")[0].trim()
+          : rawDate.split("(")[0].trim() || "Terjadwal";
 
-            const numericPrice = pkg.numericPrice || Number(String(pkg.price || "").replace(/\D/g, "")) || 30000000;
+        const numericPrice = pkg.numericPrice || Number(String(pkg.price || "").replace(/\D/g, "")) || 30000000;
 
-            return {
-              id: pkg.id || `custom-${Math.random()}`,
-              name: cleanName,
-              date: cleanDate,
-              price: numericPrice,
-            };
-          });
+        return {
+          id: pkg.id || `custom-${Math.random()}`,
+          name: cleanName,
+          date: cleanDate,
+          price: numericPrice,
+        };
+      });
 
-          // Show ONLY user's created packages when present!
-          setPackagesList(customFormatted);
-          setSelectedPkgId(customFormatted[0].id);
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.ok && Array.isArray(json.data) && json.data.length > 0) {
+          const formatted = formatPackages(json.data);
+          setPackagesList(formatted);
+          setSelectedPkgId(formatted[0].id);
           return;
         }
-      }
-    } catch (e) {
-      console.error("Failed to parse el_massa_published_packages:", e);
-    }
+        throw new Error("Katalog paket kosong dari Supabase");
+      })
+      .catch(() => {
+        try {
+          const saved = localStorage.getItem("el_massa_published_packages");
+          const parsed = saved ? JSON.parse(saved) : [];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const formatted = formatPackages(parsed);
+            setPackagesList(formatted);
+            setSelectedPkgId(formatted[0].id);
+          }
+        } catch (e) {
+          console.error("Failed to parse el_massa_published_packages:", e);
+        }
+      });
   }, []);
 
   const [participants, setParticipants] = useState([
@@ -105,6 +119,7 @@ export default function BookingFormPage() {
       code,
       customer: customerName || "Jamaah Terdaftar",
       phone: customerPhone || "-",
+      packageId: selectedPkg.id,
       packageName: selectedPkg.name,
       departure: selectedPkg.date,
       groupName: "Rombongan Jamaah",
@@ -113,7 +128,7 @@ export default function BookingFormPage() {
         name: p.name,
         passport: p.passport || "C" + Math.floor(1000000 + Math.random() * 9000000),
         contact: p.phone || customerPhone || "-",
-        documentStatus: "Lengkap" as const,
+        documentStatus: "Belum Lengkap" as const,
         roomType: "Quad (Sekamar Ber-4)",
       })),
       totalAmount: totalPrice,

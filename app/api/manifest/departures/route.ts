@@ -1,65 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
-import { listBookingRows, listParticipantsForBooking } from "@/lib/seed-data/bookings";
-import { listPackageRows } from "@/lib/seed-data/packages";
-import { listAllScheduleRows } from "@/lib/seed-data/schedules";
+import { NextResponse } from "next/server";
+import { getPool } from "@/lib/db/connection";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const packageId = searchParams.get("packageId")?.trim();
-  const status = searchParams.get("status")?.trim();
-
-  const packageById = new Map(listPackageRows().map((item) => [item.id, item]));
-  const bookings = listBookingRows();
-
-  const data = listAllScheduleRows()
-    .filter((schedule) => !packageId || schedule.packageId === packageId)
-    .filter((schedule) => !status || status === "Semua" || schedule.status === status)
-    .map((schedule) => {
-      const packageRow = packageById.get(schedule.packageId);
-      const scheduleBookings = bookings.filter((booking) => booking.scheduleId === schedule.id);
-      const participants = scheduleBookings.flatMap((booking) => listParticipantsForBooking(booking.id));
-      const completedDocuments = participants.filter((participant) => participant.documentStatus === "Lengkap").length;
-
-      return {
-        id: schedule.id,
-        label: `${packageRow?.name ?? "Paket"} - ${schedule.departureDate}`,
-        packageId: schedule.packageId,
-        packageName: packageRow?.name ?? null,
-        serviceType: packageRow?.serviceType ?? null,
-        departureDate: schedule.departureDate,
-        returnDate: schedule.returnDate,
-        price: schedule.price,
-        quota: schedule.quota,
-        bookedSeats: participants.length,
-        remainingSeats: Math.max(schedule.quota - participants.length, 0),
-        bookingCount: scheduleBookings.length,
-        meetingPoint: schedule.meetingPoint,
-        status: schedule.status,
-        documentSummary: {
-          completed: completedDocuments,
-          pending: Math.max(participants.length - completedDocuments, 0),
-          total: participants.length,
-        },
-      };
-    })
-    .sort((first, second) => first.departureDate.localeCompare(second.departureDate));
+/**
+ * One row per published package -- that's the real unit of "departure" in
+ * this data model (see target_pax on published_packages, and how /paket/seat
+ * already matches bookings to a package this same way). Replaces the old
+ * dummy version of this route, which read lib/seed-data schedules that no
+ * booking has ever actually pointed at.
+ */
+export async function GET() {
+  const res = await getPool().query(`
+    SELECT
+      pp.id,
+      pp.name,
+      pp.departure_date AS "departureDate",
+      pp.return_date AS "returnDate",
+      pp.airline,
+      pp.target_pax AS "targetPax",
+      COALESCE(bk.booking_count, 0)::int AS "bookingCount",
+      COALESCE(bk.participant_count, 0)::int AS "bookedSeats",
+      COALESCE(doc.total, 0)::int AS "manifestCount",
+      COALESCE(doc.completed, 0)::int AS "documentsCompleted"
+    FROM published_packages pp
+    LEFT JOIN (
+      SELECT package_id, COUNT(*)::int AS booking_count, COALESCE(SUM(participants), 0)::int AS participant_count
+      FROM real_bookings
+      WHERE package_id IS NOT NULL AND package_id != ''
+      GROUP BY package_id
+    ) bk ON bk.package_id = pp.id
+    LEFT JOIN (
+      SELECT b.package_id, COUNT(*)::int AS total, COUNT(*) FILTER (WHERE p.document_status = 'Lengkap')::int AS completed
+      FROM participants p
+      JOIN real_bookings b ON b.code = p.booking_code
+      WHERE b.package_id IS NOT NULL AND b.package_id != ''
+      GROUP BY b.package_id
+    ) doc ON doc.package_id = pp.id
+    ORDER BY pp.departure_date ASC NULLS LAST;
+  `);
 
   return NextResponse.json(
-    {
-      data,
-      meta: {
-        total: data.length,
-        source: "dummy",
-        filters: {
-          packageId: packageId ?? null,
-          status: status ?? null,
-        },
-      },
-    },
-    {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    },
+    { data: res.rows },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }

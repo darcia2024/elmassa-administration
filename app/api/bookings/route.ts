@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
 import { upsertCustomerFromBooking } from "@/lib/customers/store";
 import { createPayment } from "@/lib/payments/store";
+import { createParticipantsForBooking } from "@/lib/participants/store";
 import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
 import { todayWIB } from "@/lib/format/date";
 
@@ -138,6 +139,12 @@ export async function POST(req: Request) {
           notes: "DP awal saat booking dibuat",
           paymentFor: "DP awal booking",
         });
+      }
+
+      // Only a genuinely new booking gets its jamaah list persisted -- same
+      // "don't double it on retry" reasoning as the DP payment above.
+      if (insertedCode) {
+        await createParticipantsForBooking(insertedCode, b.participantsList);
       }
 
       return NextResponse.json({ ok: true, message: "Booking saved to Supabase Cloud DB", code });

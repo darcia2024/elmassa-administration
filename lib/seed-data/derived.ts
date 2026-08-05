@@ -1,7 +1,6 @@
 import { listBookingRows, listParticipantsForBooking } from "@/lib/seed-data/bookings";
 import { listCustomerRows } from "@/lib/seed-data/customers";
 import { listPackageRows } from "@/lib/seed-data/packages";
-import { listPaymentRows } from "@/lib/seed-data/payments";
 import { listAllScheduleRows } from "@/lib/seed-data/schedules";
 
 export function formatRupiah(value: number) {
@@ -23,116 +22,6 @@ export function formatLongDate(value: string) {
     year: "numeric",
     timeZone: "Asia/Jakarta",
   }).format(new Date(`${value}T00:00:00+07:00`));
-}
-
-export function getDashboardStats() {
-  const packages = listPackageRows();
-  const customers = listCustomerRows();
-  const bookings = listBookingRows();
-  const payments = listPaymentRows();
-  const schedules = listAllScheduleRows();
-  const totalRevenue = payments.reduce((total, payment) => total + payment.amount, 0);
-
-  return {
-    generatedAt: new Date().toISOString(),
-    metrics: [
-      {
-        key: "packages",
-        label: "Total Paket",
-        value: packages.length,
-        displayValue: String(packages.length),
-        note: `${packages.filter((item) => item.status === "Aktif").length} paket aktif`,
-        trendPercent: 0,
-      },
-      {
-        key: "customers",
-        label: "Pelanggan",
-        value: customers.length,
-        displayValue: String(customers.length),
-        note: `${customers.filter((item) => item.status === "Aktif").length} pelanggan aktif`,
-        trendPercent: 0,
-      },
-      {
-        key: "bookings",
-        label: "Booking",
-        value: bookings.length,
-        displayValue: String(bookings.length),
-        note: `${bookings.filter((item) => item.status !== "Lunas").length} perlu follow-up`,
-        trendPercent: 0,
-      },
-      {
-        key: "revenue",
-        label: "Pemasukan",
-        value: totalRevenue,
-        displayValue: formatRupiah(totalRevenue),
-        note: `${payments.length} pembayaran masuk`,
-        trendPercent: 0,
-      },
-    ],
-    recentBookings: bookings.map((booking) => ({
-      code: booking.code,
-      customer: booking.customerName,
-      packageName: booking.packageName,
-      departureDate: booking.departureDate,
-      departureLabel: formatLongDate(booking.departureDate),
-      status: booking.status,
-      paidAmount: booking.paidAmount,
-      paidDisplay: formatRupiah(booking.paidAmount),
-    })),
-    upcomingDepartures: schedules
-      .map((schedule) => {
-        const pkg = packages.find((item) => item.id === schedule.packageId);
-        const participants = bookings
-          .filter((booking) => booking.scheduleId === schedule.id)
-          .flatMap((booking) => listParticipantsForBooking(booking.id));
-
-        return {
-          packageName: pkg?.name ?? "Paket tidak ditemukan",
-          departureDate: schedule.departureDate,
-          dateLabel: formatShortDate(schedule.departureDate),
-          bookedSeats: participants.length,
-          quota: schedule.quota,
-          status: schedule.status,
-        };
-      })
-      .sort((first, second) => first.departureDate.localeCompare(second.departureDate)),
-    weeklyRevenue: [
-      {
-        day: "Aktual",
-        amount: totalRevenue,
-      },
-    ],
-  };
-}
-
-export function getLatestDepartures() {
-  const packages = listPackageRows();
-  const bookings = listBookingRows();
-
-  return listAllScheduleRows()
-    .map((schedule) => {
-      const pkg = packages.find((item) => item.id === schedule.packageId);
-      const participants = bookings
-        .filter((booking) => booking.scheduleId === schedule.id)
-        .flatMap((booking) => listParticipantsForBooking(booking.id));
-
-      return {
-        id: schedule.id,
-        packageName: pkg?.name ?? "Paket tidak ditemukan",
-        serviceType: pkg?.serviceType ?? "",
-        departureDate: schedule.departureDate,
-        returnDate: schedule.returnDate,
-        dateLabel: formatShortDate(schedule.departureDate),
-        price: schedule.price,
-        priceDisplay: formatRupiah(schedule.price),
-        quota: schedule.quota,
-        bookedSeats: participants.length,
-        availableSeats: Math.max(schedule.quota - participants.length, 0),
-        meetingPoint: schedule.meetingPoint,
-        status: schedule.status,
-      };
-    })
-    .sort((first, second) => first.departureDate.localeCompare(second.departureDate));
 }
 
 export function getBookingListRows() {

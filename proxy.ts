@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/auth/session";
 import { getStaffAuthForModule } from "@/lib/roles/store";
 import { resolveActionForRequest, resolveModuleForPath } from "@/lib/auth/modules";
+import { logActivity } from "@/lib/audit/store";
+
+// GET/HEAD are "view" traffic -- logging those would fill the activity log
+// with page-load noise instead of an actual staff-action trail. Audit Log
+// only records mutations that make it past the permission check below.
+const AUDITABLE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
 // No login required at all, for any method.
 const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout", "/api/revision-notes"];
@@ -51,18 +57,31 @@ export async function proxy(request: NextRequest) {
   } catch {
     // DB unreachable: fail closed. Every route this gate protects needs the
     // same database anyway, so an outage here isn't a new failure mode.
-    auth = { active: false, role: null, permissions: null };
+    auth = { active: false, role: null, name: null, permissions: null };
   }
 
   if (!auth.active) {
     return unauthorized("Sesi tidak valid — akun mungkin sudah dinonaktifkan. Silakan login ulang.", 401);
   }
 
+  const action = resolveActionForRequest(request.method, pathname);
+
   if (moduleId !== null) {
-    const action = resolveActionForRequest(request.method, pathname);
     if (!auth.permissions?.[action]) {
       return unauthorized(`Role Anda tidak punya izin "${action}" untuk modul ini.`, 403);
     }
+  }
+
+  if (AUDITABLE_METHODS.has(request.method)) {
+    await logActivity({
+      userId,
+      staffName: auth.name ?? "-",
+      roleName: auth.role ?? "-",
+      moduleId,
+      action,
+      method: request.method,
+      path: pathname,
+    });
   }
 
   const requestHeaders = new Headers(request.headers);

@@ -83,11 +83,12 @@ export async function GET() {
         itinerary, 
         includes, 
         excludes, 
-        poster_img as "posterImg", 
-        banner_img as "bannerImg", 
+        poster_img as "posterImg",
+        banner_img as "bannerImg",
         featured,
+        target_pax as "targetPax",
         costing_data as "costingData"
-       FROM published_packages 
+       FROM published_packages
        ORDER BY created_at DESC;`
     );
     return NextResponse.json({ ok: true, data: res.rows }, { headers: corsHeaders });
@@ -106,9 +107,9 @@ export async function POST(req: Request) {
     try {
       await client.query(
         `INSERT INTO published_packages (
-          id, name, category, duration, departures_date, departure_date, return_date, price, numeric_price, dp_minimum, makkah_hotel, madinah_hotel, airline, domestic_airline, international_airline, flight_route, start_point, program_umrah, itinerary, includes, excludes, poster_img, banner_img, featured, costing_data
+          id, name, category, duration, departures_date, departure_date, return_date, price, numeric_price, dp_minimum, makkah_hotel, madinah_hotel, airline, domestic_airline, international_airline, flight_route, start_point, program_umrah, itinerary, includes, excludes, poster_img, banner_img, featured, target_pax, costing_data
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           category = EXCLUDED.category,
@@ -133,6 +134,7 @@ export async function POST(req: Request) {
           poster_img = EXCLUDED.poster_img,
           banner_img = EXCLUDED.banner_img,
           featured = EXCLUDED.featured,
+          target_pax = EXCLUDED.target_pax,
           costing_data = EXCLUDED.costing_data;`,
         [
           pkg.id || `pkg-custom-${Date.now()}`,
@@ -159,6 +161,7 @@ export async function POST(req: Request) {
           pkg.posterImg || "/poster-el-massa.png",
           pkg.bannerImg || "/banner-el-massa.png",
           pkg.featured !== undefined ? pkg.featured : true,
+          Number(pkg.targetPax) || 45,
           JSON.stringify(pkg.costingData || pkg.costing_data || pkg),
         ]
       );

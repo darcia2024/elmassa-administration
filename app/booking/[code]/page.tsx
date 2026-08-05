@@ -33,7 +33,6 @@ type BookingDetail = {
   paidDisplay: string;
   remainingDisplay: string;
   remainingAmount: number;
-  participants: Participant[];
 };
 
 const emptyBooking: BookingDetail = {
@@ -48,7 +47,6 @@ const emptyBooking: BookingDetail = {
   paidDisplay: "Rp 0",
   remainingDisplay: "Rp 0",
   remainingAmount: 0,
-  participants: [],
 };
 
 function StatusBadge({ status }: { status: "Lunas" | "DP" | "Belum Bayar" }) {
@@ -81,6 +79,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
   });
   const [loadState, setLoadState] = useState<"loading" | "found" | "notFound">("loading");
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,11 +104,6 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 0).toLocaleString("id-ID")}`,
         remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
         remainingAmount: found.remainingAmount ?? 0,
-        participants: Array.isArray(found.participantsList) && found.participantsList.length > 0
-          ? found.participantsList
-          : [
-              { name: found.customer || "Peserta 1", passport: "-", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
-            ],
       });
       setLoadState("found");
     };
@@ -181,6 +175,35 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         );
       })
       .catch((e) => console.error("Failed loading payment history:", e));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [decodedCode]);
+
+  // Real per-jamaah manifest data, replacing what used to be a single
+  // fabricated row (the customer's own name/phone, hardcoded "Lengkap") --
+  // real_bookings never actually carried a participantsList field, so that
+  // fallback fired on every booking regardless of how many jamaah it had.
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`/api/manifest/participants?bookingCode=${encodeURIComponent(decodedCode)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        const rows = (json.data ?? []) as any[];
+        setParticipants(
+          rows.map((p) => ({
+            name: p.name,
+            passport: p.passportNumber || "-",
+            contact: p.contact || "-",
+            documentStatus: p.documentStatus,
+            roomType: p.roomType || "-",
+          })),
+        );
+      })
+      .catch((e) => console.error("Failed loading manifest participants:", e));
 
     return () => {
       cancelled = true;
@@ -304,7 +327,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             </div>
             <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 space-y-0.5">
               <p className="text-stone-400 font-semibold text-[10px] uppercase">Total Rombongan Pax</p>
-              <p className="font-bold text-brand-pink text-sm">{booking.participants.length} Pax Terdaftar</p>
+              <p className="font-bold text-brand-pink text-sm">{participants.length} Pax Terdaftar</p>
             </div>
           </div>
         </section>
@@ -340,7 +363,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               <p className="text-xs text-stone-500">Rincian identitas paspor RI, tipe kamar hotel, dan status dokumen visa.</p>
             </div>
             <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-brand-pink border border-brand-pink/20">
-              {booking.participants.length} Pax
+              {participants.length} Pax
             </span>
           </div>
 
@@ -356,7 +379,14 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
-                {booking.participants.map((p, idx) => (
+                {participants.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-6 text-center text-stone-400">
+                      Belum ada data jamaah tercatat untuk booking ini.
+                    </td>
+                  </tr>
+                )}
+                {participants.map((p, idx) => (
                   <tr key={idx} className="transition hover:bg-stone-50/60">
                     <td className="py-3 pl-3 pr-2 font-bold text-brand-cocoa">{p.name}</td>
                     <td className="py-3 pr-2 font-mono font-semibold text-stone-700">{p.passport}</td>

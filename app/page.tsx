@@ -35,7 +35,20 @@ import {
   Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { formatRupiah, getDashboardStats } from "@/lib/seed-data/derived";
+import { formatRupiah } from "@/lib/seed-data/derived";
+
+type DashboardStats = {
+  packageCount: number;
+  totalSeatQuota: number;
+  customerCount: number;
+  activeCustomerCount: number;
+  bookingCount: number;
+  bookingsNeedingFollowUp: number;
+  totalBookedSeats: number;
+  totalRevenue: number;
+  paymentCount: number;
+  revenueBars: { day: string; amount: number; height: number; active: boolean }[];
+};
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, { bg: string; border: string; dot: string }> = {
@@ -172,51 +185,34 @@ function DashboardLiveCalendar() {
 }
 
 export default function DashboardPage() {
-  const dashboard = getDashboardStats();
   const [activeFilter, setActiveFilter] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [publishedPackages, setPublishedPackages] = useState<any[]>([]);
   const [realBookings, setRealBookings] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    // 1. Fetch published packages
+    // Supabase is the record for all three -- no localStorage fallback or
+    // merge. A cached copy that outlives what the server actually has (e.g.
+    // a booking deleted on another device) used to keep showing up here.
+    fetch("/api/dashboard/stats")
+      .then((res) => res.json())
+      .then((res) => setStats(res.data))
+      .catch((e) => console.error("Failed to load dashboard stats:", e));
+
     fetch("/api/packages")
       .then((res) => res.json())
       .then((res) => {
-        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          setPublishedPackages(res.data);
-        } else {
-          const saved = localStorage.getItem("el_massa_published_packages");
-          if (saved) setPublishedPackages(JSON.parse(saved));
-        }
+        if (res.ok && Array.isArray(res.data)) setPublishedPackages(res.data);
       })
-      .catch(() => {
-        const saved = localStorage.getItem("el_massa_published_packages");
-        if (saved) setPublishedPackages(JSON.parse(saved));
-      });
-
-    // 2. Fetch real jamaah bookings from Supabase Cloud DB
-    let localBookings: any[] = [];
-    try {
-      const bStr = localStorage.getItem("el_massa_real_bookings");
-      if (bStr) localBookings = JSON.parse(bStr);
-    } catch (e) {}
+      .catch((e) => console.error("Failed to load packages:", e));
 
     fetch("/api/bookings")
       .then((res) => res.json())
       .then((res) => {
-        if (res.ok && Array.isArray(res.data)) {
-          const mergedMap = new Map<string, any>();
-          res.data.forEach((b: any) => mergedMap.set(b.code, b));
-          localBookings.forEach((b: any) => mergedMap.set(b.code, b));
-          setRealBookings(Array.from(mergedMap.values()));
-        } else if (localBookings.length > 0) {
-          setRealBookings(localBookings);
-        }
+        if (res.ok && Array.isArray(res.data)) setRealBookings(res.data);
       })
-      .catch(() => {
-        if (localBookings.length > 0) setRealBookings(localBookings);
-      });
+      .catch((e) => console.error("Failed to load bookings:", e));
   }, []);
 
   const allBookings = useMemo(() => {
@@ -245,16 +241,16 @@ export default function DashboardPage() {
     });
   }, [allBookings, activeFilter, searchQuery]);
 
-  const bookingCount = allBookings.length;
-  const customerCount = allBookings.length;
-  const totalGrupTersedia = publishedPackages.length;
-  const totalRev = 0;
+  const bookingCount = stats?.bookingCount ?? allBookings.length;
+  const customerCount = stats?.customerCount ?? 0;
+  const totalGrupTersedia = stats?.packageCount ?? publishedPackages.length;
+  const totalRev = stats?.totalRevenue ?? 0;
 
-  const totalBookedSeats = allBookings.reduce((sum, b) => sum + (Number((b as any).participants) || 1), 0);
-  const totalTargetSeats = publishedPackages.length > 0 ? publishedPackages.reduce((sum, p) => sum + (Number(p.targetPax) || 45), 0) : 0;
+  const totalBookedSeats = stats?.totalBookedSeats ?? 0;
+  const totalTargetSeats = stats?.totalSeatQuota ?? 0;
   const totalRemainingSeats = Math.max(0, totalTargetSeats - totalBookedSeats);
 
-  const revenueBars = [
+  const revenueBars = stats?.revenueBars ?? [
     { day: "Su", amount: 0, height: 10, active: false },
     { day: "Mo", amount: 0, height: 10, active: false },
     { day: "Tu", amount: 0, height: 10, active: false },
@@ -307,9 +303,9 @@ export default function DashboardPage() {
     {
       key: "revenue",
       title: "Est. Total Revenue",
-      value: `Rp ${formatRupiah(totalRev)}`,
+      value: formatRupiah(totalRev),
       subtext: "Total pembayaran lunas & DP",
-      trend: "+15.2%",
+      trend: "Live",
       icon: Wallet,
       iconColor: "text-stone-700",
       iconBg: "bg-stone-100 border-stone-200",

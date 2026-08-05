@@ -65,9 +65,13 @@ export default function UpdateSeatPage() {
       }
 
       const mapped: SeatPackageItem[] = rawPkgs.map((pkg: any) => {
+        // Real match: bookings created after the packageId fix carry the
+        // package's real id. Older bookings (or ones from before that fix)
+        // fall back to a fuzzy name match so their seats still count.
         const pkgNameClean = (pkg.name || "").split("—")[0].split("(")[0].trim().toLowerCase();
-        
+
         const matchingBookings = realBookings.filter((b) => {
+          if (b.packageId) return b.packageId === pkg.id;
           const bPkgName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
           return bPkgName.includes(pkgNameClean) || pkgNameClean.includes(bPkgName);
         });
@@ -83,7 +87,7 @@ export default function UpdateSeatPage() {
           makkahHotel: pkg.makkahHotel || "Grand Al Massa",
           madinahHotel: pkg.madinahHotel || "Daar El Naeem",
           airline: pkg.airline || "Saudia / Garuda",
-          totalSeats: Number(pkg.totalSeats || pkg.targetPax) || 45,
+          totalSeats: Number(pkg.targetPax) || 45,
           bookedSeats: totalBooked,
           posterImg: pkg.posterImg,
         };
@@ -93,15 +97,37 @@ export default function UpdateSeatPage() {
     });
   }, []);
 
-  // Update target seat quota
-  const handleSaveSeatQuota = (id: string) => {
-    const updated = packages.map((p) => (p.id === id ? { ...p, totalSeats: Math.max(1, tempSeatsInput) } : p));
-    setPackages(updated);
-    setEditingId(null);
+  // Update target seat quota -- persisted to Supabase, not localStorage, so
+  // the quota staff sets is the same one every device sees.
+  const [savingQuotaId, setSavingQuotaId] = useState<string | null>(null);
+  const [quotaError, setQuotaError] = useState<string | null>(null);
+
+  const handleSaveSeatQuota = async (id: string) => {
+    const targetPax = Math.max(1, tempSeatsInput);
+    setSavingQuotaId(id);
+    setQuotaError(null);
 
     try {
-      localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
-    } catch (e) {}
+      const res = await fetch(`/api/packages/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetPax }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        setQuotaError(payload?.error ?? "Gagal menyimpan kuota seat.");
+        return;
+      }
+
+      setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, totalSeats: targetPax } : p)));
+      setEditingId(null);
+    } catch (e) {
+      console.error(e);
+      setQuotaError("Tidak bisa menghubungi server.");
+    } finally {
+      setSavingQuotaId(null);
+    }
   };
 
   const filteredPackages = useMemo(() => {
@@ -150,6 +176,12 @@ export default function UpdateSeatPage() {
             </Link>
           </div>
         </div>
+
+        {quotaError && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700">
+            {quotaError}
+          </div>
+        )}
 
         {/* 📊 SUMMARY SEAT METRICS BANNER */}
         <section className="grid gap-4 sm:grid-cols-3">
@@ -357,10 +389,11 @@ export default function UpdateSeatPage() {
                       <button
                         type="button"
                         onClick={() => handleSaveSeatQuota(pkg.id)}
-                        className="h-9 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1 transition shadow-xs"
+                        disabled={savingQuotaId === pkg.id}
+                        className="h-9 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1 transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save className="h-3.5 w-3.5" />
-                        <span>Simpan Quota</span>
+                        <span>{savingQuotaId === pkg.id ? "Menyimpan..." : "Simpan Quota"}</span>
                       </button>
                     </div>
                   ) : (

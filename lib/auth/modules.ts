@@ -48,6 +48,7 @@ export function fullPermissions(): Record<ModuleAction, boolean> {
  * be registered here on purpose instead of silently falling through open.
  */
 const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
+  { prefix: "activity-log", module: "laporan" },
   { prefix: "auth/change-password", module: null }, // self-service, any authenticated staff
   { prefix: "auth/admin/reset-password", module: "pengaturan" },
   { prefix: "booking-statuses", module: "pengaturan" },
