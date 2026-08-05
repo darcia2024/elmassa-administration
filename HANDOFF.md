@@ -18,9 +18,9 @@ Jangan berasumsi sebuah fitur "jalan" cuma karena halamannya kelihatan lengkap.
 
 | Lapisan | Simpan di | Sinkron antar device | Fitur |
 |---|---|---|---|
-| **A. Supabase** | Cloud | Ya | Paket, Kalkulator HPP, Seat, Booking (list & buat), Detail booking, Catatan Revisi, UmrahMe, **Login & Staf** |
+| **A. Supabase** | Cloud | Ya | Paket, Kalkulator HPP, Seat, Booking (list & buat), Detail booking, Catatan Revisi, UmrahMe, **Login & Staf**, **Dashboard, Manifest, Audit Log Staf** |
 | **B. localStorage** | Per browser | Tidak | Pelanggan, Pembayaran, Invoice, Kuitansi, Lisensi |
-| **C. Hardcoded** | Nggak disimpan | — | ~22 halaman: semua Laporan, Manifest, Jadwal, Dokumen, Pembayaran/form & cicilan, Pengaturan (hak-akses, identitas, layanan, rekening, status-booking), Pelanggan detail |
+| **C. Hardcoded** | Nggak disimpan | — | ~20 halaman: Laporan Booking, Jadwal, Dokumen, Pembayaran/form & cicilan, Pengaturan (hak-akses, identitas, layanan, rekening, status-booking), **Pelanggan detail (fake booking history + fake nomor paspor/visa, lihat 6.3)** |
 
 Lapisan C itu tampilan kosong. Contoh: `app/laporan/pendapatan/page.tsx` isinya
 `const incomeRows: IncomeRowItem[] = []` — array kosong yang di-hardcode. Mau ada
@@ -83,10 +83,11 @@ git log --oneline -20
 
 Ringkasan per 2026-08-04: Pelanggan, Pembayaran + Kuitansi, Invoice + Dokumen, dan
 Laporan (Piutang/Pendapatan/Transaksi) semuanya sudah tersambung ke Supabase —
-lihat bagian 6.1 di bawah, sudah dicoret. Booking/Okupansi Seat, Manifest, dan
-Audit Log Staf dikasih placeholder "Segera Hadir" yang jujur, bukan disambungin —
-lihat bagian 6.2 buat alasannya (butuh data model baru, bukan cuma nyambungin ke
-tabel yang sudah ada).
+lihat bagian 6.1 di bawah, sudah dicoret.
+
+Ringkasan per 2026-08-05: Dashboard, Booking/Okupansi Seat, Manifest (+ Laporan
+Manifest, cetak manifest), dan Audit Log Staf juga sudah tersambung beneran —
+lihat 6.1 poin 5. Placeholder "Segera Hadir" buat ketiganya sudah diganti data asli.
 
 Detail yang perlu diingat:
 
@@ -153,11 +154,12 @@ await (await fetch('/api/staff-users')).json()
 
 ## 6. Yang belum dikerjakan, urut prioritas
 
-### 6.1 Nyambungin fitur (pekerjaan utama) — SELESAI per 2026-08-04
+### 6.1 Nyambungin fitur (pekerjaan utama) — SELESAI per 2026-08-05
 
-Polanya sama tiap fitur: **tabel (sudah ada) → API baca tabel itu → UI dipanggil ke API**.
-Semua 4 poin di bawah beres — detail & bukti verifikasi ada di pesan commit masing-masing
-(`git log`), jangan diringkas ulang di sini biar nggak basi lagi.
+Polanya sama tiap fitur: **tabel (sudah ada, atau dimigrasi kalau belum) → API baca
+tabel itu → UI dipanggil ke API**. Semua 5 poin di bawah beres — detail & bukti
+verifikasi ada di pesan commit masing-masing (`git log`), jangan diringkas ulang di
+sini biar nggak basi lagi.
 
 1. ✅ **Pelanggan** — `lib/customers/store.ts`, list + detail halaman.
 2. ✅ **Pembayaran + Kuitansi** — `lib/payments/store.ts`, `lib/receipts/store.ts`,
@@ -168,16 +170,36 @@ Semua 4 poin di bawah beres — detail & bukti verifikasi ada di pesan commit ma
 4. ✅ **Laporan** (Piutang/Pendapatan/Transaksi) — `lib/reports/store.ts`, dihitung
    dari data 1–3 sesuai saran di atas, bukan tabel sendiri. Margin/HPP ditandain
    "belum tersedia" (bukan angka fiktif) karena nggak ada data cost di Supabase.
-   **Booking/Okupansi Seat, Manifest, dan Audit Log Staf TIDAK disambungin** —
-   kebentur data model yang belum ada sama sekali (kuota seat per jadwal, data
-   paspor per-jamaah, sistem audit-log). Sekarang halaman itu (+ `/manifest`,
-   `/manifest/cetak`) nampilin placeholder "Segera Hadir" yang jujur lewat
-   `components/coming-soon.tsx`, bukan data dummy yang keliatan asli. Ini
-   keputusan scope, bukan kelupaan — kalau mau beneran dibangun, itu proyek baru
-   (nangkep data participant per booking, kuota per jadwal, dst), bukan "connect
-   ke tabel yang sudah ada".
+5. ✅ **Dashboard, Booking/Okupansi Seat, Manifest, Audit Log Staf — SELESAI per
+   2026-08-05.** Detail lengkap ada di pesan commit (`git log`, commit "Wire
+   Dashboard, Manifest, and Audit Log to real Supabase data"), ringkasan:
+   - **Dashboard** (`app/page.tsx`, `app/api/dashboard/stats/route.ts`) — semua
+     angka (omzet, seat, jamaah, tren mingguan) dihitung live, bukan dummy.
+   - **Seat** — `target_pax` jadi kolom asli di `published_packages` (dulu
+     kekubur di JSONB `costing_data`), tombol simpan kuota di `/paket/seat`
+     beneran nge-`PATCH`, bukan cuma `localStorage`.
+   - **Manifest** — data per-jamaah (paspor/kontak) yang sebenernya udah
+     dikirim form booking dari dulu tapi selalu dibuang si backend, sekarang
+     kesimpen ke tabel `participants` (`lib/participants/store.ts`) tiap kali
+     booking dibuat. `/manifest`, `/manifest/cetak`, `/laporan/manifest` nampilin
+     data itu beneran, bisa diedit inline (visa/tiket/kamar/status dokumen).
+   - **Audit Log Staf** (`lib/audit/store.ts`, tabel `activity_log`) — dicatat
+     otomatis dari `proxy.ts` tiap mutasi (POST/PATCH/PUT/DELETE) yang lolos
+     cek izin RBAC. **Batasannya jujur ditulis di halamannya sendiri**: yang
+     kecatet itu "izin lolos", bukan hasil akhir request, dan belum ada
+     before/after per field (itu butuh instrumentasi di tiap route, bukan satu
+     titik pusat di proxy).
+   - Ketemu juga & langsung dibenerin karena nyambung sama kerjaan Manifest:
+     form booking (`app/booking/form/page.tsx`) baca daftar paket dari
+     `localStorage` doang, bukan `/api/packages` — di browser/device baru yang
+     localStorage-nya kosong, dropdown paket cuma nampilin 3 paket fiktif
+     hardcode, dan booking yang lahir dari situ nggak nyambung ke paket asli
+     manapun (ngerusak Seat & Manifest buat booking itu). Sekarang fetch live
+     dulu, localStorage cuma fallback.
 
-Ada 26 route yang masih balikin `source: "dummy"`. Cari semua:
+Ada 3 route yang masih balikin `source: "dummy"` per 2026-08-05 (angka "26" di sini
+sebelumnya udah basi duluan sebelum sesi ini — jangan percaya angka manapun di
+dokumen ini tanpa ngecek ulang, sesuai peringatan di atas). Cari semua:
 
 ```bash
 grep -rl 'source: "dummy"' app/api
@@ -261,11 +283,20 @@ grep -rl 'source: "dummy"' app/api
   Program" di form berisi 12 dan itinerary-nya juga 12 hari. Kartu paket jadi
   kontradiktif. Belum diubah karena ini teks yang dibaca jamaah.
   Lokasi: `app/paket/kalkulator/page.tsx`, di `handleConfirmPublish`.
-- **Sisa halaman hardcoded** (Booking/Okupansi Seat, Manifest, Audit Log Staf)
-  per 2026-08-04 udah dikasih label "Segera Hadir" (lihat 6.1) — bukan diputusin
-  disambungin, karena butuh data model baru (kuota seat, data paspor per-jamaah,
-  audit-log). Kalau bang Daru mau salah satu dari ini beneran dibangun, itu kerjaan
-  baru: rancang dulu data apa yang perlu ditangkep, baru sambungin.
+- **Halaman detail Pelanggan (`app/pelanggan/[id]/page.tsx`) masih 100% fiktif** —
+  ketemu pas ngerjain Manifest tapi belum dibenerin (di luar scope waktu itu).
+  Kartu "Dokumen Imigrasi Digital" baca `listParticipantsForBooking("book-001")`
+  (booking id hardcode, ngaco buat siapapun bukan pemilik booking itu) dan kalau
+  nggak ketemu, generate nomor paspor/visa RANDOM tiap kali halaman dibuka. Tabel
+  "Riwayat Booking & Transaksi" di bawahnya malah satu baris hardcode penuh
+  ("BK-2407-018", dst) buat SEMUA pelanggan, nggak peduli siapa yang dibuka.
+  Sekarang data asli udah ada (`real_bookings` by phone, tabel `participants` by
+  booking code / `GET /api/manifest/participants?bookingCode=`) — tinggal
+  disambungin.
+- **Kartu "Jamaah Terdaftar" di Dashboard (`app/page.tsx`) claim "100% Akun
+  UmrahMe Aktif"** tiap kali `customerCount > 0`, nggak peduli berapa akun yang
+  beneran aktif. `real_bookings.umrah_me_status` (lihat `app/umrahme/page.tsx`)
+  punya data asli buat ini, tinggal dihitung & disambungin ke `/api/dashboard/stats`.
 - **Paket Oktober masih pakai kurs 4300.** Template sudah 4780. Kalau paket itu
   mau ikut naik, harus dibuka di mode edit lalu diterbitkan ulang — dan harga
   jualnya naik dari Rp 34.526.744 jadi Rp 35.483.174 (+Rp 956.430/pax).
