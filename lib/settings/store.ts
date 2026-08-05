@@ -241,8 +241,30 @@ export async function updateBankAccount(
   return res.rows[0];
 }
 
+/**
+ * Documents print whichever account is_primary — deleting that one without
+ * promoting another leaves nothing for them to print at all.
+ */
 export async function deleteBankAccount(id: string): Promise<boolean> {
   await ensureTables();
-  const res = await getPool().query(`DELETE FROM bank_accounts WHERE id = $1;`, [id]);
-  return (res.rowCount ?? 0) > 0;
+
+  const deleted = await getPool().query(
+    `DELETE FROM bank_accounts WHERE id = $1 RETURNING is_primary AS "wasPrimary";`,
+    [id],
+  );
+  if (deleted.rowCount === 0) return false;
+
+  if (deleted.rows[0].wasPrimary) {
+    await getPool().query(`
+      UPDATE bank_accounts SET is_primary = true
+      WHERE id = (
+        SELECT id FROM bank_accounts
+        WHERE status = 'Aktif'
+        ORDER BY created_at ASC
+        LIMIT 1
+      );
+    `);
+  }
+
+  return true;
 }
