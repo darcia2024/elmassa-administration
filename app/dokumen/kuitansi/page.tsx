@@ -31,6 +31,8 @@ export default function ReceiptPage() {
   const [receipts, setReceipts] = useState<ReceiptDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReceiptNumber, setSelectedReceiptNumber] = useState("");
+  const [companyName, setCompanyName] = useState("El Massa Tour & Travel");
+  const [companyAddress, setCompanyAddress] = useState("");
 
   useEffect(() => {
     fetch("/api/receipts")
@@ -42,6 +44,16 @@ export default function ReceiptPage() {
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
+
+    // Replaces a hardcoded "Jl. Kemang Pratama No. 12, Bekasi" that was never
+    // this company's real address (it's Pangkalpinang, Bangka Belitung).
+    fetch("/api/company-identity")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data?.name) setCompanyName(json.data.name);
+        if (json.data?.address) setCompanyAddress(json.data.address);
+      })
+      .catch((e) => console.error("Failed loading company identity:", e));
   }, []);
 
   const item = receipts.find((r) => r.receipt.number === selectedReceiptNumber) ?? receipts[0];
@@ -138,9 +150,9 @@ export default function ReceiptPage() {
                   className="h-12 w-auto object-contain shrink-0"
                 />
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand-brown">El Massa Tour & Travel</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand-brown">{companyName}</p>
                   <h1 className="mt-0.5 text-2xl font-extrabold text-brand-cocoa">Kuitansi Pembayaran</h1>
-                  <p className="mt-1 text-xs text-stone-500">Jl. Kemang Pratama No. 12, Bekasi</p>
+                  <p className="mt-1 text-xs text-stone-500">{companyAddress}</p>
                 </div>
               </div>
 

@@ -41,6 +41,12 @@ type HistoryLog = {
   remainingTotal: string;
 };
 
+type PrimaryAccount = {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+};
+
 type InvoiceDetailPageProps = {
   params: Promise<{
     number: string;
@@ -55,6 +61,26 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
   const [historyLogs, setHistoryLogs] = useState<HistoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [primaryAccounts, setPrimaryAccounts] = useState<PrimaryAccount[]>([]);
+
+  // Real registered accounts, replacing hardcoded "Bank BTN 20901880001965" /
+  // "BCA 534-567-8901" — the second of which a previous commit already noted
+  // was never a real account. bank_accounts starts empty until someone adds
+  // one in Pengaturan > Rekening, so this can legitimately render nothing.
+  useEffect(() => {
+    fetch("/api/payment-accounts?status=Aktif")
+      .then((res) => res.json())
+      .then((json) => {
+        const rows = (json.data ?? []) as any[];
+        const primary = rows.filter((r) => r.isPrimary);
+        setPrimaryAccounts((primary.length > 0 ? primary : rows.slice(0, 1)).map((r) => ({
+          bankName: r.bankName,
+          accountNumber: r.accountNumber,
+          accountName: r.accountName,
+        })));
+      })
+      .catch((e) => console.error("Failed loading payment accounts:", e));
+  }, []);
 
   useEffect(() => {
     fetch(`/api/invoices/${decodedNumber}`)
@@ -251,14 +277,22 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
           <div className="grid gap-6 sm:grid-cols-2 pt-2 items-start">
             <div className="rounded-sm border border-stone-800 bg-white p-4 space-y-2 text-xs">
               <p className="font-semibold text-stone-600">Silahkan Melakukan Pembayaran Melalui Rekening Berikut :</p>
-              <div className="border-t border-stone-200 pt-2 space-y-1 font-mono">
-                <p className="text-lg font-black tracking-wider text-stone-950">20901880001965</p>
-                <p className="font-bold text-stone-900">Bank BTN</p>
-                <p className="font-bold text-brand-pink text-xs uppercase">PT. ALMASSA AZKA WISATA</p>
-              </div>
-              <p className="text-[10px] text-stone-500 pt-1 border-t border-stone-100">
-                Atau Rekening BCA: 534-567-8901 (a.n PT. ALMASSA AZKA WISATA)
-              </p>
+              {primaryAccounts.length === 0 ? (
+                <p className="border-t border-stone-200 pt-2 text-amber-700 font-semibold">
+                  Belum ada rekening terdaftar — atur di Pengaturan &gt; Rekening.
+                </p>
+              ) : (
+                primaryAccounts.map((acc, i) => (
+                  <div
+                    key={`${acc.bankName}-${acc.accountNumber}`}
+                    className={i === 0 ? "border-t border-stone-200 pt-2 space-y-1 font-mono" : "pt-1 border-t border-stone-100 space-y-1 font-mono"}
+                  >
+                    <p className="text-lg font-black tracking-wider text-stone-950">{acc.accountNumber}</p>
+                    <p className="font-bold text-stone-900">{acc.bankName}</p>
+                    <p className="font-bold text-brand-pink text-xs uppercase">{acc.accountName}</p>
+                  </div>
+                ))
+              )}
             </div>
 
             <div className="space-y-3 text-xs sm:pl-8">
