@@ -1,4 +1,5 @@
 import { getPool } from "@/lib/db/connection";
+import { todayWIB } from "@/lib/format/date";
 
 /**
  * Read-only report aggregations. Deliberately computed from real_bookings /
@@ -43,7 +44,7 @@ const RECEIVABLES_QUERY = `
 
 export async function listReceivables(): Promise<ReceivableRow[]> {
   const res = await getPool().query(RECEIVABLES_QUERY);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayWIB();
 
   return res.rows.map((row) => {
     const ageDays = Math.max(

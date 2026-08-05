@@ -1,5 +1,5 @@
 import { getPool } from "@/lib/db/connection";
-import { isoDateInDays, parseIndonesianDate } from "@/lib/format/date";
+import { isoDateInDays, parseIndonesianDate, todayWIB } from "@/lib/format/date";
 
 /**
  * Invoices, stored in the `invoices` table the Drizzle migrations already
@@ -132,7 +132,7 @@ export async function generateInvoiceFromBooking(
   }
 
   const totalAmount = Number(booking.rows[0].totalAmount);
-  const issueDate = new Date().toISOString().slice(0, 10);
+  const issueDate = todayWIB();
 
   // `departure` is free text ("01 Oktober 2026"), so it has to be parsed before
   // it can go into a date column. When it cannot be read, fall back to 30 days

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CalendarClock, CheckCircle2, Plus, WalletCards, X } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { todayForDateInput } from "@/lib/format/date";
 
 type InstallmentItem = {
   id: string;
@@ -42,7 +43,7 @@ export default function InstallmentsPage() {
   const [bookingCode, setBookingCode] = useState("");
   const [sequence, setSequence] = useState(1);
   const [label, setLabel] = useState("");
-  const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(() => todayForDateInput());
   const [amount, setAmount] = useState(0);
 
   function loadInstallments() {

@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, CreditCard, DollarSign, ReceiptText, Upload } 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { todayForDateInput } from "@/lib/format/date";
 
 type ActiveBooking = {
   code: string;
@@ -20,7 +21,7 @@ export default function PaymentFormPage() {
   const [bankAccounts, setBankAccounts] = useState<string[]>(fallbackBankAccounts);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [selectedBookingCode, setSelectedBookingCode] = useState("");
-  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [paymentDate, setPaymentDate] = useState(() => todayForDateInput());
   const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank");
   const [selectedAccount, setSelectedAccount] = useState(fallbackBankAccounts[0]);

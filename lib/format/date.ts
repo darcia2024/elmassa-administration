@@ -53,9 +53,37 @@ export function parseIndonesianDate(value: unknown): string | null {
   return null;
 }
 
-/** ISO date N days from today, used when no usable date could be parsed. */
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000; // UTC+7, no DST in Indonesia
+
+/**
+ * Today's date (YYYY-MM-DD) in WIB, not the server's UTC date.
+ *
+ * `new Date().toISOString().slice(0, 10)` is a recurring bug in this codebase:
+ * it's UTC, but the business runs in WIB (UTC+7). Every day between 00:00 and
+ * 07:00 WIB, that expression returns *yesterday's* date — an invoice issued,
+ * a payment recorded, or a receivables "days overdue" count computed in that
+ * window is silently backdated by one day.
+ */
+export function todayWIB(): string {
+  return new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** ISO date N days from today (WIB), used when no usable date could be parsed. */
 export function isoDateInDays(days: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return new Date(Date.now() + WIB_OFFSET_MS + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * Today's date (YYYY-MM-DD) for a `<input type="date">` default in the
+ * browser. Deliberately reads the browser's *local* date parts rather than
+ * going through toISOString() (UTC) — staff are assumed to be in Indonesia,
+ * so local time already is WIB, and converting to UTC first is exactly the
+ * bug todayWIB() exists to avoid on the server.
+ */
+export function todayForDateInput(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

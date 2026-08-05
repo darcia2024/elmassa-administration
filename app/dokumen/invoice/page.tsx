@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { todayForDateInput } from "@/lib/format/date";
 
 type InvoiceItem = {
   id: string;
@@ -46,7 +47,7 @@ export default function FastInvoicePage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const [selectedBookingCode, setSelectedBookingCode] = useState("");
-  const [customDueDate, setCustomDueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [customDueDate, setCustomDueDate] = useState(() => todayForDateInput());
 
   function loadInvoices() {
     setLoading(true);
