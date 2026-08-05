@@ -54,6 +54,7 @@ type PackageCardItem = {
   excludes: string[];
   itinerary?: ItineraryDayItem[];
   featured?: boolean;
+  targetPax?: number;
 };
 
 const officialPackages: PackageCardItem[] = [];
@@ -63,6 +64,7 @@ export function PackageList() {
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [selectedPkg, setSelectedPkg] = useState<PackageCardItem | null>(null);
   const [customPackages, setCustomPackages] = useState<PackageCardItem[]>([]);
+  const [realBookings, setRealBookings] = useState<any[]>([]);
 
   // Load custom published packages from HPP Calculator via localStorage & active user role
   const [userRole, setUserRole] = useState("Super Admin");
@@ -99,6 +101,16 @@ export function PackageList() {
         if (localPkgs.length > 0) setCustomPackages(localPkgs);
       });
 
+    // Real booked-seat counts, so "Seat Kuota" below can show how many are
+    // actually left instead of a number that never changes no matter how
+    // many jamaah book.
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok && Array.isArray(res.data)) setRealBookings(res.data);
+      })
+      .catch((e) => console.error("Failed loading bookings for seat count:", e));
+
     try {
       const savedRole = localStorage.getItem("el_massa_user_role");
       if (savedRole) {
@@ -108,6 +120,23 @@ export function PackageList() {
       console.error(e);
     }
   }, []);
+
+  // Same packageId-first, fuzzy-name-fallback match /paket/seat uses -- bookings
+  // made before the packageId fix (or without it for any reason) still count.
+  const getRemainingSeats = (pkg: PackageCardItem): number => {
+    const target = Number(pkg.targetPax) || 45;
+    const pkgNameClean = (pkg.name || "").split("—")[0].split("(")[0].trim().toLowerCase();
+
+    const bookedSeats = realBookings
+      .filter((b) => {
+        if (b.packageId) return b.packageId === pkg.id;
+        const bPkgName = (b.packageName || "").split("—")[0].split("(")[0].trim().toLowerCase();
+        return bPkgName.includes(pkgNameClean) || pkgNameClean.includes(bPkgName);
+      })
+      .reduce((sum, b) => sum + (Number(b.participants) || 1), 0);
+
+    return Math.max(target - bookedSeats, 0);
+  };
 
   const canEditPackage = useMemo(() => {
     const allowedRoles = ["Super Admin", "Manager Operasional", "Admin Paket", "Direktur Utama", "Akun Master"];
@@ -568,7 +597,7 @@ export function PackageList() {
                   <div className="flex items-center gap-1.5 font-bold text-stone-900">
                     <span className="text-stone-500 font-semibold">Seat Kuota:</span>
                     <span className="text-brand-pink font-extrabold bg-rose-50 border border-brand-pink/20 px-2 py-0.5 rounded-md">
-                      {Math.max(0, 45 - (customPackages.find((c) => c.id === pkg.id) ? 0 : 0))} Seat Tersedia
+                      {getRemainingSeats(pkg)} Seat Tersedia
                     </span>
                   </div>
                   <Link href="/paket/seat" className="text-[11px] font-extrabold text-stone-700 hover:text-brand-pink underline">
@@ -946,7 +975,7 @@ export function PackageList() {
                 </div>
                 <div>
                   <p className="font-extrabold text-stone-900">Monitoring Kuota Seat Grup</p>
-                  <p className="text-[11px] font-medium text-stone-600">Sisa Kuota: <strong className="text-pink-600 font-extrabold text-sm">45 Seat Ready</strong></p>
+                  <p className="text-[11px] font-medium text-stone-600">Sisa Kuota: <strong className="text-pink-600 font-extrabold text-sm">{getRemainingSeats(selectedPkg)} Seat Ready</strong></p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
