@@ -22,50 +22,34 @@ import {
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
-type UserRole =
-  | "Admin Master"
-  | "Sub-User Operasional"
-  | "Sub-User Keuangan"
-  | "Sub-User Sales & CRM"
-  | "Sub-User Lapangan";
-
 type UserAccount = {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: UserRole;
+  role: string;
   branch: string;
   status: string;
-  teamDivision: string;
+  division: string;
   password?: string;
 };
 
-const initialAccounts: UserAccount[] = [
-  {
-    id: "acc-001",
-    name: "Azriandri",
-    email: "azriandri@elmassa.test",
-    phone: "0812-3344-7788",
-    role: "Admin Master",
-    branch: "Pangkalpinang (Bangka)",
-    status: "Aktif",
-    teamDivision: "CEO & Direksi Utama",
-    password: "admin123",
-  },
-];
-
-const roleBadgeStyles: Record<UserRole, string> = {
-  "Admin Master": "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold",
-  "Sub-User Operasional": "bg-sky-50 text-sky-800 border border-sky-200/60 font-semibold",
-  "Sub-User Keuangan": "bg-emerald-50 text-emerald-800 border border-emerald-200/60 font-semibold",
-  "Sub-User Sales & CRM": "bg-purple-50 text-purple-800 border border-purple-200/60 font-semibold",
-  "Sub-User Lapangan": "bg-amber-50 text-amber-800 border border-amber-200/60 font-semibold",
+type RoleOption = {
+  id: string;
+  name: string;
+  isSystem: boolean;
 };
 
+const FALLBACK_ROLE_BADGE = "bg-sky-50 text-sky-800 border border-sky-200/60 font-semibold";
+const SYSTEM_ROLE_BADGE = "bg-rose-50 text-brand-pink border border-brand-pink/20 font-bold";
+
 export default function StaffAndSubUsersPage() {
-  const [accounts, setAccounts] = useState<UserAccount[]>(initialAccounts);
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [activeTab, setActiveTab] = useState<"Semua" | "Admin Master" | "Sub-User Tim">("Semua");
+
+  const isSystemRole = (roleName: string) => roles.find((r) => r.name === roleName)?.isSystem ?? false;
+  const roleBadgeStyle = (roleName: string) => (isSystemRole(roleName) ? SYSTEM_ROLE_BADGE : FALLBACK_ROLE_BADGE);
 
   // Accounts live in Supabase — these are the credentials people log in with, so
   // they cannot sit in one browser's storage.
@@ -81,10 +65,24 @@ export default function StaffAndSubUsersPage() {
     }
   };
 
+  const reloadRoles = async () => {
+    try {
+      const res = await fetch("/api/roles");
+      const payload = await res.json();
+      const list = (payload?.data ?? []).map((r: any) => ({ id: r.id, name: r.name, isSystem: r.isSystem }));
+      setRoles(list);
+      return list as RoleOption[];
+    } catch (e) {
+      console.error("Failed to load roles:", e);
+      return [];
+    }
+  };
+
   useEffect(() => {
     reloadAccounts();
+    reloadRoles();
   }, []);
-  
+
   // Account Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -101,10 +99,10 @@ export default function StaffAndSubUsersPage() {
     name: "",
     email: "",
     phone: "",
-    role: "Sub-User Operasional" as UserRole,
+    role: "",
     branch: "Pangkalpinang (Bangka)",
     status: "Aktif",
-    teamDivision: "Operasional & Flight",
+    division: "",
     password: "",
   });
 
@@ -114,10 +112,12 @@ export default function StaffAndSubUsersPage() {
   };
 
   const filteredAccounts = accounts.filter((acc) => {
-    if (activeTab === "Admin Master") return acc.role === "Admin Master";
-    if (activeTab === "Sub-User Tim") return acc.role !== "Admin Master";
+    if (activeTab === "Admin Master") return isSystemRole(acc.role);
+    if (activeTab === "Sub-User Tim") return !isSystemRole(acc.role);
     return true;
   });
+
+  const defaultAssignableRole = () => roles.find((r) => !r.isSystem)?.name ?? roles[0]?.name ?? "";
 
   const handleOpenAddModal = () => {
     setEditingId(null);
@@ -125,10 +125,10 @@ export default function StaffAndSubUsersPage() {
       name: "",
       email: "",
       phone: "",
-      role: "Sub-User Operasional",
+      role: defaultAssignableRole(),
       branch: "Pangkalpinang (Bangka)",
       status: "Aktif",
-      teamDivision: "Operasional & Flight",
+      division: "",
       password: "admin123",
     });
     setIsModalOpen(true);
@@ -143,7 +143,7 @@ export default function StaffAndSubUsersPage() {
       role: acc.role,
       branch: acc.branch,
       status: acc.status,
-      teamDivision: acc.teamDivision,
+      division: acc.division,
       password: "",
     });
     setIsModalOpen(true);
@@ -167,8 +167,10 @@ export default function StaffAndSubUsersPage() {
           body: JSON.stringify({
             name: formData.name,
             email: formData.email,
+            phone: formData.phone,
             role: formData.role,
             branch: formData.branch,
+            division: formData.division,
             status: formData.status,
           }),
         });
@@ -186,8 +188,10 @@ export default function StaffAndSubUsersPage() {
             name: formData.name,
             email: formData.email,
             password: formData.password,
+            phone: formData.phone,
             role: formData.role,
             branch: formData.branch,
+            division: formData.division,
             status: formData.status,
           }),
         });
@@ -232,8 +236,8 @@ export default function StaffAndSubUsersPage() {
   };
 
   const handleDeleteAccount = async (acc: UserAccount) => {
-    if (acc.role === "Admin Master") {
-      alert("Akun CEO / Admin Master tidak dapat dihapus!");
+    if (isSystemRole(acc.role)) {
+      alert("Akun dengan role sistem (Admin Master) tidak dapat dihapus!");
       return;
     }
     if (!confirm(`Yakin ingin menghapus sub-user "${acc.name}"?`)) return;
@@ -314,7 +318,7 @@ export default function StaffAndSubUsersPage() {
               <ShieldCheck className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-brand-pink">
-              {accounts.filter((a) => a.role === "Admin Master").length} Super Admin
+              {accounts.filter((a) => isSystemRole(a.role)).length} Super Admin
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Akses Penuh Manajemen</p>
           </article>
@@ -325,7 +329,7 @@ export default function StaffAndSubUsersPage() {
               <UserCog className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-2xl font-bold text-sky-800">
-              {accounts.filter((a) => a.role !== "Admin Master").length} Sub-User Tim
+              {accounts.filter((a) => !isSystemRole(a.role)).length} Sub-User Tim
             </p>
             <p className="mt-1 text-[11px] text-stone-400">Staf Ops, Keuangan, Sales & Field</p>
           </article>
@@ -366,7 +370,7 @@ export default function StaffAndSubUsersPage() {
                     <h4 className="font-bold text-xs text-stone-900">{acc.name}</h4>
                     <p className="text-[11px] text-stone-500 font-mono">{acc.email}</p>
                   </div>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${roleBadgeStyles[acc.role]}`}>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${roleBadgeStyle(acc.role)}`}>
                     {acc.role}
                   </span>
                 </div>
@@ -374,7 +378,7 @@ export default function StaffAndSubUsersPage() {
                 <div className="grid grid-cols-2 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-100">
                   <div>
                     <span className="text-[10px] text-stone-400 block font-medium">Divisi</span>
-                    <span className="font-bold text-stone-800">{acc.teamDivision}</span>
+                    <span className="font-bold text-stone-800">{acc.division || "-"}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-stone-400 block font-medium">Cabang</span>
@@ -426,11 +430,11 @@ export default function StaffAndSubUsersPage() {
                       {acc.name}
                     </td>
                     <td className="py-3 pr-2 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] ${roleBadgeStyles[acc.role]}`}>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] ${roleBadgeStyle(acc.role)}`}>
                         {acc.role}
                       </span>
                     </td>
-                    <td className="py-3 pr-2 font-semibold text-stone-800 whitespace-nowrap">{acc.teamDivision}</td>
+                    <td className="py-3 pr-2 font-semibold text-stone-800 whitespace-nowrap">{acc.division || "-"}</td>
                     <td className="py-3 pr-2 font-medium text-stone-600 whitespace-nowrap">{acc.branch}</td>
                     <td className="py-3 pr-2 font-mono text-stone-600 whitespace-nowrap">
                       {acc.email} <span className="text-stone-400">• {acc.phone}</span>
@@ -468,7 +472,7 @@ export default function StaffAndSubUsersPage() {
                       </button>
 
                       {/* Delete Sub-User Button */}
-                      {acc.role !== "Admin Master" && (
+                      {!isSystemRole(acc.role) && (
                         <button
                           type="button"
                           onClick={() => handleDeleteAccount(acc)}
@@ -524,14 +528,19 @@ export default function StaffAndSubUsersPage() {
                   <select
                     className="w-full h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-brand-cocoa outline-none"
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   >
-                    <option value="Admin Master">Admin Master (Super Admin)</option>
-                    <option value="Sub-User Operasional">Sub-User Operasional</option>
-                    <option value="Sub-User Keuangan">Sub-User Keuangan</option>
-                    <option value="Sub-User Sales & CRM">Sub-User Sales & CRM</option>
-                    <option value="Sub-User Lapangan">Sub-User Lapangan</option>
+                    {roles.length === 0 && <option value="">Memuat role...</option>}
+                    {roles.map((r) => (
+                      <option key={r.id} value={r.name}>
+                        {r.name}
+                        {r.isSystem ? " (Super Admin)" : ""}
+                      </option>
+                    ))}
                   </select>
+                  <Link href="/pengaturan/hak-akses" className="text-[10px] font-semibold text-brand-pink hover:underline">
+                    + Buat role baru di Hak Akses
+                  </Link>
                 </label>
 
                 <label className="block space-y-1">
@@ -539,8 +548,8 @@ export default function StaffAndSubUsersPage() {
                   <input
                     required
                     className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium outline-none focus:border-brand-pink focus:bg-white"
-                    value={formData.teamDivision}
-                    onChange={(e) => setFormData({ ...formData, teamDivision: e.target.value })}
+                    value={formData.division}
+                    onChange={(e) => setFormData({ ...formData, division: e.target.value })}
                     placeholder="Contoh: Operasional & Flight"
                   />
                 </label>

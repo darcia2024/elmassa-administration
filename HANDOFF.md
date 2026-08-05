@@ -215,11 +215,44 @@ grep -rl 'source: "dummy"' app/api
   yang masih dijalanin.
 - **Gate auth di halaman masih client-side.** `components/app-shell.tsx` cuma
   ngecek objek di localStorage, jadi orang bisa nyuntik lewat DevTools dan lihat
-  UI-nya. Data tetap aman karena API sudah dijaga cookie, tapi idealnya halaman
-  juga divalidasi server-side.
-- **`publicApiPrefixes` di `proxy.ts`** masih melepas `/api/packages`,
-  `/api/bookings`, `/api/revision-notes`, `/api/schedules` tanpa auth — supaya UI
-  yang belum login nggak rusak. Perketat setelah semua halaman lewat login.
+  UI-nya. Kurang parah sekarang karena API di baliknya beneran dijaga (lihat poin
+  role/permission di bawah), tapi idealnya halaman juga divalidasi server-side.
+- ✅ **`publicApiPrefixes` di `proxy.ts` — diperketat per 2026-08-05.** `/api/bookings`
+  sudah bukan public dari commit sebelumnya. `/api/packages` & `/api/schedules`
+  sekarang cuma public buat **GET** (katalog boleh dibrowse tanpa login) —
+  sebelumnya prefix-match-nya nggak peduli method, jadi POST/PATCH/DELETE ke
+  situ juga ikut lolos tanpa auth (bug yang sama persis kelasnya kayak
+  `/api/bookings`, ketauan pas ngerjain sistem role di bawah, langsung dibenerin
+  sekalian). `/api/revision-notes` tetep public buat semua method — itu memang
+  disengaja.
+- ✅ **Role & hak akses sekarang nyata, bukan tampilan — SELESAI per 2026-08-05.**
+  `Pengaturan > Staf` dulu cuma bisa milih dari 5 role hardcode, dan field
+  "Divisi"/No. HP di form itu fiktif (nggak pernah kekirim ke server, nggak ada
+  kolomnya). `Pengaturan > Hak Akses` malah 100% dekorasi — tombol "Simpan" cuma
+  nyalain toast doang, nggak ada `fetch` sama sekali, dan nggak ada satupun
+  bagian sistem yang beneran ngecek role buat ngebatesin apa pun.
+
+  Sekarang: tabel `roles` + `role_permissions` (lihat `lib/roles/store.ts`), Admin
+  Master bisa bikin role bebas dari nol (bukan cuma dari template), matriks
+  izinnya kesimpen beneran, dan **dicek di `proxy.ts` di setiap request API** —
+  bukan cuma nyembunyiin tombol di UI. Role dibaca fresh dari DB tiap request
+  (pola yang sama kayak `isStaffActive` sebelumnya), jadi ganti role staf
+  langsung berlaku tanpa nunggu token expire atau re-login. Role "Admin Master"
+  dikunci: nggak bisa dihapus, permission-nya nggak bisa diubah (baik lewat UI
+  atau langsung ke API) — itu jaga-jaga biar nggak ada yang nggak sengaja
+  ngunci semua admin dari Hak Akses. Role custom juga nggak bisa dihapus kalau
+  masih ada staf yang pakai.
+
+  Field "Divisi" dan "No. HP" di form staf sekarang beneran nyimpen (kolom
+  `division` ditambahin ke `staff_users`, `phone` yang sebelumnya di-hardcode
+  string kosong sekarang ikut ke-passing).
+
+  Diverifikasi end-to-end: bikin role custom lewat UI dengan izin terbatas
+  (cuma bisa lihat data pelanggan), bikin staf beneran dengan role itu, login
+  sebagai staf itu, dan buktiin lewat curl: aksi yang diizinkan (200), aksi yang
+  nggak (403) — termasuk modul yang sama sekali nggak dikasih izin. Diuji juga
+  ganti role staf langsung di DB tanpa re-login, dan akses berubah instan di
+  request berikutnya pakai token yang sama.
 
 ### 6.3 Keputusan yang nunggu pemilik (bang Daru)
 

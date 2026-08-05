@@ -36,8 +36,10 @@ export async function PATCH(request: NextRequest, { params }: StaffUserDetailRou
     const data = await updateStaff(decodeURIComponent(staffId), {
       name: body.name === undefined ? undefined : String(body.name),
       email: body.email === undefined ? undefined : String(body.email),
+      phone: body.phone === undefined ? undefined : String(body.phone),
       role: body.role === undefined ? undefined : String(body.role),
       branch: body.branch === undefined ? undefined : String(body.branch),
+      division: body.division === undefined ? undefined : String(body.division),
       status: body.status === undefined ? undefined : String(body.status),
       password: body.password === undefined ? undefined : String(body.password),
     });

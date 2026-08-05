@@ -36,8 +36,10 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password,
+      phone: body.phone ? String(body.phone) : undefined,
       role: body.role ? String(body.role) : undefined,
       branch: body.branch ? String(body.branch) : undefined,
+      division: body.division ? String(body.division) : undefined,
       status: body.status ? String(body.status) : undefined,
     });
 

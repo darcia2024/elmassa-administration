@@ -14,8 +14,10 @@ export type StaffRow = {
   id: string;
   name: string;
   email: string;
+  phone: string;
   role: string;
   branch: string;
+  division: string;
   status: string;
   lastLoginAt: string | null;
 };
@@ -25,7 +27,7 @@ type StaffRowWithSecret = StaffRow & {
   passwordSalt: string;
 };
 
-const SELECT_PUBLIC = `id, name, email, role, branch, status, last_login_at as "lastLoginAt"`;
+const SELECT_PUBLIC = `id, name, email, phone, role, branch, division, status, last_login_at as "lastLoginAt"`;
 
 let tableReady = false;
 
@@ -53,6 +55,7 @@ export async function ensureStaffTable() {
     ALTER TABLE staff_users ADD COLUMN IF NOT EXISTS password_hash TEXT;
     ALTER TABLE staff_users ADD COLUMN IF NOT EXISTS password_salt TEXT;
     ALTER TABLE staff_users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+    ALTER TABLE staff_users ADD COLUMN IF NOT EXISTS division TEXT NOT NULL DEFAULT '';
     CREATE UNIQUE INDEX IF NOT EXISTS staff_users_email_lower_idx ON staff_users (LOWER(email));
   `);
 
@@ -65,8 +68,8 @@ export async function ensureStaffTable() {
     const initialPassword = process.env.INITIAL_ADMIN_PASSWORD || "admin123";
 
     await getPool().query(
-      `INSERT INTO staff_users (id, name, email, phone, password_hash, password_salt, role, branch, status)
-       VALUES ($1, $2, $3, '', $4, $5, $6, $7, 'Aktif');`,
+      `INSERT INTO staff_users (id, name, email, phone, password_hash, password_salt, role, branch, division, status)
+       VALUES ($1, $2, $3, '', $4, $5, $6, $7, $8, 'Aktif');`,
       [
         randomUUID(),
         "Azriandri",
@@ -75,6 +78,7 @@ export async function ensureStaffTable() {
         salt,
         "Admin Master",
         "Pangkalpinang (Bangka)",
+        "CEO & Direksi Utama",
       ],
     );
   }
@@ -121,41 +125,33 @@ export async function markStaffLoggedIn(id: string) {
   await getPool().query(`UPDATE staff_users SET last_login_at = NOW() WHERE id = $1;`, [id]);
 }
 
-/**
- * Used by proxy.ts on every authenticated request so a deactivated/deleted
- * staff account loses access immediately instead of waiting out the token's
- * 12h expiry. Returns false for both "row missing" and "status != Aktif" --
- * callers don't need to distinguish the two.
- */
-export async function isStaffActive(id: string): Promise<boolean> {
-  await ensureStaffTable();
-  const res = await getPool().query(`SELECT status FROM staff_users WHERE id = $1 LIMIT 1;`, [id]);
-  return res.rows[0]?.status === "Aktif";
-}
-
 export async function createStaff(input: {
   name: string;
   email: string;
   password: string;
+  phone?: string;
   role?: string;
   branch?: string;
+  division?: string;
   status?: string;
 }): Promise<StaffRow> {
   await ensureStaffTable();
   const salt = randomBytes(16).toString("hex");
 
   const res = await getPool().query(
-    `INSERT INTO staff_users (id, name, email, phone, password_hash, password_salt, role, branch, status)
-     VALUES ($1, $2, $3, '', $4, $5, $6, $7, $8)
+    `INSERT INTO staff_users (id, name, email, phone, password_hash, password_salt, role, branch, division, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING ${SELECT_PUBLIC};`,
     [
       randomUUID(),
       input.name,
       input.email.toLowerCase(),
+      input.phone || "",
       hashPassword(input.password, salt),
       salt,
       input.role || "Sub-User Operasional",
       input.branch || "",
+      input.division || "",
       input.status || "Aktif",
     ],
   );
@@ -165,7 +161,16 @@ export async function createStaff(input: {
 
 export async function updateStaff(
   id: string,
-  patch: { name?: string; email?: string; role?: string; branch?: string; status?: string; password?: string },
+  patch: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+    branch?: string;
+    division?: string;
+    status?: string;
+    password?: string;
+  },
 ): Promise<StaffRow | null> {
   await ensureStaffTable();
 
@@ -178,8 +183,10 @@ export async function updateStaff(
 
   if (patch.name !== undefined) push("name", patch.name);
   if (patch.email !== undefined) push("email", patch.email.toLowerCase());
+  if (patch.phone !== undefined) push("phone", patch.phone);
   if (patch.role !== undefined) push("role", patch.role);
   if (patch.branch !== undefined) push("branch", patch.branch);
+  if (patch.division !== undefined) push("division", patch.division);
   if (patch.status !== undefined) push("status", patch.status);
 
   if (patch.password) {

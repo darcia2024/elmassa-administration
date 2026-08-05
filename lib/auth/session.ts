@@ -6,13 +6,15 @@
  * in route handlers.
  *
  * A valid signature only proves the server issued the token, not that the
- * account is still active -- proxy.ts additionally checks staff_users.status
- * on every request (see isStaffActive in lib/auth/staff-store.ts) so a
- * deactivated account is locked out immediately instead of waiting out the
- * token's 12h expiry. That's only possible because Next 16's proxy runs on
- * the Node.js runtime by default (not Edge, despite what "proxy" suggests) --
- * an earlier version of this comment assumed Edge and said a DB check wasn't
- * possible here at all, which was never actually verified against the docs.
+ * account is still active or still has the role it had at login -- proxy.ts
+ * additionally checks staff_users.status and role on every request (see
+ * getStaffAuthForModule in lib/roles/store.ts) so a deactivated account, or
+ * one whose role was just changed, takes effect immediately instead of
+ * waiting out the token's 12h expiry. That's only possible because Next 16's
+ * proxy runs on the Node.js runtime by default (not Edge, despite what
+ * "proxy" suggests) -- an earlier version of this comment assumed Edge and
+ * said a DB check wasn't possible here at all, which was never actually
+ * verified against the docs.
  */
 
 export type SessionClaims = {
