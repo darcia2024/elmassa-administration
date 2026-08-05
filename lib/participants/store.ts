@@ -51,7 +51,7 @@ const LIST_QUERY = `
   JOIN real_bookings b ON b.code = p.booking_code
 `;
 
-export async function listParticipants(filter?: { bookingCode?: string; packageId?: string }): Promise<ParticipantRecord[]> {
+export async function listParticipants(filter?: { bookingCode?: string; packageId?: string; phone?: string }): Promise<ParticipantRecord[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
 
@@ -62,6 +62,10 @@ export async function listParticipants(filter?: { bookingCode?: string; packageI
   if (filter?.packageId) {
     values.push(filter.packageId);
     conditions.push(`b.package_id = $${values.length}`);
+  }
+  if (filter?.phone) {
+    values.push(filter.phone);
+    conditions.push(`b.phone = $${values.length}`);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";

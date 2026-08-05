@@ -3,7 +3,8 @@ import { ArrowLeft, CheckCircle2, FileText, Layers, Mail, MapPin, Phone, Plane, 
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { findCustomer } from "@/lib/customers/store";
-import { listParticipantsForBooking } from "@/lib/seed-data/bookings";
+import { listBookingsByPhone } from "@/lib/bookings/store";
+import { listParticipants } from "@/lib/participants/store";
 
 type CustomerDetailPageProps = {
   params: Promise<{
@@ -16,6 +17,24 @@ type CustomerDetailPageProps = {
 // build-time snapshot.
 export const dynamic = "force-dynamic";
 
+const documentStatusStyles: Record<string, string> = {
+  Lengkap: "border-emerald-200/60 bg-emerald-50/80 text-emerald-800",
+  "Proses Visa": "border-amber-200/60 bg-amber-50/80 text-amber-800",
+  "Belum Lengkap": "border-rose-200/60 bg-rose-50/80 text-rose-700",
+};
+
+const bookingStatusStyles: Record<string, string> = {
+  Lunas: "border-emerald-200/60 bg-emerald-50/80 text-emerald-800",
+  DP: "border-amber-200/60 bg-amber-50/80 text-amber-800",
+  "Belum Bayar": "border-rose-200/60 bg-rose-50/80 text-rose-700",
+};
+
+function formatVisaExpiry(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
   const { id } = await params;
   const customer = await findCustomer(id);
@@ -24,14 +43,14 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
     notFound();
   }
 
-  const participants = listParticipantsForBooking("book-001");
-  const participantDoc = participants.find((p) => p.name === customer.name) ?? {
-    passportNumber: `C982${4100 + Math.floor(Math.random() * 40)}`,
-    ticketNumber: `126-240981${2000 + Math.floor(Math.random() * 40)}`,
-    visaNumber: `EV-98240${Math.floor(1 + Math.random() * 39).toString().padStart(2, "0")}`,
-    visaStatus: "Issued (Valid)",
-    documentStatus: "Lengkap",
-  };
+  const [bookings, phoneParticipants] = await Promise.all([
+    listBookingsByPhone(customer.phone),
+    listParticipants({ phone: customer.phone }),
+  ]);
+
+  const normalisedName = customer.name.trim().toLowerCase();
+  const participantDoc =
+    phoneParticipants.find((p) => p.name.trim().toLowerCase() === normalisedName) ?? null;
 
   return (
     <AppShell eyebrow="Database Pelanggan CRM" title={`Profil CRM ${customer.name}`}>
@@ -116,41 +135,58 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
             <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                 <h3 className="text-base font-bold text-brand-cocoa">Dokumen Imigrasi Digital Jamaah</h3>
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-600" strokeWidth={1.5} />
-                  Berkas Verified
-                </span>
+                {participantDoc ? (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                      documentStatusStyles[participantDoc.documentStatus] ?? "border-stone-200 bg-stone-50 text-stone-600"
+                    }`}
+                  >
+                    <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} />
+                    {participantDoc.documentStatus}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-[11px] font-semibold text-stone-500">
+                    Belum Ada Data
+                  </span>
+                )}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-emerald-200/70 bg-emerald-50/30 p-3.5 space-y-2">
-                  <div className="flex items-center justify-between border-b border-emerald-200/50 pb-1.5">
-                    <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" strokeWidth={1.5} /> Paspor RI
-                    </span>
-                    <span className="text-[10px] font-bold text-emerald-800">PASSPORT VALID</span>
+              {participantDoc ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-emerald-200/70 bg-emerald-50/30 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between border-b border-emerald-200/50 pb-1.5">
+                      <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" strokeWidth={1.5} /> Paspor RI
+                      </span>
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <p className="text-[10px] text-stone-400 uppercase font-semibold">Nomor Paspor RI</p>
+                      <p className="font-mono font-bold text-stone-900 text-sm">{participantDoc.passportNumber || "-"}</p>
+                    </div>
                   </div>
-                  <div className="text-xs space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-semibold">Nomor Paspor RI</p>
-                    <p className="font-mono font-bold text-stone-900 text-sm">{participantDoc.passportNumber}</p>
-                    <p className="text-[11px] text-stone-500">Masa Berlaku: 2024 - 2034 (10 Tahun)</p>
-                  </div>
-                </div>
 
-                <div className="rounded-xl border border-sky-200/70 bg-sky-50/30 p-3.5 space-y-2">
-                  <div className="flex items-center justify-between border-b border-sky-200/50 pb-1.5">
-                    <span className="text-xs font-bold text-sky-900 uppercase tracking-wider flex items-center gap-1">
-                      <QrCode className="h-3.5 w-3.5 text-sky-700" strokeWidth={1.5} /> E-Visa Umrah KSA
-                    </span>
-                    <span className="text-[10px] font-bold text-sky-800">VISA ISSUED</span>
-                  </div>
-                  <div className="text-xs space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-semibold">Nomor E-Visa</p>
-                    <p className="font-mono font-bold text-sky-900 text-sm">{participantDoc.visaNumber}</p>
-                    <p className="text-[11px] text-stone-500">Masa Berlaku: 01 Jul - 01 Sep 2026</p>
+                  <div className="rounded-xl border border-sky-200/70 bg-sky-50/30 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between border-b border-sky-200/50 pb-1.5">
+                      <span className="text-xs font-bold text-sky-900 uppercase tracking-wider flex items-center gap-1">
+                        <QrCode className="h-3.5 w-3.5 text-sky-700" strokeWidth={1.5} /> E-Visa Umrah KSA
+                      </span>
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <p className="text-[10px] text-stone-400 uppercase font-semibold">Nomor E-Visa</p>
+                      <p className="font-mono font-bold text-sky-900 text-sm">{participantDoc.visaNumber || "-"}</p>
+                      <p className="text-[11px] text-stone-500">
+                        {participantDoc.visaExpiry
+                          ? `Masa Berlaku s.d. ${formatVisaExpiry(participantDoc.visaExpiry)}`
+                          : "Masa berlaku belum diisi"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <p className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-4 text-center text-xs text-stone-400">
+                  Belum ada data paspor/visa yang tercatat untuk jamaah ini di Manifest.
+                </p>
+              )}
             </article>
 
             {/* Booking History Table */}
@@ -169,17 +205,30 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100 font-normal">
-                    <tr className="transition hover:bg-stone-50/60">
-                      <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa">BK-2407-018</td>
-                      <td className="py-3 pr-2 font-semibold text-brand-cocoa">Umrah Spesial Muharram 11 Hari</td>
-                      <td className="py-3 pr-2 text-stone-500">08 Juli 2026 (Garuda GA-980)</td>
-                      <td className="py-3 pr-2 font-bold text-brand-pink">Rp 29.700.000</td>
-                      <td className="py-3 pr-3 text-right">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
-                          Lunas
-                        </span>
-                      </td>
-                    </tr>
+                    {bookings.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-stone-400">
+                          Belum ada riwayat booking untuk pelanggan ini.
+                        </td>
+                      </tr>
+                    )}
+                    {bookings.map((b) => (
+                      <tr key={b.code} className="transition hover:bg-stone-50/60">
+                        <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-cocoa">{b.code}</td>
+                        <td className="py-3 pr-2 font-semibold text-brand-cocoa">{b.packageName}</td>
+                        <td className="py-3 pr-2 text-stone-500">{b.departure || "-"}</td>
+                        <td className="py-3 pr-2 font-bold text-brand-pink">Rp {Number(b.totalAmount).toLocaleString("id-ID")}</td>
+                        <td className="py-3 pr-3 text-right">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                              bookingStatusStyles[b.status] ?? "border-stone-200 bg-stone-50 text-stone-600"
+                            }`}
+                          >
+                            {b.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

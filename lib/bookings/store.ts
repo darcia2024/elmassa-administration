@@ -61,6 +61,18 @@ export async function findBookingByCode(code: string): Promise<BookingRecord | n
 }
 
 /**
+ * A customer's booking history — matched by phone, the same join key
+ * lib/customers/store.ts uses, since there is no direct customer_id FK.
+ */
+export async function listBookingsByPhone(phone: string): Promise<BookingRecord[]> {
+  const res = await getPool().query(
+    `SELECT ${SELECT_COLUMNS} FROM real_bookings WHERE phone = $1 ORDER BY created_at DESC;`,
+    [phone],
+  );
+  return res.rows;
+}
+
+/**
  * Payment status is derived from the amounts rather than trusted from the
  * caller, so a booking can never claim "Lunas" while money is still owed.
  */
