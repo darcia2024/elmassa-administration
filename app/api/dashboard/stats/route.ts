@@ -19,7 +19,8 @@ export async function GET() {
       SELECT
         COUNT(*)::int AS "count",
         COUNT(*) FILTER (WHERE status != 'Lunas' AND status NOT IN ('Dibatalkan', 'Refund'))::int AS "needsFollowUp",
-        COALESCE(SUM(participants), 0)::int AS "totalBookedSeats"
+        COALESCE(SUM(participants), 0)::int AS "totalBookedSeats",
+        COUNT(*) FILTER (WHERE umrah_me_status ILIKE 'Aktif%')::int AS "umrahMeActiveCount"
       FROM real_bookings;
     `),
     pool.query(`SELECT COALESCE(SUM(amount), 0)::bigint AS "total", COUNT(*)::int AS "count" FROM payments;`),
@@ -78,6 +79,7 @@ export async function GET() {
         bookingCount: bookings.rows[0].count,
         bookingsNeedingFollowUp: bookings.rows[0].needsFollowUp,
         totalBookedSeats: bookings.rows[0].totalBookedSeats,
+        umrahMeActiveBookingCount: bookings.rows[0].umrahMeActiveCount,
         totalRevenue: Number(revenue.rows[0].total),
         paymentCount: revenue.rows[0].count,
         revenueBars: revenueBars.map((b) => ({

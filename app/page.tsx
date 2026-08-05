@@ -45,6 +45,7 @@ type DashboardStats = {
   bookingCount: number;
   bookingsNeedingFollowUp: number;
   totalBookedSeats: number;
+  umrahMeActiveBookingCount: number;
   totalRevenue: number;
   paymentCount: number;
   revenueBars: { day: string; amount: number; height: number; active: boolean }[];
@@ -77,6 +78,23 @@ function StatusBadge({ status }: { status: string }) {
     >
       <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
       {status}
+    </span>
+  );
+}
+
+function UmrahMeBadge({ status }: { status: string }) {
+  const isActive = (status || "").toLowerCase().startsWith("aktif");
+
+  const style = isActive
+    ? { bg: "bg-emerald-50 text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500 animate-pulse" }
+    : { bg: "bg-stone-100 text-stone-500", border: "border-stone-200", dot: "bg-stone-400" };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold whitespace-nowrap ${style.bg} ${style.border}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+      UmrahMe {status || "Nonaktif"}
     </span>
   );
 }
@@ -250,6 +268,9 @@ export default function DashboardPage() {
   const totalTargetSeats = stats?.totalSeatQuota ?? 0;
   const totalRemainingSeats = Math.max(0, totalTargetSeats - totalBookedSeats);
 
+  const umrahMeActiveBookingCount = stats?.umrahMeActiveBookingCount ?? 0;
+  const umrahMeActivePercent = bookingCount > 0 ? Math.round((umrahMeActiveBookingCount / bookingCount) * 100) : 0;
+
   const revenueBars = stats?.revenueBars ?? [
     { day: "Su", amount: 0, height: 10, active: false },
     { day: "Mo", amount: 0, height: 10, active: false },
@@ -291,13 +312,16 @@ export default function DashboardPage() {
       key: "customers",
       title: "Jamaah Terdaftar",
       value: String(customerCount),
-      subtext: customerCount > 0 ? "🟢 100% Akun UmrahMe Aktif" : "0 jamaah terdaftar",
+      subtext:
+        customerCount > 0
+          ? `${umrahMeActivePercent > 0 ? "🟢 " : ""}${umrahMeActivePercent}% Akun UmrahMe Aktif`
+          : "0 jamaah terdaftar",
       trend: "UmrahMe",
       icon: Users,
       iconColor: "text-emerald-700",
       iconBg: "bg-emerald-50/80 border-emerald-200/60",
       solidBar: "bg-emerald-600",
-      progress: customerCount > 0 ? 100 : 0,
+      progress: customerCount > 0 ? umrahMeActivePercent : 0,
       href: "/pelanggan",
     },
     {
@@ -527,10 +551,7 @@ export default function DashboardPage() {
                               </td>
 
                               <td className="py-3 pr-2">
-                                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold whitespace-nowrap">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                  🟢 UmrahMe Aktif
-                                </span>
+                                <UmrahMeBadge status={booking.umrahMeStatus} />
                               </td>
 
                               <td className="py-3 pr-2 font-semibold text-brand-cocoa">
