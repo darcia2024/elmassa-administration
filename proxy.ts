@@ -7,7 +7,6 @@ const publicApiPrefixes = [
   "/api/auth/logout",
   "/api/packages",
   "/api/revision-notes",
-  "/api/bookings",
   "/api/schedules",
 ];
 export async function proxy(request: NextRequest) {

@@ -43,7 +43,6 @@ export async function PATCH(request: NextRequest, { params }: BookingDetailRoute
     roomType: body.roomType === undefined ? undefined : String(body.roomType),
     participants: body.participants === undefined ? undefined : Number(body.participants),
     totalAmount: body.totalAmount === undefined ? undefined : Number(body.totalAmount),
-    paidAmount: body.paidAmount === undefined ? undefined : Number(body.paidAmount),
     umrahMeStatus: body.umrahMeStatus === undefined ? undefined : String(body.umrahMeStatus),
   });
 

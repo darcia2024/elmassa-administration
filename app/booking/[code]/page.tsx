@@ -17,7 +17,7 @@ type PaymentHistory = {
   receipt: string;
   date: string;
   amountDisplay: string;
-  account: string;
+  method: string;
   staff: string;
 };
 
@@ -34,7 +34,6 @@ type BookingDetail = {
   remainingDisplay: string;
   remainingAmount: number;
   participants: Participant[];
-  payments: PaymentHistory[];
 };
 
 const emptyBooking: BookingDetail = {
@@ -50,7 +49,6 @@ const emptyBooking: BookingDetail = {
   remainingDisplay: "Rp 0",
   remainingAmount: 0,
   participants: [],
-  payments: [],
 };
 
 function StatusBadge({ status }: { status: "Lunas" | "DP" | "Belum Bayar" }) {
@@ -82,6 +80,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     return { ...emptyBooking, code: decodedCode };
   });
   const [loadState, setLoadState] = useState<"loading" | "found" | "notFound">("loading");
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,9 +110,6 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           : [
               { name: found.customer || "Peserta 1", passport: "-", contact: found.phone || "-", documentStatus: "Lengkap", roomType: "Quad (Sekamar Ber-4)" },
             ],
-        payments: [
-          { receipt: `KW-${found.code || "001"}`, date: found.createdDate || "Hari ini", amountDisplay: found.paidDisplay || "Rp 0", account: "BCA El Massa", staff: "Admin" }
-        ]
       });
       setLoadState("found");
     };
@@ -157,6 +153,34 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         console.error("Failed loading booking from Supabase:", e);
         if (!cancelled && !paintedFromCache) setLoadState("notFound");
       });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [decodedCode]);
+
+  // Real payment history, replacing what used to be a single fabricated row
+  // (fixed "BCA El Massa" account, fixed "Admin" staff name) built from the
+  // booking's paid_amount alone.
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`/api/payments?bookingCode=${encodeURIComponent(decodedCode)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        const rows = (json.data ?? []) as any[];
+        setPaymentHistory(
+          rows.map((p) => ({
+            receipt: p.receiptNumber ?? "-",
+            date: p.date,
+            amountDisplay: `Rp ${Number(p.amount).toLocaleString("id-ID")}`,
+            method: p.method,
+            staff: p.receivedBy || "-",
+          })),
+        );
+      })
+      .catch((e) => console.error("Failed loading payment history:", e));
 
     return () => {
       cancelled = true;
@@ -377,17 +401,22 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
                   <th className="py-2.5 pl-3 pr-2">No. Kuitansi</th>
                   <th className="py-2.5 pr-2">Tanggal Bayar</th>
-                  <th className="py-2.5 pr-2">Rekening Tujuan</th>
+                  <th className="py-2.5 pr-2">Metode</th>
                   <th className="py-2.5 pr-2">Nominal Terbayar</th>
                   <th className="py-2.5 pr-3 text-right">Staf Verifikator</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-normal">
-                {booking.payments.map((pay) => (
+                {paymentHistory.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-4 px-3 text-center text-stone-400">Belum ada pembayaran tercatat.</td>
+                  </tr>
+                )}
+                {paymentHistory.map((pay) => (
                   <tr key={pay.receipt} className="transition hover:bg-stone-50/60">
                     <td className="py-3 pl-3 pr-2 font-mono font-bold text-brand-pink">{pay.receipt}</td>
                     <td className="py-3 pr-2 text-stone-600">{pay.date}</td>
-                    <td className="py-3 pr-2 font-medium text-stone-800">{pay.account}</td>
+                    <td className="py-3 pr-2 font-medium text-stone-800">{pay.method}</td>
                     <td className="py-3 pr-2 font-bold text-emerald-800">{pay.amountDisplay}</td>
                     <td className="py-3 pr-3 text-right font-semibold text-stone-700">{pay.staff}</td>
                   </tr>

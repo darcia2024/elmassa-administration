@@ -81,7 +81,6 @@ export async function updateBookingByCode(
     roomType?: string;
     participants?: number;
     totalAmount?: number;
-    paidAmount?: number;
     status?: string;
     umrahMeStatus?: string;
   },
@@ -105,19 +104,22 @@ export async function updateBookingByCode(
   if (patch.participants !== undefined) push("participants", Number(patch.participants));
   if (patch.umrahMeStatus !== undefined) push("umrah_me_status", patch.umrahMeStatus);
 
+  // paid_amount is deliberately not patchable here — it only ever moves
+  // through lib/payments/store.ts (createPayment/updatePayment/deletePayment),
+  // so this table can never show money that Pembayaran/Kuitansi/Laporan don't
+  // also know about. Changing the package price still recomputes what's left.
   const total = patch.totalAmount === undefined ? current.totalAmount : Number(patch.totalAmount);
-  const paid = patch.paidAmount === undefined ? current.paidAmount : Number(patch.paidAmount);
+  const paid = current.paidAmount;
 
-  if (patch.totalAmount !== undefined || patch.paidAmount !== undefined) {
+  if (patch.totalAmount !== undefined) {
     push("total_amount", total);
-    push("paid_amount", paid);
     push("remaining_amount", Math.max(0, total - paid));
   }
 
   // "Dibatalkan" / "Refund" are set by staff and must survive the derivation.
   if (patch.status !== undefined) {
     push("status", patch.status);
-  } else if (patch.totalAmount !== undefined || patch.paidAmount !== undefined) {
+  } else if (patch.totalAmount !== undefined) {
     push("status", derivePaymentStatus(total, paid));
   }
 

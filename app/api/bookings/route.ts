@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
 import { upsertCustomerFromBooking } from "@/lib/customers/store";
+import { createPayment } from "@/lib/payments/store";
+import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
+import { todayWIB } from "@/lib/format/date";
 
 async function ensureTable() {
   const client = await getPool().connect();
@@ -63,26 +66,29 @@ export async function GET() {
 }
 
 // POST: Save/Create booking to Supabase Cloud DB
+//
+// paid_amount is never accepted as a raw number here — a booking is always
+// born unpaid. An initial DP goes through createPayment() below instead, so
+// it produces a real payment + kuitansi row like any other payment does,
+// instead of the booking silently claiming money that Pembayaran/Laporan/
+// Kuitansi never saw. See HANDOFF.md 6.2 for how bad the old shortcut was.
 export async function POST(req: Request) {
   try {
     await ensureTable();
     const b = await req.json();
 
     const client = await getPool().connect();
+    let insertedCode: string | null = null;
     try {
       const code = b.code || `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       const totalAmount = Number(b.totalAmount) || 33500000;
-      const paidAmount = Number(b.paidAmount) || 0;
-      const remainingAmount = Number.isFinite(Number(b.remainingAmount))
-        ? Number(b.remainingAmount)
-        : Math.max(0, totalAmount - paidAmount);
-      const status = b.status || (remainingAmount <= 0 ? "Lunas" : paidAmount > 0 ? "DP" : "Belum Bayar");
+      const requestedDp = Math.max(0, Number(b.paidAmount) || 0);
 
-      await client.query(
+      const res = await client.query(
         `INSERT INTO real_bookings (
           code, customer_name, phone, nik, package_id, package_name, departure, room_type, participants, total_amount, paid_amount, remaining_amount, status, umrah_me_status
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $10, 'Belum Bayar', $11)
         ON CONFLICT (code) DO UPDATE SET
           customer_name = EXCLUDED.customer_name,
           phone = EXCLUDED.phone,
@@ -93,10 +99,8 @@ export async function POST(req: Request) {
           room_type = EXCLUDED.room_type,
           participants = EXCLUDED.participants,
           total_amount = EXCLUDED.total_amount,
-          paid_amount = EXCLUDED.paid_amount,
-          remaining_amount = EXCLUDED.remaining_amount,
-          status = EXCLUDED.status,
-          umrah_me_status = EXCLUDED.umrah_me_status;`,
+          umrah_me_status = EXCLUDED.umrah_me_status
+        RETURNING (xmax = 0) AS inserted;`,
         [
           code,
           b.customerName || b.customer || "Jamaah Terdaftar",
@@ -108,12 +112,14 @@ export async function POST(req: Request) {
           b.roomType || "Quad (4 Orang)",
           Number(b.participants) || 1,
           totalAmount,
-          paidAmount,
-          remainingAmount,
-          status,
           b.umrahMeStatus || "Aktif 🟢",
         ]
       );
+
+      // xmax = 0 means this row was just inserted, not updated via ON CONFLICT.
+      // Only a genuinely new booking gets its DP turned into a payment — a
+      // retried/duplicate submission of the same code must not double it.
+      if (res.rows[0]?.inserted) insertedCode = code;
 
       // Keep the customer master list in step with reality. Without this the
       // Pelanggan page stays empty no matter how many jamaah register.
@@ -122,6 +128,17 @@ export async function POST(req: Request) {
         phone: b.phone,
         city: b.city,
       });
+
+      if (insertedCode && requestedDp > 0) {
+        await createPayment({
+          bookingCode: insertedCode,
+          date: todayWIB(),
+          amount: requestedDp,
+          method: "Transfer Bank",
+          notes: "DP awal saat booking dibuat",
+          paymentFor: "DP awal booking",
+        });
+      }
 
       return NextResponse.json({ ok: true, message: "Booking saved to Supabase Cloud DB", code });
     } finally {
@@ -132,27 +149,14 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Update booking payment or status
-export async function PATCH(req: Request) {
-  try {
-    await ensureTable();
-    const { code, status, paidAmount, remainingAmount } = await req.json();
-    if (!code) return NextResponse.json({ ok: false, error: "code required" }, { status: 400 });
-
-    if (paidAmount !== undefined && remainingAmount !== undefined) {
-      await getPool().query(
-        `UPDATE real_bookings SET paid_amount = $1, remaining_amount = $2, status = $3 WHERE code = $4;`,
-        [Number(paidAmount), Number(remainingAmount), status, code]
-      );
-    } else if (status) {
-      await getPool().query(`UPDATE real_bookings SET status = $1 WHERE code = $2;`, [status, code]);
-    }
-
-    return NextResponse.json({ ok: true, message: `Booking ${code} updated` });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
-  }
-}
+// Note: this route used to also export PATCH, accepting {code, paidAmount,
+// remainingAmount, status} and writing paid_amount straight to the row —
+// nothing in the UI called it (verified before removing), and it was the
+// same money-integrity hole as the POST handler used to be, just via a
+// different route. Editing a booking's own fields goes through
+// PATCH /api/bookings/[code]; manual status overrides (Dibatalkan/Refund)
+// go through PATCH /api/bookings/[code]/status. Money only ever moves
+// through /api/payments now.
 
 // DELETE: Remove booking or wipe all bookings
 export async function DELETE(req: Request) {
@@ -163,6 +167,9 @@ export async function DELETE(req: Request) {
     const wipeAll = searchParams.get("all") === "true" || searchParams.get("clearAll") === "true" || code === "ALL";
 
     if (wipeAll) {
+      if (!isDataResetAllowed()) {
+        return dataResetBlockedResponse();
+      }
       await getPool().query("TRUNCATE TABLE real_bookings;");
       return NextResponse.json({ ok: true, message: "All bookings wiped from Supabase Cloud DB" });
     }
