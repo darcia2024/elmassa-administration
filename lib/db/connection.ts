@@ -12,7 +12,7 @@ export function getDatabaseUrl(): string {
 
   if (!url) {
     throw new Error(
-      "DATABASE_URL is not set. Copy .env.example to .env.local and fill in the Supabase connection string.",
+      "DATABASE_URL is not set. On the host, add it in the project's environment variables and redeploy (Vercel: Settings > Environment Variables). Locally, copy .env.example to .env.local and fill in the Supabase connection string (transaction pooler, port 6543).",
     );
   }
 

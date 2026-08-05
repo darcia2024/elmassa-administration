@@ -31,7 +31,9 @@ function getSecret(): string {
   const secret = process.env.NEXTAUTH_SECRET;
 
   if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not set. Add it to .env.local before issuing sessions.");
+    throw new Error(
+      "NEXTAUTH_SECRET is not set. On the host, add it in the project's environment variables and redeploy (Vercel: Settings > Environment Variables). Locally, add it to .env.local.",
+    );
   }
 
   return secret;

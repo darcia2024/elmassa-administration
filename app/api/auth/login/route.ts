@@ -61,11 +61,27 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (err: any) {
-    // Without this, a misconfigured server (e.g. NEXTAUTH_SECRET missing on
-    // the host) crashed with an empty 500 that the login form then displayed
+    // Without this catch, a misconfigured server (e.g. NEXTAUTH_SECRET missing
+    // on the host) crashed with an empty 500 that the login form then showed
     // as "Email atau password tidak cocok" -- actively misleading during
     // exactly the kind of env-var debugging this message is needed for.
     console.error("Login error:", err);
-    return NextResponse.json({ error: err.message || "Terjadi kesalahan pada server saat login." }, { status: 500 });
+
+    // Missing-config errors are the one class safe to show verbatim: they name
+    // an environment variable, not user or database internals, and they're
+    // precisely what someone setting up a deploy needs to read. Everything
+    // else stays generic -- this endpoint is reachable without authenticating,
+    // and raw driver errors leak details like the database username.
+    const message = String(err?.message ?? "");
+    const isMissingConfig = message.includes("is not set");
+
+    return NextResponse.json(
+      {
+        error: isMissingConfig
+          ? message
+          : "Terjadi kesalahan pada server saat login. Cek log server untuk detailnya.",
+      },
+      { status: 500 },
+    );
   }
 }
