@@ -22,6 +22,9 @@ export default function BookingFormPage() {
   const [paymentStatus, setPaymentStatus] = useState("DP");
   const [paidAmount, setPaidAmount] = useState(500000000);
   const [isSuccessToast, setIsSuccessToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [savedCode, setSavedCode] = useState("");
 
   // Load custom published packages dynamically from localStorage
   useEffect(() => {
@@ -93,68 +96,83 @@ export default function BookingFormPage() {
     setParticipants(updated);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+
+    const code = `BK-${Date.now().toString().slice(-6)}`;
+    const newBooking = {
+      code,
+      customer: customerName || "Jamaah Terdaftar",
+      phone: customerPhone || "-",
+      packageName: selectedPkg.name,
+      departure: selectedPkg.date,
+      groupName: "Rombongan Jamaah",
+      participants: participants.length,
+      participantsList: participants.map((p) => ({
+        name: p.name,
+        passport: p.passport || "C" + Math.floor(1000000 + Math.random() * 9000000),
+        contact: p.phone || customerPhone || "-",
+        documentStatus: "Lengkap" as const,
+        roomType: "Quad (Sekamar Ber-4)",
+      })),
+      totalAmount: totalPrice,
+      paidAmount,
+      createdDate: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+    };
+
+    // Supabase is the record — wait for it before treating this as saved.
+    // A booking that only "looks" saved (localStorage written, navigated away)
+    // while the server call is still in flight or has failed disappears the
+    // moment the real list is fetched, with no sign anything went wrong.
+    setIsSubmitting(true);
     try {
-      const code = `BK-${Date.now().toString().slice(-6)}`;
-      const newBooking = {
-        code,
-        customer: customerName || "Jamaah Terdaftar",
-        phone: customerPhone || "-",
-        packageName: selectedPkg.name,
-        departure: selectedPkg.date,
-        groupName: "Rombongan Jamaah",
-        participants: participants.length,
-        participantsList: participants.map((p) => ({
-          name: p.name,
-          passport: p.passport || "C" + Math.floor(1000000 + Math.random() * 9000000),
-          contact: p.phone || customerPhone || "-",
-          documentStatus: "Lengkap" as const,
-          roomType: "Quad (Sekamar Ber-4)",
-        })),
-        totalAmount: totalPrice,
-        paidAmount,
-        remainingAmount,
-        totalDisplay: `Rp ${totalPrice.toLocaleString("id-ID")}`,
-        paidDisplay: `Rp ${paidAmount.toLocaleString("id-ID")}`,
-        remainingDisplay: `Rp ${remainingAmount.toLocaleString("id-ID")}`,
-        status: remainingAmount <= 0 ? "Lunas" : paidAmount > 0 ? "DP" : "Belum Bayar",
-        paymentProgress: totalPrice > 0 ? Math.round((paidAmount / totalPrice) * 100) : 0,
-        createdDate: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
-      };
-
-      const existingStr = localStorage.getItem("el_massa_real_bookings");
-      const existing = existingStr ? JSON.parse(existingStr) : [];
-      localStorage.setItem("el_massa_real_bookings", JSON.stringify([newBooking, ...existing]));
-
-      // Save directly to Supabase Cloud Database
-      fetch("/api/bookings", {
+      const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newBooking),
-      }).catch((err) => console.error("Cloud DB save error:", err));
+      });
 
-      // Push real live notification
-      const newNotif = {
-        id: `notif-${Date.now()}`,
-        title: "📋 Booking Baru Terdaftar",
-        message: `Booking ${code} a.n ${newBooking.customer} (${participants.length} Pax) telah tersimpan.`,
-        time: "Baru saja",
-        category: "Keuangan",
-        read: false,
-        link: "/booking",
-      };
-      const existingNotifStr = localStorage.getItem("el_massa_real_notifications");
-      const existingNotifs = existingNotifStr ? JSON.parse(existingNotifStr) : [];
-      localStorage.setItem("el_massa_real_notifications", JSON.stringify([newNotif, ...existingNotifs]));
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        setSubmitError(payload?.error ?? "Gagal menyimpan booking ke server. Data tidak disimpan.");
+        return;
+      }
+
+      try {
+        const existingStr = localStorage.getItem("el_massa_real_bookings");
+        const existing = existingStr ? JSON.parse(existingStr) : [];
+        localStorage.setItem("el_massa_real_bookings", JSON.stringify([newBooking, ...existing]));
+
+        const newNotif = {
+          id: `notif-${Date.now()}`,
+          title: "📋 Booking Baru Terdaftar",
+          message: `Booking ${code} a.n ${newBooking.customer} (${participants.length} Pax) telah tersimpan.`,
+          time: "Baru saja",
+          category: "Keuangan",
+          read: false,
+          link: "/booking",
+        };
+        const existingNotifStr = localStorage.getItem("el_massa_real_notifications");
+        const existingNotifs = existingNotifStr ? JSON.parse(existingNotifStr) : [];
+        localStorage.setItem("el_massa_real_notifications", JSON.stringify([newNotif, ...existingNotifs]));
+      } catch (cacheErr) {
+        // The cache is only a paint-before-network preview; losing it is not
+        // a reason to tell the user the save failed.
+        console.error(cacheErr);
+      }
+
+      setSavedCode(code);
+      setIsSuccessToast(true);
+      setTimeout(() => {
+        router.push("/booking");
+      }, 1500);
     } catch (err) {
       console.error(err);
+      setSubmitError("Tidak bisa menghubungi server. Data tidak disimpan.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSuccessToast(true);
-    setTimeout(() => {
-      router.push("/booking");
-    }, 1500);
   };
 
   return (
@@ -168,9 +186,16 @@ export default function BookingFormPage() {
               <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" strokeWidth={1.5} />
               <div>
                 <p className="text-xs font-bold">Booking Berhasil Disimpan & Diterbitkan!</p>
-                <p className="text-[11px] text-emerald-700">Kode Booking BK-2407-088 terverifikasi. Mengalihkan ke daftar booking...</p>
+                <p className="text-[11px] text-emerald-700">Kode Booking {savedCode} tersimpan di server. Mengalihkan ke daftar booking...</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 flex items-center gap-2.5 shadow-sm">
+            <ClipboardList className="h-5 w-5 text-rose-600 shrink-0" strokeWidth={1.5} />
+            <p className="text-xs font-semibold">{submitError}</p>
           </div>
         )}
 
@@ -357,9 +382,10 @@ export default function BookingFormPage() {
               </button>
               <button
                 type="submit"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition"
+                disabled={isSubmitting}
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-brand-pink px-5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Simpan & Terbit Booking
+                {isSubmitting ? "Menyimpan..." : "Simpan & Terbit Booking"}
               </button>
             </div>
           </form>
