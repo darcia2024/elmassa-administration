@@ -175,44 +175,6 @@ type NotificationItem = {
   link: string;
 };
 
-const initialNotifications: NotificationItem[] = [
-  {
-    id: "notif-001",
-    title: "⚠️ Jatuh Tempo Pelunasan H-14",
-    message: "Jamaah H. Rusli Suparman perlu sisa pelunasan Rp 25.500.000 (Umrah Berkah November).",
-    time: "2 jam yang lalu",
-    category: "Keuangan",
-    read: false,
-    link: "/booking/BK-2407-002",
-  },
-  {
-    id: "notif-002",
-    title: "✈️ E-Visa & Paspor Disetujui",
-    message: "E-Visa Umrah KSA Siti Rahma (BK-2407-001) telah diverifikasi & terbit.",
-    time: "5 jam yang lalu",
-    category: "Flight",
-    read: false,
-    link: "/manifest",
-  },
-  {
-    id: "notif-003",
-    title: "💰 DP Pembayaran Terverifikasi",
-    message: "Cicilan DP Rp 10.000.000 dari Ahmad Hidayat telah disetujui oleh Kasir Hj. Zubaidah.",
-    time: "1 hari yang lalu",
-    category: "Keuangan",
-    read: false,
-    link: "/pembayaran",
-  },
-  {
-    id: "notif-004",
-    title: "🏢 Rooming Hotel Makkah Siap",
-    message: "Grand Al Massa Makkah: 45 Pax kamar Quad siap di-assign.",
-    time: "2 hari yang lalu",
-    category: "Dokumen",
-    read: true,
-    link: "/manifest",
-  },
-];
 
 type SearchResultItem = {
   id: string;
@@ -223,26 +185,24 @@ type SearchResultItem = {
   badge?: string;
 };
 
-const globalSearchIndex: SearchResultItem[] = [
-  { id: "s-01", title: "Siti Rahma", subtitle: "BK-2407-001 • Umrah Spesial Oktober (12 Hari) • Status Lunas", category: "Jamaah & Booking", link: "/booking/BK-2407-001", badge: "Lunas" },
-  { id: "s-02", title: "H. Rusli Suparman", subtitle: "BK-2407-002 • Umrah Berkah November • Sisa Pelunasan Rp 25.500.000", category: "Jamaah & Booking", link: "/booking/BK-2407-002", badge: "DP Paid" },
-  { id: "s-03", title: "Ahmad Hidayat", subtitle: "BK-2407-003 • Umrah Berkah November • Cicilan DP Terverifikasi", category: "Jamaah & Booking", link: "/booking/BK-2407-003", badge: "DP Paid" },
-  { id: "s-04", title: "Budi Santoso", subtitle: "BK-2407-004 • Umrah Ramadan 1448H", category: "Jamaah & Booking", link: "/booking", badge: "Draft" },
-
-  { id: "s-05", title: "Umrah Spesial Oktober (Dapat 2x Jum'at)", subtitle: "12 Hari • Rp 33.500.000 • Hotel Grand Al Massa Makkah", category: "Paket & Flight", link: "/paket", badge: "Active" },
-  { id: "s-06", title: "Umrah Berkah Spesial November", subtitle: "11 Hari • Rp 35.500.000 • Hotel Grand Al Massa Makkah", category: "Paket & Flight", link: "/paket", badge: "Active" },
-  { id: "s-07", title: "Kalkulator HPP & Costing Simulator", subtitle: "Rancang HPP paket wisata umrah dari nol", category: "Paket & Flight", link: "/paket/kalkulator", badge: "Tool" },
-  { id: "s-08", title: "Kalender Kegiatan Operasional", subtitle: "Agenda manasik, handling bandara, batas pelunasan H-14, & keberangkatan", category: "Paket & Flight", link: "/jadwal", badge: "Agenda" },
-
-  { id: "s-09", title: "Invoice INV-2407-001", subtitle: "Siti Rahma • Total Rp 97.500.000 • Status Lunas", category: "Dokumen & Invoice", link: "/dokumen/invoice/INV-2407-001", badge: "INV" },
-  { id: "s-10", title: "Invoice INV-2407-002", subtitle: "H. Rusli Suparman • Total Rp 35.500.000 • Status Cicilan DP", category: "Dokumen & Invoice", link: "/dokumen/invoice/INV-2407-002", badge: "INV" },
-  { id: "s-11", title: "Surat Rekomendasi Paspor Kemenag RI", subtitle: "PT. AL MASSA AZKA WISATA • Izin PPIU 10032300465890002", category: "Dokumen & Invoice", link: "/dokumen", badge: "Kemenag" },
-  { id: "s-12", title: "Manifest Peserta & Rooming Hotel", subtitle: "Data paspor, e-visa KSA, rooming quad/triple/double", category: "Dokumen & Invoice", link: "/manifest", badge: "Manifest" },
-
-  { id: "s-13", title: "Manajemen Hak Akses & Matriks Role", subtitle: "Konfigurasi perizinan 5 role pengguna sistem", category: "Menu & Pengaturan", link: "/pengaturan/hak-akses", badge: "RBAC" },
-  { id: "s-14", title: "Kelola Sub-User & Reset Password Staf", subtitle: "Buat, edit & set kata sandi staf tim internal", category: "Menu & Pengaturan", link: "/pengaturan/staf", badge: "Staf" },
-  { id: "s-15", title: "Identitas Perusahaan & Google Maps", subtitle: "PT. AL MASSA AZKA WISATA • Ruko Best Cinema PGK", category: "Menu & Pengaturan", link: "/pengaturan/identitas", badge: "Profil" },
-  { id: "s-16", title: "Kasir Pembayaran & Verifikasi DP", subtitle: "Pencatatan cicilan, rekening bank BTN, & kuitansi", category: "Menu & Pengaturan", link: "/pembayaran", badge: "Kasir" },
+/**
+ * Entri menu saja. Daftar ini dulu juga memuat "jamaah" karangan lengkap dengan
+ * kode booking dan nomor invoice -- mencari "Siti" memunculkan orang yang tidak
+ * ada, menautkannya ke /booking/BK-2407-001 yang tidak pernah ada, di setiap
+ * halaman sistem. Jamaah dan booking sungguhan sekarang diambil dari database
+ * (lihat hasilPencarian di bawah).
+ */
+const menuSearchIndex: SearchResultItem[] = [
+  { id: "m-01", title: "Jadwal Keberangkatan", subtitle: "Grup per bulan, flyer & HPP, itinerary, pembayaran, manifest", category: "Menu & Pengaturan", link: "/paket", badge: "Grup" },
+  { id: "m-02", title: "Kalkulator HPP & Costing", subtitle: "Rancang HPP paket umrah lalu terbitkan", category: "Menu & Pengaturan", link: "/paket/kalkulator", badge: "Tool" },
+  { id: "m-03", title: "Kalender Kegiatan", subtitle: "Agenda manasik, handling, & jatuh tempo pelunasan", category: "Menu & Pengaturan", link: "/jadwal", badge: "Agenda" },
+  { id: "m-04", title: "Surat Menyurat", subtitle: "Rekomendasi paspor, penambahan nama, izin cuti", category: "Menu & Pengaturan", link: "/administrasi/surat", badge: "Surat" },
+  { id: "m-05", title: "Pemasukan & Pengeluaran", subtitle: "Arus kas, piutang, & jatuh tempo", category: "Menu & Pengaturan", link: "/pembayaran/arus-kas", badge: "Kas" },
+  { id: "m-06", title: "Kasir & Verifikasi Pembayaran", subtitle: "Pencatatan cicilan & kuitansi", category: "Menu & Pengaturan", link: "/pembayaran", badge: "Kasir" },
+  { id: "m-07", title: "Manifest Peserta", subtitle: "Paspor, e-visa, roomlist Jakarta/Makkah/Madinah", category: "Menu & Pengaturan", link: "/manifest", badge: "Manifest" },
+  { id: "m-08", title: "Data Karyawan / Agen / Stok", subtitle: "Kepegawaian, komisi agen, perlengkapan jamaah", category: "Menu & Pengaturan", link: "/operasional/karyawan", badge: "Ops" },
+  { id: "m-09", title: "Hak Akses & Staf", subtitle: "Matriks perizinan role & akun staf", category: "Menu & Pengaturan", link: "/pengaturan/hak-akses", badge: "RBAC" },
+  { id: "m-10", title: "Identitas Perusahaan", subtitle: "Kop surat, logo, tanda tangan & stempel digital", category: "Menu & Pengaturan", link: "/pengaturan/identitas", badge: "Profil" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
@@ -256,16 +216,46 @@ export function AppShell({ children }: AppShellProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  /** Booking & grup sungguhan, dimuat sekali saat shell dipasang. */
+  const [dataCari, setDataCari] = useState<SearchResultItem[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/bookings", { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+      fetch("/api/packages", { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+    ]).then(([bookingRes, paketRes]) => {
+      const dariBooking: SearchResultItem[] = (bookingRes?.data ?? []).map((b: Record<string, unknown>) => ({
+        id: `b-${b.code}`,
+        title: String(b.customerName ?? ""),
+        subtitle: `${b.code} • ${b.packageName ?? ""} • Sisa ${Number(b.remainingAmount ?? 0).toLocaleString("id-ID")}`,
+        category: "Jamaah & Booking" as const,
+        link: `/booking/${encodeURIComponent(String(b.code))}`,
+        badge: String(b.status ?? ""),
+      }));
+
+      const dariPaket: SearchResultItem[] = (paketRes?.data ?? []).map((p: Record<string, unknown>) => ({
+        id: `p-${p.id}`,
+        title: String(p.name ?? ""),
+        subtitle: `${p.duration ?? ""} • ${p.price ?? ""} • ${p.makkahHotel ?? ""}`,
+        category: "Paket & Flight" as const,
+        link: `/paket/${encodeURIComponent(String(p.id))}`,
+        badge: String(p.category ?? ""),
+      }));
+
+      setDataCari([...dariBooking, ...dariPaket]);
+    });
+  }, []);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    return globalSearchIndex.filter(
+    return [...dataCari, ...menuSearchIndex].filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.subtitle.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [searchQuery, dataCari]);
 
   // 🔔 Notification Center States (Real-time Live Sync)
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -718,7 +708,7 @@ export function AppShell({ children }: AppShellProps) {
                         <div className="py-3 px-2 text-xs space-y-2">
                           <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Coba Kata Kunci:</p>
                           <div className="flex flex-wrap gap-1.5 text-[11px]">
-                            {["Siti Rahma", "Rusli", "Umrah Oktober", "INV-2407", "Hak Akses", "Kalkulator"].map((tag) => (
+                            {["Jadwal Keberangkatan", "Manifest", "Surat", "Kasir", "Kalkulator", "Hak Akses"].map((tag) => (
                               <button
                                 key={tag}
                                 type="button"
