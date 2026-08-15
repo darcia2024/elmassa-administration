@@ -16,9 +16,10 @@ export default function BookingFormPage() {
   const router = useRouter();
   const [packagesList, setPackagesList] = useState(defaultPackagesOptions);
   const [selectedPkgId, setSelectedPkgId] = useState("pkg-1");
-  const [customerName, setCustomerName] = useState("H. Rusli Suparman & Rombongan");
-  const [customerPhone, setCustomerPhone] = useState("0812-7199-1001");
-  const [bookingDate, setBookingDate] = useState("2026-07-08");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  // Tanggal hari ini, bukan tanggal tetap di masa lalu.
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentStatus, setPaymentStatus] = useState("DP");
   const [paidAmount, setPaidAmount] = useState(500000000);
   const [isSuccessToast, setIsSuccessToast] = useState(false);
@@ -79,9 +80,10 @@ export default function BookingFormPage() {
       });
   }, []);
 
+  // Satu baris kosong untuk diisi, bukan dua jamaah karangan berikut nomor
+  // paspornya yang tinggal ikut tersimpan kalau tidak diperhatikan.
   const [participants, setParticipants] = useState([
-    { name: "H. Rusli Suparman", passport: "C9824101", phone: "0812-7199-1001" },
-    { name: "Hj. Zubaidah Mansur", passport: "C9824102", phone: "0812-7199-1002" },
+    { name: "", passport: "", phone: "" },
   ]);
 
   const selectedPkg = packagesList.find((p) => p.id === selectedPkgId) ?? packagesList[0] ?? defaultPackagesOptions[0];
