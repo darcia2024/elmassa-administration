@@ -781,26 +781,24 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: "Jadwal Grup", icon: Plane, href: "/paket", color: "bg-rose-50 text-brand-pink border-rose-200/60" },
-                { label: "Booking", icon: ClipboardList, href: "/booking", color: "bg-amber-50 text-amber-800 border-amber-200/60" },
-                { label: "Kalender", icon: CalendarDays, href: "/jadwal", color: "bg-emerald-50 text-emerald-700 border-emerald-200/60" },
-                { label: "Kasir Cicilan", icon: CircleDollarSign, href: "/pembayaran", color: "bg-blue-50 text-blue-700 border-blue-200/60" },
-                { label: "Dokumen", icon: FileText, href: "/dokumen", color: "bg-purple-50 text-purple-700 border-purple-200/60" },
-                { label: "Kalkulator", icon: Calculator, href: "/paket/kalkulator", color: "bg-indigo-50 text-indigo-700 border-indigo-200/60" },
-                { label: "Manifest", icon: Layers, href: "/manifest", color: "bg-teal-50 text-teal-700 border-teal-200/60" },
-                { label: "Staf & Role", icon: Users, href: "/pengaturan/staf", color: "bg-stone-100 text-stone-700 border-stone-200/60" },
+                { label: "Jadwal Grup", icon: Plane, href: "/paket" },
+                { label: "Booking", icon: ClipboardList, href: "/booking" },
+                { label: "Kalender", icon: CalendarDays, href: "/jadwal" },
+                { label: "Kasir Cicilan", icon: CircleDollarSign, href: "/pembayaran" },
+                { label: "Dokumen", icon: FileText, href: "/dokumen" },
+                { label: "Kalkulator", icon: Calculator, href: "/paket/kalkulator" },
+                { label: "Manifest", icon: Layers, href: "/manifest" },
+                { label: "Staf & Role", icon: Users, href: "/pengaturan/staf" },
               ].map((srv) => {
                 const Icon = srv.icon;
                 return (
                   <Link
                     key={srv.label}
                     href={srv.href}
-                    className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-stone-200/70 bg-white p-2.5 shadow-2xs active:scale-95 transition text-center"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-2xl p-2.5 active:bg-stone-100 transition text-center"
                   >
-                    <span className={`grid h-9 w-9 place-items-center rounded-xl border ${srv.color}`}>
-                      <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
-                    </span>
-                    <span className="text-[10px] font-bold text-stone-800 leading-tight">
+                    <Icon className="h-6 w-6 text-brand-cocoa" strokeWidth={1.5} />
+                    <span className="text-[10px] font-semibold text-stone-600 leading-tight">
                       {srv.label}
                     </span>
                   </Link>
