@@ -143,6 +143,51 @@ export function SuratManager({ initialType }: { initialType?: string }) {
     }));
   };
 
+  const [uploadingTtd, setUploadingTtd] = useState(false);
+
+  /**
+   * Tanda tangan itu milik perusahaan, bukan milik satu surat: diunggah sekali
+   * lalu dipakai semua surat berikutnya. Panel unggahnya ditaruh di formulir
+   * ini juga -- kalau hanya ada di Pengaturan, staf tidak punya cara tahu
+   * apakah suratnya akan keluar bertanda tangan atau kosong.
+   */
+  const uploadTtd = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.size > 400_000) {
+      setFormError(`Gambar tanda tangan terlalu besar (${(file.size / 1000).toFixed(0)} KB). Maksimal 400 KB.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      if (typeof reader.result !== "string") return;
+
+      setUploadingTtd(true);
+      setFormError("");
+      try {
+        const res = await fetch("/api/company-identity", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...identity, signatureUrl: reader.result }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setFormError(json?.error || "Gagal menyimpan tanda tangan");
+          return;
+        }
+        setIdentity(json.data ?? null);
+      } catch (err) {
+        setFormError(err instanceof Error ? err.message : "Gagal menyimpan tanda tangan");
+      } finally {
+        setUploadingTtd(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async () => {
     setIsSaving(true);
     setFormError("");
@@ -490,6 +535,33 @@ export function SuratManager({ initialType }: { initialType?: string }) {
                 </label>
               </div>
             ) : null}
+
+            {/* Tanda tangan yang akan tercetak pada surat ini */}
+            <div className="flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 p-3">
+              <div className="grid h-16 w-28 shrink-0 place-items-center rounded-lg border border-stone-200 bg-[repeating-conic-gradient(#f5f5f4_0%_25%,#ffffff_0%_50%)] bg-[length:12px_12px]">
+                {identity?.signatureUrl ? (
+                  <img src={identity.signatureUrl} alt="Tanda tangan" className="max-h-14 w-auto object-contain" />
+                ) : (
+                  <span className="px-1 text-center text-[10px] font-bold leading-tight text-stone-400">Belum ada TTD</span>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-stone-500">Tanda Tangan Digital</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-stone-600">
+                  {identity?.signatureUrl
+                    ? "Akan tercetak otomatis pada surat ini."
+                    : "Belum diunggah — surat keluar dengan ruang tanda tangan kosong."}
+                </p>
+
+                <label className="mt-1.5 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 text-[11px] font-bold text-stone-700 hover:bg-stone-100 transition">
+                  {uploadingTtd ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                  <span>{uploadingTtd ? "Menyimpan…" : identity?.signatureUrl ? "Ganti TTD" : "Upload TTD"}</span>
+                  <input type="file" accept="image/png,image/webp,image/jpeg" className="hidden" onChange={uploadTtd} disabled={uploadingTtd} />
+                </label>
+                <span className="ml-2 text-[10px] text-stone-400">PNG transparan, maks 400 KB</span>
+              </div>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1">
