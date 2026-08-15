@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
 import { getCompanyIdentity, updateCompanyIdentity } from "@/lib/settings/store";
 
 const logoMimeExtensions: Record<string, string> = {
@@ -85,27 +83,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (file.size > 2 * 1024 * 1024) {
+  if (file.size > 600 * 1024) {
     return NextResponse.json(
       {
         error: "Ukuran logo terlalu besar",
         fields: {
-          logo: "Logo maksimal 2 MB",
+          logo: "Logo maksimal 600 KB",
         },
       },
       { status: 400 },
     );
   }
 
+  // Logo disimpan sebagai data URL di baris company_identity, bukan sebagai
+  // file di public/uploads. Filesystem host tidak bertahan melewati deploy,
+  // jadi logo yang diunggah lewat cara lama akan hilang diam-diam pada rilis
+  // berikutnya -- dan semua invoice, kuitansi serta surat ikut kehilangan logo.
   const bytes = Buffer.from(await file.arrayBuffer());
-  const fileName = `logo-${Date.now()}.${extension}`;
-  const uploadDir = join(process.cwd(), "public", "uploads", "logos");
-  const filePath = join(uploadDir, fileName);
-
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(filePath, bytes);
-
-  const logoUrl = `/uploads/logos/${fileName}`;
+  const logoUrl = `data:${file.type};base64,${bytes.toString("base64")}`;
+  const fileName = file.name || "logo";
   const data = await updateCompanyIdentity({ logoUrl });
 
   return NextResponse.json(
@@ -154,8 +150,10 @@ function parseCompanyIdentityPayload(payload: Record<string, unknown>) {
     errors.email = "Format email tidak valid";
   }
 
-  if (data.logoUrl !== undefined && data.logoUrl.length > 0 && !/^\/|^https?:\/\//.test(data.logoUrl)) {
-    errors.logoUrl = "Logo URL harus path internal atau URL http(s)";
+  // data: diizinkan sejak logo disimpan langsung di baris ini sebagai data URL
+  // -- tanpa ini unggahan logo ditolak validator sebelum sempat tersimpan.
+  if (data.logoUrl !== undefined && data.logoUrl.length > 0 && !/^\/|^https?:\/\/|^data:image\//.test(data.logoUrl)) {
+    errors.logoUrl = "Logo harus path internal, URL http(s), atau gambar terunggah";
   }
 
   if (data.documentFooter !== undefined && data.documentFooter.length > 240) {
