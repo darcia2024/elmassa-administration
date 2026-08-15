@@ -10,7 +10,7 @@ import { logActivity } from "@/lib/audit/store";
 const AUDITABLE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
 // No login required at all, for any method.
-const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout", "/api/revision-notes"];
+const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout"];
 
 // No login required to browse, but a mutation (POST/PATCH/DELETE) still needs
 // one -- these used to be prefix-matched with no method check, which meant

@@ -78,7 +78,6 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "receipts", module: "pembayaran" },
   { prefix: "reports", module: "laporan" },
   { prefix: "reset-all-data", module: "pengaturan" },
-  { prefix: "revision-notes", module: null }, // intentionally public, see HANDOFF.md 6.2
   { prefix: "roles", module: "pengaturan" },
   { prefix: "schedules", module: "jadwal" },
   { prefix: "service-types", module: "pengaturan" },
