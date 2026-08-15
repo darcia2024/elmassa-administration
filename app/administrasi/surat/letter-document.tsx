@@ -230,7 +230,7 @@ export function LetterDocument({
           flex-direction: column;
           width: 210mm;
           min-height: 297mm;
-          padding: 10mm 18mm 12mm;
+          padding: 7mm 18mm 9mm;
           font-size: 10.5pt;
           line-height: 1.45;
           box-sizing: border-box;
@@ -253,7 +253,7 @@ export function LetterDocument({
         <img
           src="/kop-surat-el-massa.png"
           alt={`Kop surat ${COMPANY.legal}`}
-          className="block w-full max-h-[30mm] object-contain object-left"
+          className="block w-full"
         />
       </header>
 
@@ -304,11 +304,11 @@ export function LetterDocument({
       {/* Tanda tangan. Stempel ditumpuk di belakang tanda tangan seperti surat
           basah, dan hanya muncul kalau gambarnya memang sudah diunggah -- kalau
           belum, blok ini tetap menyisakan ruang untuk tanda tangan manual. */}
-      <div className="mt-6 flex justify-end">
+      <div className="mt-4 flex justify-end">
         <div className="w-[260px] text-center">
           <p className="font-semibold">{COMPANY.brand}</p>
 
-          <div className="relative mx-auto flex h-[18mm] w-full items-center justify-center">
+          <div className="relative mx-auto flex h-[15mm] w-full items-center justify-center">
             {identity?.stampUrl ? (
               <img
                 src={identity.stampUrl}
@@ -320,7 +320,7 @@ export function LetterDocument({
               <img
                 src={identity.signatureUrl}
                 alt="Tanda tangan"
-                className="relative max-h-[16mm] w-auto object-contain"
+                className="relative max-h-[14mm] w-auto object-contain"
               />
             ) : null}
           </div>
