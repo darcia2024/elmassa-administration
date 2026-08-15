@@ -5,30 +5,33 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
   Bell,
+  Boxes,
   Building2,
-  Calculator,
   CalendarDays,
   Check,
   CheckCheck,
-  ChevronDown,
   CircleDollarSign,
   ClipboardList,
   Clock,
   Compass,
+  FileSpreadsheet,
   FileText,
+  FolderOpen,
+  Handshake,
   IdCard,
-  KeyRound,
+  Layers,
   LayoutDashboard,
   LogOut,
+  Mails,
   Menu,
   Plane,
-  Plus,
   ReceiptText,
   Search,
   Settings,
-  ShieldCheck,
   Sparkles,
+  UserCog,
   Users,
+  Wallet,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,24 +39,51 @@ import { usePathname, useRouter } from "next/navigation";
 
 const navGroups = [
   {
-    label: "Utama",
+    label: "Menu Utama",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", aliases: ["/"] },
-      { label: "Paket Tersedia", icon: Plane, href: "/paket" },
-      { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
+      // Two distinct things: the departure GROUPS (flyer, itinerary, payments,
+      // manifest) and the operational AGENDA around them (manasik, handling,
+      // settlement deadlines).
+      { label: "Jadwal Keberangkatan", icon: Plane, href: "/paket" },
+      { label: "Kalender Kegiatan", icon: CalendarDays, href: "/jadwal" },
       { label: "Pelanggan", icon: Users, href: "/pelanggan" },
+      { label: "Booking", icon: ClipboardList, href: "/booking" },
+      { label: "Manifest Peserta", icon: IdCard, href: "/manifest" },
+      { label: "Akun Digital UmrahMe", icon: Sparkles, href: "/umrahme" },
+      { label: "Live App Itinerary", icon: Compass, href: "/itinerary-landing" },
+    ],
+  },
+  {
+    // The five specific letters are one page (app/administrasi/surat) filtered
+    // by ?jenis= -- same archive, same numbering series, different default type.
+    label: "Administrasi",
+    items: [
+      { label: "Surat Menyurat", icon: Mails, href: "/administrasi/surat" },
+      { label: "Surat Pemberitahuan", icon: FileText, href: "/administrasi/surat?jenis=pemberitahuan" },
+      { label: "Surat Rek. Pembuatan Paspor", icon: FileText, href: "/administrasi/surat?jenis=paspor-baru" },
+      { label: "Surat Rek. Penambahan Nama", icon: FileText, href: "/administrasi/surat?jenis=paspor-tambah-nama" },
+      { label: "Surat Rek. Penggantian Paspor", icon: FileText, href: "/administrasi/surat?jenis=paspor-ganti" },
+      { label: "Surat Rek. Izin Cuti", icon: FileText, href: "/administrasi/surat?jenis=izin-cuti" },
+      { label: "Dokumen", icon: FolderOpen, href: "/dokumen" },
+    ],
+  },
+  {
+    label: "Pembayaran",
+    items: [
+      { label: "Pemasukan & Pengeluaran", icon: Wallet, href: "/pembayaran/arus-kas" },
+      { label: "Verifikasi Pembayaran", icon: CircleDollarSign, href: "/pembayaran" },
+      { label: "Kwitansi", icon: ReceiptText, href: "/dokumen/kuitansi" },
+      { label: "Invoice", icon: FileSpreadsheet, href: "/dokumen/invoice" },
+      { label: "Rekap Pembayaran Grup", icon: Layers, href: "/pembayaran/rekap-grup" },
     ],
   },
   {
     label: "Operasional",
     items: [
-      { label: "Booking", icon: ClipboardList, href: "/booking" },
-      { label: "Manifest Peserta", icon: IdCard, href: "/manifest" },
-      { label: "Akun Digital UmrahMe", icon: Sparkles, href: "/umrahme" },
-      { label: "Live App Itinerary", icon: Compass, href: "/itinerary-landing" },
-      { label: "Pembayaran", icon: CircleDollarSign, href: "/pembayaran" },
-      { label: "Invoice & Kuitansi", icon: ReceiptText, href: "/dokumen/invoice" },
-      { label: "Dokumen", icon: FileText, href: "/dokumen" },
+      { label: "Data Karyawan", icon: UserCog, href: "/operasional/karyawan" },
+      { label: "Data Agen", icon: Handshake, href: "/operasional/agen" },
+      { label: "Data Stok Perlengkapan", icon: Boxes, href: "/operasional/stok" },
     ],
   },
   {
@@ -70,7 +100,7 @@ const navItems = navGroups.flatMap((group) => group.items);
 
 const allowedRolesPerItem: Record<string, string[]> = {
   "/dashboard": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
-  "/paket": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Admin Master"],
+  "/paket": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/jadwal": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/pelanggan": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],
   "/booking": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Admin Master"],
@@ -84,16 +114,41 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/pengaturan/hak-akses": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan/lisensi-master": ["CEO / Admin Master", "Admin Master"],
+  "/administrasi/surat": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Admin Master"],
+  "/pembayaran/arus-kas": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
+  "/pembayaran/rekap-grup": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
+  "/operasional/karyawan": ["CEO / Admin Master", "Admin Master"],
+  "/operasional/agen": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],
+  "/operasional/stok": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Admin Master"],
 };
 
-function getActiveHref(pathname: string) {
+/** The path part of a nav href, ignoring any `?jenis=` style query. */
+function pathOf(href: string) {
+  return href.split("?")[0];
+}
+
+/**
+ * Several Administrasi entries point at the same page with a different `?jenis=`,
+ * so an exact full-URL match has to win before falling back to path matching —
+ * otherwise all six letter entries would light up at once (or none would, since
+ * `pathname` never carries the query).
+ */
+function getActiveHref(pathname: string, search: string) {
+  const fullUrl = `${pathname}${search}`;
+
+  const exact = navItems.find((item) => item.href === fullUrl);
+  if (exact) return exact.href;
+
+  // On the bare page with no query, prefer the entry that has no query either.
+  const bare = navItems.find((item) => item.href === pathname);
+  if (bare) return bare.href;
+
   return navItems
-    .filter((item) =>
-      item.href === pathname ||
-      pathname.startsWith(`${item.href}/`) ||
-      item.aliases?.some((alias) => alias === pathname),
-    )
-    .sort((first, second) => second.href.length - first.href.length)[0]?.href;
+    .filter((item) => {
+      const path = pathOf(item.href);
+      return pathname === path || pathname.startsWith(`${path}/`) || item.aliases?.some((alias) => alias === pathname);
+    })
+    .sort((first, second) => pathOf(second.href).length - pathOf(first.href).length)[0]?.href;
 }
 
 type AppShellProps = {
@@ -191,7 +246,7 @@ const globalSearchIndex: SearchResultItem[] = [
   { id: "s-05", title: "Umrah Spesial Oktober (Dapat 2x Jum'at)", subtitle: "12 Hari • Rp 33.500.000 • Hotel Grand Al Massa Makkah", category: "Paket & Flight", link: "/paket", badge: "Active" },
   { id: "s-06", title: "Umrah Berkah Spesial November", subtitle: "11 Hari • Rp 35.500.000 • Hotel Grand Al Massa Makkah", category: "Paket & Flight", link: "/paket", badge: "Active" },
   { id: "s-07", title: "Kalkulator HPP & Costing Simulator", subtitle: "Rancang HPP paket wisata umrah dari nol", category: "Paket & Flight", link: "/paket/kalkulator", badge: "Tool" },
-  { id: "s-08", title: "Kalender Keberangkatan & Agenda Flight", subtitle: "Jadwal flight Saudia & Garuda, manasik, & pelunasan H-14", category: "Paket & Flight", link: "/jadwal", badge: "Agenda" },
+  { id: "s-08", title: "Kalender Kegiatan Operasional", subtitle: "Agenda manasik, handling bandara, batas pelunasan H-14, & keberangkatan", category: "Paket & Flight", link: "/jadwal", badge: "Agenda" },
 
   { id: "s-09", title: "Invoice INV-2407-001", subtitle: "Siti Rahma • Total Rp 97.500.000 • Status Lunas", category: "Dokumen & Invoice", link: "/dokumen/invoice/INV-2407-001", badge: "INV" },
   { id: "s-10", title: "Invoice INV-2407-002", subtitle: "H. Rusli Suparman • Total Rp 35.500.000 • Status Cicilan DP", category: "Dokumen & Invoice", link: "/dokumen/invoice/INV-2407-002", badge: "INV" },
@@ -299,7 +354,16 @@ export function AppShell({ children }: AppShellProps) {
     });
   };
 
-  const activeHref = getActiveHref(pathname);
+  // usePathname() drops the query, and useSearchParams() would force a Suspense
+  // boundary around this shell. Read it off location instead, re-syncing on
+  // every navigation so `?jenis=` entries highlight correctly.
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setSearch(window.location.search);
+  }, [pathname]);
+
+  const activeHref = getActiveHref(pathname, search);
   const activeUser = sessionUser ?? fallbackStaff;
 
   useEffect(() => {
@@ -439,7 +503,10 @@ export function AppShell({ children }: AppShellProps) {
           {navGroups.map((group) => {
             const userRole = activeUser?.role || "CEO / Admin Master";
             const visibleItems = group.items.filter((item) => {
-              const roles = allowedRolesPerItem[item.href];
+              // Keyed by path, so the six `?jenis=` letter entries all inherit
+              // the single /administrasi/surat rule instead of falling through
+              // to "visible to everyone".
+              const roles = allowedRolesPerItem[pathOf(item.href)];
               if (!roles) return true;
               return roles.includes(userRole);
             });
@@ -837,13 +904,19 @@ export function AppShell({ children }: AppShellProps) {
       <nav className="fixed bottom-0 inset-x-0 z-[100] flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-2xl lg:hidden font-sans">
         {[
           { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
-          { label: "Paket", icon: Plane, href: "/paket" },
+          { label: "Jadwal", icon: Plane, href: "/paket" },
           { label: "Booking", icon: ClipboardList, href: "/booking" },
-          { label: "Jadwal", icon: CalendarDays, href: "/jadwal" },
+          { label: "Kalender", icon: CalendarDays, href: "/jadwal" },
           { label: "Kasir", icon: CircleDollarSign, href: "/pembayaran" },
         ].map((tab) => {
           const Icon = tab.icon;
-          const isActive = pathname === tab.href || pathname === "/" || pathname.startsWith(tab.href + "/");
+          // `|| pathname === "/"` used to be in here, which lit up all five tabs
+          // at once on the dashboard. "/" is the dashboard, so match it to that
+          // tab only.
+          const isActive =
+            pathname === tab.href ||
+            pathname.startsWith(tab.href + "/") ||
+            (pathname === "/" && tab.href === "/dashboard");
 
           if (isActive) {
             return (

@@ -286,7 +286,7 @@ export default function DashboardPage() {
       key: "grup_tersedia",
       title: "Total Grup Tersedia",
       value: `${totalGrupTersedia} Grup`,
-      subtext: `${totalGrupTersedia} grup aktif di Paket Tersedia`,
+      subtext: `${totalGrupTersedia} grup aktif di Jadwal Keberangkatan`,
       trend: "Live",
       icon: Plane,
       iconColor: "text-brand-pink",
@@ -755,9 +755,9 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: "Paket Umrah", icon: Plane, href: "/paket", color: "bg-rose-50 text-brand-pink border-rose-200/60" },
+                { label: "Jadwal Grup", icon: Plane, href: "/paket", color: "bg-rose-50 text-brand-pink border-rose-200/60" },
                 { label: "Booking", icon: ClipboardList, href: "/booking", color: "bg-amber-50 text-amber-800 border-amber-200/60" },
-                { label: "Jadwal Flight", icon: CalendarDays, href: "/jadwal", color: "bg-emerald-50 text-emerald-700 border-emerald-200/60" },
+                { label: "Kalender", icon: CalendarDays, href: "/jadwal", color: "bg-emerald-50 text-emerald-700 border-emerald-200/60" },
                 { label: "Kasir Cicilan", icon: CircleDollarSign, href: "/pembayaran", color: "bg-blue-50 text-blue-700 border-blue-200/60" },
                 { label: "Dokumen", icon: FileText, href: "/dokumen", color: "bg-purple-50 text-purple-700 border-purple-200/60" },
                 { label: "Kalkulator", icon: Calculator, href: "/paket/kalkulator", color: "bg-indigo-50 text-indigo-700 border-indigo-200/60" },

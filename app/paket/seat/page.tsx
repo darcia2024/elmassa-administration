@@ -172,7 +172,7 @@ export default function UpdateSeatPage() {
               href="/paket"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-4 text-xs font-bold text-stone-700 shadow-2xs hover:bg-stone-50 transition"
             >
-              <span>+ Tambah Paket di Paket Tersedia</span>
+              <span>+ Tambah Grup di Jadwal Keberangkatan</span>
             </Link>
           </div>
         </div>

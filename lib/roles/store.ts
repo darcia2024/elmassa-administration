@@ -1,5 +1,5 @@
 import { getPool } from "@/lib/db/connection";
-import { MODULES, emptyPermissions, fullPermissions, type ModuleAction } from "@/lib/auth/modules";
+import { MODULES, MODULE_IDS, emptyPermissions, fullPermissions, type ModuleAction } from "@/lib/auth/modules";
 
 /**
  * Roles and their per-module permission matrix. staff_users.role is a plain
@@ -140,7 +140,31 @@ async function ensureTables() {
     }
   }
 
+  await backfillModuleRows();
   ready = true;
+}
+
+/**
+ * Adding an entry to MODULES after the roles were already seeded used to leave
+ * every role with no row for it -- and getStaffAuthForModule reads a missing
+ * row as "no permission". A brand-new module was therefore invisible to
+ * EVERYONE, Admin Master included, with no way to grant it from Hak Akses
+ * (that page can only toggle rows that exist).
+ *
+ * So fill the gap on startup: the locked system role gets full access, since
+ * it is defined as having all of it and updateRole refuses to change it.
+ * Every other role gets an explicit all-false row -- fail closed, but now
+ * visible in the matrix so an admin can grant it deliberately.
+ */
+async function backfillModuleRows() {
+  await getPool().query(
+    `INSERT INTO role_permissions (role_id, module_id, can_view, can_edit, can_approve, can_delete)
+     SELECT r.id, m.module_id, r.is_system, r.is_system, r.is_system, r.is_system
+     FROM roles r
+     CROSS JOIN (SELECT unnest($1::text[]) AS module_id) m
+     ON CONFLICT (role_id, module_id) DO NOTHING;`,
+    [MODULE_IDS],
+  );
 }
 
 function toPermissionSet(row: any): ModulePermissionSet {

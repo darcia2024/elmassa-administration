@@ -18,7 +18,9 @@ export type ModuleDef = {
 export const MODULES: ModuleDef[] = [
   { id: "dash", name: "Dashboard Utama", category: "Utama", description: "Statistik operasional, pendapatan, & quick action." },
   { id: "paket", name: "Katalog & Calculator HPP Paket", category: "Utama", description: "Merancang paket umrah, harga, & HPP simulator." },
-  { id: "jadwal", name: "Jadwal & Agenda Flight", category: "Utama", description: "Kalender keberangkatan, manasik, & penjemputan." },
+  // id stays "jadwal" -- it is the key stored in role_permissions, so renaming
+  // it would silently reset every role's access to this module.
+  { id: "jadwal", name: "Kalender Kegiatan", category: "Utama", description: "Agenda manasik, handling, batas pelunasan, & keberangkatan." },
   { id: "pelanggan", name: "CRM Data Pelanggan", category: "Operasional", description: "Database jamaah, riwayat booking, & kontak." },
   { id: "booking", name: "Manajemen Booking", category: "Operasional", description: "Input pendaftaran, status DP, & assignment kamar." },
   { id: "manifest", name: "Manifest Peserta & Flight", category: "Operasional", description: "Paspor, E-Visa, rooming hotel, & bus handling." },
@@ -27,6 +29,10 @@ export const MODULES: ModuleDef[] = [
   { id: "dokumen", name: "Invoice & Surat Kemenag", category: "Keuangan", description: "Cetak invoice resmi & surat rekomendasi paspor." },
   { id: "laporan", name: "Laporan Pendapatan & Piutang", category: "Keuangan", description: "Analisis keuangan, piutang jamaah, & laporan omset." },
   { id: "pengaturan", name: "Pengaturan Identitas & Staf", category: "Sistem", description: "Legalitas perijinan, rekening bank, & kelola staf." },
+  { id: "surat", name: "Surat Menyurat & Rekomendasi", category: "Operasional", description: "Surat pemberitahuan, rekomendasi paspor, & izin cuti." },
+  { id: "kepegawaian", name: "Data Karyawan", category: "Operasional", description: "Data kepegawaian, jabatan, kontrak, & gaji." },
+  { id: "agen", name: "Data Agen & Komisi", category: "Operasional", description: "Mitra perekrut jamaah, skema komisi, & rekap rekrutan." },
+  { id: "inventaris", name: "Stok Perlengkapan", category: "Operasional", description: "Koper, kain ihram, buku doa — stok masuk & keluar." },
 ];
 
 export const MODULE_IDS = MODULES.map((m) => m.id);
@@ -49,6 +55,13 @@ export function fullPermissions(): Record<ModuleAction, boolean> {
  */
 const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "activity-log", module: "laporan" },
+  { prefix: "agenda", module: "jadwal" },
+  { prefix: "agents", module: "agen" },
+  { prefix: "employees", module: "kepegawaian" },
+  // Cash out sits with the rest of the money, same module as Kasir/Kuitansi.
+  { prefix: "expenses", module: "pembayaran" },
+  { prefix: "inventory", module: "inventaris" },
+  { prefix: "letters", module: "surat" },
   { prefix: "auth/change-password", module: null }, // self-service, any authenticated staff
   { prefix: "auth/admin/reset-password", module: "pengaturan" },
   { prefix: "booking-statuses", module: "pengaturan" },

@@ -47,6 +47,12 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     visaExpiry: body.visaExpiry,
     ticketNumber: body.ticketNumber,
     roomType: body.roomType,
+    jakartaRoomType: body.jakartaRoomType,
+    jakartaRoomNo: body.jakartaRoomNo,
+    makkahRoomType: body.makkahRoomType,
+    makkahRoomNo: body.makkahRoomNo,
+    madinahRoomType: body.madinahRoomType,
+    madinahRoomNo: body.madinahRoomNo,
   });
 
   if (!updated) {

@@ -32,6 +32,16 @@ export type CalendarEvent = {
 
 const defaultEvents: CalendarEvent[] = [];
 
+type AgendaCalendarProps = {
+  /**
+   * Departure/return dates for the real published groups. Left optional so the
+   * calendar still renders (empty) if a caller has nothing to show yet -- it
+   * used to have no way in at all, which is why this view sat permanently blank
+   * back when it was its own /jadwal page.
+   */
+  events?: CalendarEvent[];
+};
+
 const categoryBadgeStyles = {
   Keberangkatan: "bg-emerald-50 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100",
   Kepulangan: "bg-blue-50 text-blue-800 border-blue-200/80 hover:bg-blue-100",
@@ -44,7 +54,7 @@ const monthNames = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
-export function AgendaCalendar() {
+export function AgendaCalendar({ events: eventsProp }: AgendaCalendarProps = {}) {
   const today = useMemo(() => new Date(), []);
   const [currentDate, setCurrentDate] = useState(new Date()); // Dynamic Real Current Date
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
@@ -53,7 +63,7 @@ export function AgendaCalendar() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const events = defaultEvents;
+  const events = eventsProp ?? defaultEvents;
 
   // Filtered Events
   const filteredEvents = useMemo(() => {

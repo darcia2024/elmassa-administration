@@ -71,6 +71,118 @@ export async function findPayment(id: string): Promise<PaymentRecord | null> {
   return res.rows[0] ?? null;
 }
 
+export type GroupPaymentInstallment = {
+  id: string;
+  label: string;
+  date: string;
+  amount: number;
+  method: string;
+  status: string;
+  receiptNumber: string | null;
+};
+
+export type GroupPaymentRow = {
+  bookingCode: string;
+  customerName: string;
+  phone: string;
+  participants: number;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: string;
+  isSettled: boolean;
+  installments: GroupPaymentInstallment[];
+};
+
+/**
+ * Labels a booking's payments in the order money actually came in: the first
+ * one is the DP, everything after it is cicilan ke-1, ke-2, and so on. A single
+ * payment that clears the whole bill is called what it is instead of "DP", so
+ * the column can't read "DP Awal" next to a Lunas row.
+ */
+function labelInstallment(index: number, amount: number, totalAmount: number): string {
+  if (index === 0) return amount >= totalAmount && totalAmount > 0 ? "Pelunasan Penuh" : "DP Awal";
+  return `Pembayaran ke-${index}`;
+}
+
+/**
+ * Every jamaah booking in one departure group, each with its own payment
+ * timeline. Amounts come straight from `real_bookings`, which lib/payments
+ * keeps in step with the `payments` rows on every create/update/delete — so
+ * the per-row installments here always add up to the paidAmount beside them.
+ */
+export async function listGroupPayments(packageId: string): Promise<GroupPaymentRow[]> {
+  const bookings = await getPool().query(
+    `SELECT
+       code AS "bookingCode",
+       customer_name AS "customerName",
+       phone,
+       participants,
+       total_amount AS "totalAmount",
+       paid_amount AS "paidAmount",
+       remaining_amount AS "remainingAmount",
+       status
+     FROM real_bookings
+     WHERE package_id = $1
+     ORDER BY created_at ASC;`,
+    [packageId],
+  );
+
+  if (bookings.rowCount === 0) return [];
+
+  const codes = bookings.rows.map((b) => b.bookingCode);
+  const payments = await getPool().query(
+    `SELECT
+       p.id,
+       p.booking_code AS "bookingCode",
+       TO_CHAR(p.payment_date, 'YYYY-MM-DD') AS "date",
+       p.amount,
+       p.method,
+       p.status,
+       r.receipt_number AS "receiptNumber"
+     FROM payments p
+     LEFT JOIN receipts r ON r.payment_id = p.id
+     WHERE p.booking_code = ANY($1::text[])
+     ORDER BY p.payment_date ASC, p.created_at ASC;`,
+    [codes],
+  );
+
+  const byBooking = new Map<string, typeof payments.rows>();
+  for (const row of payments.rows) {
+    const list = byBooking.get(row.bookingCode) ?? [];
+    list.push(row);
+    byBooking.set(row.bookingCode, list);
+  }
+
+  return bookings.rows.map((b) => {
+    const totalAmount = Number(b.totalAmount);
+    const paidAmount = Number(b.paidAmount);
+    const remainingAmount = Number(b.remainingAmount);
+    const rows = byBooking.get(b.bookingCode) ?? [];
+
+    return {
+      bookingCode: b.bookingCode,
+      customerName: b.customerName,
+      phone: b.phone,
+      participants: Number(b.participants),
+      totalAmount,
+      paidAmount,
+      remainingAmount,
+      status: b.status,
+      isSettled: remainingAmount <= 0 && paidAmount > 0,
+      installments: rows.map((p, index) => ({
+        id: p.id,
+        label: labelInstallment(index, Number(p.amount), totalAmount),
+        date: p.date,
+        amount: Number(p.amount),
+        method: p.method,
+        status: p.status,
+        receiptNumber: p.receiptNumber,
+      })),
+    };
+  });
+}
+
 /**
  * Applies `amount` (positive to record money in, negative to reverse it) to
  * the booking's running totals. Kept in one place so create/update/delete all

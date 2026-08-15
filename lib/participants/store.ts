@@ -25,9 +25,24 @@ export type ParticipantRecord = {
   visaExpiry: string | null;
   ticketNumber: string;
   roomType: string;
+  jakartaRoomType: string;
+  jakartaRoomNo: string;
+  makkahRoomType: string;
+  makkahRoomNo: string;
+  madinahRoomType: string;
+  madinahRoomNo: string;
   createdAt: string;
   updatedAt: string;
 };
+
+/**
+ * The three roomlists a group actually needs: the Jakarta transit hotel before
+ * the international leg, then Makkah and Madinah. Kept as separate columns
+ * rather than one `room_type` because a jamaah is regularly Quad in one city
+ * and Triple in another, and the hotel needs the room number too.
+ */
+export const ROOMLIST_CITIES = ["jakarta", "makkah", "madinah"] as const;
+export type RoomlistCity = (typeof ROOMLIST_CITIES)[number];
 
 const LIST_QUERY = `
   SELECT
@@ -45,6 +60,12 @@ const LIST_QUERY = `
     TO_CHAR(p.visa_expiry, 'YYYY-MM-DD') AS "visaExpiry",
     p.ticket_number AS "ticketNumber",
     p.room_type AS "roomType",
+    p.jakarta_room_type AS "jakartaRoomType",
+    p.jakarta_room_no AS "jakartaRoomNo",
+    p.makkah_room_type AS "makkahRoomType",
+    p.makkah_room_no AS "makkahRoomNo",
+    p.madinah_room_type AS "madinahRoomType",
+    p.madinah_room_no AS "madinahRoomNo",
     p.created_at AS "createdAt",
     p.updated_at AS "updatedAt"
   FROM participants p
@@ -122,6 +143,12 @@ export async function updateParticipant(
     visaExpiry?: string | null;
     ticketNumber?: string;
     roomType?: string;
+    jakartaRoomType?: string;
+    jakartaRoomNo?: string;
+    makkahRoomType?: string;
+    makkahRoomNo?: string;
+    madinahRoomType?: string;
+    madinahRoomNo?: string;
   },
 ): Promise<ParticipantRecord | null> {
   const sets: string[] = [];
@@ -139,6 +166,12 @@ export async function updateParticipant(
   if (patch.visaExpiry !== undefined) push("visa_expiry", patch.visaExpiry || null);
   if (patch.ticketNumber !== undefined) push("ticket_number", patch.ticketNumber.trim());
   if (patch.roomType !== undefined) push("room_type", patch.roomType.trim());
+  if (patch.jakartaRoomType !== undefined) push("jakarta_room_type", patch.jakartaRoomType.trim());
+  if (patch.jakartaRoomNo !== undefined) push("jakarta_room_no", patch.jakartaRoomNo.trim());
+  if (patch.makkahRoomType !== undefined) push("makkah_room_type", patch.makkahRoomType.trim());
+  if (patch.makkahRoomNo !== undefined) push("makkah_room_no", patch.makkahRoomNo.trim());
+  if (patch.madinahRoomType !== undefined) push("madinah_room_type", patch.madinahRoomType.trim());
+  if (patch.madinahRoomNo !== undefined) push("madinah_room_no", patch.madinahRoomNo.trim());
 
   if (sets.length === 0) return findParticipant(id);
 

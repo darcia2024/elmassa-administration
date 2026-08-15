@@ -12,12 +12,12 @@ import {
   Compass,
   Download,
   Edit3,
+  FolderOpen,
   Gift,
   Hotel,
   Image as ImageIcon,
   MapPin,
   MessageSquare,
-  PackageCheck,
   Plane,
   Plus,
   Search,
@@ -58,6 +58,29 @@ type PackageCardItem = {
 };
 
 const officialPackages: PackageCardItem[] = [];
+
+const MONTH_NAMES = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
+
+/**
+ * A departure group belongs to the month it flies out in. `departureDate` is
+ * the real ISO column; `departuresDate` is the free-text label staff type, so
+ * it is only a fallback and anything unparseable is bucketed honestly rather
+ * than guessed into a month it may not belong to.
+ */
+function monthBucketOf(pkg: PackageCardItem): { key: string; label: string } {
+  const iso = (pkg as any).departureDate as string | undefined;
+  const match = typeof iso === "string" ? iso.match(/^(\d{4})-(\d{2})/) : null;
+
+  if (match) {
+    const [, year, month] = match;
+    return { key: `${year}-${month}`, label: `${MONTH_NAMES[Number(month) - 1]} ${year}` };
+  }
+
+  return { key: "zz-tanpa-tanggal", label: "Tanggal Keberangkatan Belum Diisi" };
+}
 
 export function PackageList() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -318,6 +341,22 @@ export function PackageList() {
     });
   }, [allPackages, searchQuery, selectedCategory]);
 
+  /** Groups become month sections — the way staff actually talk about them
+   *  ("rombongan Oktober"), instead of one flat catalogue list. */
+  const monthGroups = useMemo(() => {
+    const buckets = new Map<string, { key: string; label: string; packages: PackageCardItem[] }>();
+
+    for (const pkg of filteredPackages) {
+      const { key, label } = monthBucketOf(pkg);
+      const bucket = buckets.get(key) ?? { key, label, packages: [] };
+      bucket.packages.push(pkg);
+      buckets.set(key, bucket);
+    }
+
+    // "zz-" prefix on the undated bucket keeps it last without a special case.
+    return Array.from(buckets.values()).sort((a, b) => a.key.localeCompare(b.key));
+  }, [filteredPackages]);
+
   const handleResetAllData = async () => {
     if (!confirm("⚠️ PERINGATAN:\nApakah kamu yakin ingin MENGHAPUS SEMUA DATA PAKET & BOOKING di SEMUA DEVICE & Supabase Cloud Database?\n\nSeluruh data buatan akan dibersihkan 100% dari semua HP / Komputer.")) {
       return;
@@ -356,14 +395,14 @@ export function PackageList() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold tracking-tight text-brand-cocoa sm:text-2xl">
-                  Katalog Resmi Paket Umrah PT El Massa
+                  Jadwal Keberangkatan
                 </h1>
                 <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-brand-pink border border-brand-pink/20">
                   Resmi Izin PPIU
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-1 max-w-2xl">
-                Paket Umrah Spesial Oktober (2x Jum'at) & November Start Pangkal Pinang dengan maskapai Saudia / Garuda Indonesia dan Hotel Grand Al Massa Makkah.
+                Grup keberangkatan per bulan. Buka satu grup untuk mengelola flyer & HPP, itinerary, data pembayaran jamaah, dan manifest.
               </p>
             </div>
 
@@ -472,8 +511,23 @@ export function PackageList() {
             </button>
           </div>
         ) : (
-          <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-            {filteredPackages.map((pkg) => (
+          <div className="space-y-8">
+            {monthGroups.map((group) => (
+            <section key={group.key} className="space-y-4">
+
+              {/* Month divider — the group heading staff asked for */}
+              <header className="flex items-center gap-3">
+                <h2 className="text-sm font-extrabold uppercase tracking-wider text-brand-cocoa whitespace-nowrap">
+                  {group.label}
+                </h2>
+                <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-600 whitespace-nowrap">
+                  {group.packages.length} Grup
+                </span>
+                <span className="h-px flex-1 bg-stone-200" />
+              </header>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            {group.packages.map((pkg) => (
             <article
               key={pkg.id}
               className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 sm:p-6 shadow-2xs hover:shadow-md hover:border-brand-pink/40 transition-all duration-300 space-y-4"
@@ -618,12 +672,21 @@ export function PackageList() {
 
               {/* Action Buttons */}
               <div className="pt-2 flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/paket/${encodeURIComponent(pkg.id)}`}
+                  className="flex-1 h-9 rounded-xl bg-brand-cocoa text-xs font-bold text-white hover:brightness-125 transition flex items-center justify-center gap-1.5 min-w-[130px] shadow-2xs"
+                  title="Flyer & HPP, Itinerary, Data Pembayaran, Manifest Jamaah"
+                >
+                  <FolderOpen className="h-3.5 w-3.5" strokeWidth={2} />
+                  <span>Kelola Grup</span>
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setSelectedPkg(pkg)}
-                  className="flex-1 h-9 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition min-w-[90px]"
+                  className="h-9 px-3 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shrink-0"
                 >
-                  Lihat Detail
+                  Brosur
                 </button>
 
                 <button
@@ -669,7 +732,10 @@ export function PackageList() {
               </div>
             </article>
           ))}
-        </section>
+              </div>
+            </section>
+            ))}
+          </div>
       )}
 
       </div>
@@ -716,8 +782,8 @@ export function PackageList() {
         {/* C. Horizontal Brand / Month Pills (Wearify Category Row) */}
         <section className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-900">Kategori Paket</span>
-            <span className="text-[10px] font-bold text-stone-400">{filteredPackages.length} Paket Tersedia</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-900">Bulan Keberangkatan</span>
+            <span className="text-[10px] font-bold text-stone-400">{filteredPackages.length} Grup</span>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
@@ -739,8 +805,20 @@ export function PackageList() {
         </section>
 
         {/* D. 2-COLUMN MOBILE PRODUCT CARD GRID (WEARIFY / H&M E-COMMERCE PRODUCT GRID) */}
-        <section className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          {filteredPackages.map((pkg) => (
+        {monthGroups.map((group) => (
+        <section key={group.key} className="space-y-2">
+          <header className="flex items-center gap-2 px-1 pt-1">
+            <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-brand-cocoa whitespace-nowrap">
+              {group.label}
+            </h2>
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[9px] font-bold text-stone-600">
+              {group.packages.length}
+            </span>
+            <span className="h-px flex-1 bg-stone-200" />
+          </header>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          {group.packages.map((pkg) => (
             <article
               key={pkg.id}
               className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-3 shadow-2xs active:bg-stone-50 transition-all duration-200 space-y-2"
@@ -798,12 +876,19 @@ export function PackageList() {
 
               {/* Full-Width Touch Action Button */}
               <div className="pt-1 flex items-center gap-1">
+                <Link
+                  href={`/paket/${encodeURIComponent(pkg.id)}`}
+                  className="flex-1 h-7 rounded-lg bg-brand-cocoa text-[10px] font-bold text-white active:brightness-125 transition flex items-center justify-center"
+                >
+                  Kelola
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setSelectedPkg(pkg)}
-                  className="flex-1 h-7 rounded-lg border border-stone-200 bg-stone-50 text-[10px] font-bold text-stone-700 active:bg-stone-100 transition"
+                  className="h-7 px-2 rounded-lg border border-stone-200 bg-stone-50 text-[10px] font-bold text-stone-700 active:bg-stone-100 transition shrink-0"
                 >
-                  Detail
+                  Brosur
                 </button>
 
                 {canEditPackage && (
@@ -838,7 +923,9 @@ export function PackageList() {
               </div>
             </article>
           ))}
+          </div>
         </section>
+        ))}
 
       </div>
 

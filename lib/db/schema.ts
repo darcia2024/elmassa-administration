@@ -124,6 +124,35 @@ export const participants = pgTable("participants", {
   visaExpiry: date("visa_expiry"),
   ticketNumber: text("ticket_number").notNull().default(""),
   roomType: text("room_type").notNull().default(""),
+  // Per-city roomlists (scratch/add-roomlist-columns.mjs). `roomType` above is
+  // the older single-value field the booking form still writes; these three are
+  // what Jadwal Keberangkatan > Manifest edits and exports per city.
+  jakartaRoomType: text("jakarta_room_type").notNull().default(""),
+  jakartaRoomNo: text("jakarta_room_no").notNull().default(""),
+  makkahRoomType: text("makkah_room_type").notNull().default(""),
+  makkahRoomNo: text("makkah_room_no").notNull().default(""),
+  madinahRoomType: text("madinah_room_type").notNull().default(""),
+  madinahRoomNo: text("madinah_room_no").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/**
+ * Staff-entered items on Kalender Kegiatan (scratch/add-agenda-events.mjs).
+ * Keberangkatan/Kepulangan/Pelunasan are NOT stored here -- lib/agenda/store.ts
+ * derives those from published_packages + real_bookings on every read.
+ * `packageId` is a soft link, not an FK: an item may be company-wide.
+ */
+export const agendaEvents = pgTable("agenda_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  packageId: text("package_id").notNull().default(""),
+  title: text("title").notNull(),
+  category: text("category").notNull().default("Manasik"),
+  eventDate: date("event_date").notNull(),
+  eventTime: text("event_time").notNull().default(""),
+  location: text("location").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  createdBy: text("created_by").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
