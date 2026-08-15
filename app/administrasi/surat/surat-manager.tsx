@@ -42,6 +42,17 @@ export function SuratManager({ initialType }: { initialType?: string }) {
   const [preview, setPreview] = useState<LetterRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  /**
+   * The five per-type menu entries are the same route with a different
+   * `?jenis=`, so React keeps this component mounted across them and the
+   * useState initialiser above never runs again. Without this the sidebar
+   * would highlight the new entry while the list stayed on whichever type
+   * happened to be opened first.
+   */
+  useEffect(() => {
+    setActiveType(initialType ?? "semua");
+  }, [initialType]);
+
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/letters", { cache: "no-store" });

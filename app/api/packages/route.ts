@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
+import { hasStaffSession } from "@/lib/auth/request-session";
 import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
 
 let isTableEnsured = false;
@@ -52,14 +53,37 @@ const corsHeaders = {
   "Cache-Control": "public, s-maxage=5, stale-while-revalidate=59",
 };
 
+/**
+ * GET is public (see publicReadPrefixes in proxy.ts) so the itinerary/UmrahMe
+ * apps can browse the catalogue without a login. `costing_data` must NOT ride
+ * along on that: it holds the HPP working — margin per pax, SAR rate, supplier
+ * ticket/hotel/handling costs — so an unauthenticated GET was publishing the
+ * company's entire cost structure to anyone who opened the URL.
+ */
+function stripCosting(rows: Array<Record<string, unknown>>) {
+  return rows.map(({ costingData, ...publicFields }) => publicFields);
+}
+
+/**
+ * The response body now depends on the session cookie, so it must never be
+ * stored in a shared/CDN cache — otherwise one staff request could be cached
+ * and replayed to anonymous callers, undoing the check above.
+ */
+function headersFor(isStaff: boolean) {
+  return isStaff
+    ? { ...corsHeaders, "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" }
+    : { ...corsHeaders, Vary: "Cookie, Authorization" };
+}
+
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: corsHeaders });
 }
 
 // GET: Fetch all published packages from Supabase
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureTable();
+    const isStaff = await hasStaffSession(req);
     const res = await getPool().query(
       `SELECT 
         id, 
@@ -91,7 +115,10 @@ export async function GET() {
        FROM published_packages
        ORDER BY created_at DESC;`
     );
-    return NextResponse.json({ ok: true, data: res.rows }, { headers: corsHeaders });
+    return NextResponse.json(
+      { ok: true, data: isStaff ? res.rows : stripCosting(res.rows) },
+      { headers: headersFor(isStaff) },
+    );
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500, headers: corsHeaders });
   }

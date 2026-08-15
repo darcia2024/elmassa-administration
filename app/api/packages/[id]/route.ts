@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
+import { hasStaffSession } from "@/lib/auth/request-session";
 
 /**
  * This route used to read/write lib/seed-data/packages.ts -- a dummy array
@@ -74,7 +75,7 @@ function normaliseItinerary(raw: unknown): { days: unknown[] } | { error: string
   return { days };
 }
 
-export async function GET(_: NextRequest, { params }: PackageDetailRouteProps) {
+export async function GET(request: NextRequest, { params }: PackageDetailRouteProps) {
   const { id } = await params;
   const res = await getPool().query(`SELECT ${SELECT_COLUMNS} FROM published_packages WHERE id = $1 LIMIT 1;`, [id]);
 
@@ -82,7 +83,16 @@ export async function GET(_: NextRequest, { params }: PackageDetailRouteProps) {
     return NextResponse.json({ error: "Paket tidak ditemukan" }, { status: 404 });
   }
 
-  return NextResponse.json({ data: res.rows[0] });
+  // Same reasoning as the list route: this path is public to read (proxy.ts
+  // matches the /api/packages prefix), so the HPP working only goes out to a
+  // caller that actually holds a staff session.
+  const isStaff = await hasStaffSession(request);
+  const { costingData, ...publicFields } = res.rows[0];
+
+  return NextResponse.json(
+    { data: isStaff ? res.rows[0] : publicFields },
+    { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } },
+  );
 }
 
 export async function PATCH(request: NextRequest, { params }: PackageDetailRouteProps) {
