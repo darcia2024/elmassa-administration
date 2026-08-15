@@ -840,17 +840,20 @@ export function PackageList() {
                   </div>
                 )}
 
-                {/* Top Badge Overlay */}
-                <span className="absolute left-1.5 top-1.5 rounded-full bg-emerald-600/90 backdrop-blur-xs px-2 py-0.5 text-[8px] font-black uppercase text-white shadow-xs">
-                  {pkg.category.includes("Oktober") ? "Bestseller" : "Populer"}
+                {/* Kategori grup, bukan klaim penjualan. Label "Bestseller"/
+                    "Populer" sebelumnya ditentukan dari nama bulan pada
+                    kategori, tanpa satu pun angka penjualan di baliknya. */}
+                <span className="absolute left-1.5 top-1.5 max-w-[85%] truncate rounded-full bg-brand-cocoa/90 backdrop-blur-xs px-2 py-0.5 text-[8px] font-black uppercase text-white shadow-xs">
+                  {pkg.category || "Umrah"}
                 </span>
               </div>
 
-              {/* Rating & Duration */}
+              {/* Sisa seat & durasi. Sebelumnya di sini ada rating bintang
+                  4.9 dari 128 ulasan -- sistem tidak menyimpan ulasan sama
+                  sekali, jadi angkanya murni hiasan. Sisa seat dihitung dari
+                  booking yang benar-benar masuk. */}
               <div className="flex items-center justify-between text-[9px] font-extrabold">
-                <span className="text-amber-600 flex items-center gap-0.5">
-                  <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" /> 4.9 (128)
-                </span>
+                <span className="text-emerald-700">{getRemainingSeats(pkg)} seat tersisa</span>
                 <span className="text-stone-500 font-bold bg-stone-100 px-1.5 py-0.2 rounded">
                   {pkg.duration}
                 </span>
