@@ -3,137 +3,266 @@
 import type { LetterRecord } from "./types";
 
 /**
- * Printable letter body. One layout, five wordings — the paragraph is chosen by
- * letter type so a single component can serve every surat in the menu, and
- * anything typed into `body` overrides it for one-off wording.
+ * Template cetak per jenis surat.
+ *
+ * Sebelumnya semua jenis memakai satu badan surat dengan paragraf berbeda.
+ * Surat resmi tidak begitu: yang dikirim ke Imigrasi menyebut identitas
+ * lengkap pemohon dan dasar keberangkatannya, yang dikirim ke tempat kerja
+ * menyebut periode cuti, dan yang dikirim ke jamaah tidak memakai blok
+ * identitas sama sekali. Masing-masing punya penerima, isi, dan lampiran
+ * keterangan yang berbeda -- itu yang dipisahkan di sini.
  */
 
 const COMPANY = {
-  name: "PT. AL MASSA AZKA WISATA",
+  legal: "PT. AL MASSA AZKA WISATA",
   brand: "El Massa Tour & Travel",
   license: "Izin PPIU Kemenag RI No. 10032300465890002",
-  address: "Komplek Ruko Best Cinema, Pangkalpinang, Bangka Belitung",
+  address: "Komplek Ruko Best Cinema, Pangkalpinang, Kepulauan Bangka Belitung",
+  phone: "0717-000000",
+  email: "admin@elmassa.travel",
 };
 
-function formatDateID(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const match = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!match) return String(iso);
+const MONTHS = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
 
-  const months = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-  ];
-  const [, year, month, day] = match;
-  return `${Number(day)} ${months[Number(month) - 1]} ${year}`;
+function tanggalID(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(iso);
+  return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
 }
 
-function bodyFor(letter: LetterRecord): string {
-  if (letter.body.trim()) return letter.body;
+type Baris = [string, string];
 
-  const trip = letter.packageName
-    ? `program ${letter.packageName}${letter.departureDate ? ` dengan keberangkatan ${formatDateID(letter.departureDate)}` : ""}`
-    : "program ibadah umrah yang kami selenggarakan";
+/** Baris identitas yang kosong tidak dicetak, supaya surat tidak berisi titik-titik kosong. */
+function Identitas({ rows }: { rows: Baris[] }) {
+  const isi = rows.filter(([, v]) => String(v ?? "").trim() !== "");
+  if (isi.length === 0) return null;
+
+  return (
+    <table className="my-3 ml-6 text-[13px]">
+      <tbody>
+        {isi.map(([label, value]) => (
+          <tr key={label} className="align-top">
+            <td className="whitespace-nowrap py-0.5 pr-3">{label}</td>
+            <td className="py-0.5 pr-2">:</td>
+            <td className="py-0.5 font-bold text-stone-950">{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function identitasJamaah(letter: LetterRecord): Baris[] {
+  const ttl = [letter.birthPlace, tanggalID(letter.birthDate)].filter(Boolean).join(", ");
+  return [
+    ["Nama Lengkap", letter.recipientName.toUpperCase()],
+    ["NIK", letter.recipientNik],
+    ["Tempat / Tanggal Lahir", ttl],
+    ["Alamat", letter.address],
+    ["Nomor Paspor", letter.passportNumber],
+  ];
+}
+
+function keberangkatan(letter: LetterRecord): Baris[] {
+  return [
+    ["Program", letter.packageName],
+    ["Rencana Keberangkatan", tanggalID(letter.departureDate)],
+    ["Kode Booking", letter.bookingCode],
+  ];
+}
+
+/** Isi surat per jenis. `body` yang diketik staf selalu menang. */
+function Isi({ letter }: { letter: LetterRecord }) {
+  if (letter.body.trim()) {
+    return <p className="mt-3 whitespace-pre-line text-justify">{letter.body}</p>;
+  }
+
+  const pembuka = (
+    <>
+      Yang bertanda tangan di bawah ini, pimpinan <strong>{COMPANY.legal}</strong> ({COMPANY.brand}),
+      selaku Penyelenggara Perjalanan Ibadah Umrah (PPIU) resmi berizin Kementerian Agama Republik
+      Indonesia, dengan ini menerangkan bahwa:
+    </>
+  );
 
   switch (letter.letterType) {
     case "paspor-baru":
-      return `yang bersangkutan adalah benar calon jamaah umrah kami yang terdaftar pada ${trip}. Sehubungan dengan hal tersebut, kami mohon kesediaan Bapak/Ibu untuk dapat memproses pembuatan Paspor Republik Indonesia atas nama yang bersangkutan guna keperluan perjalanan ibadah umrah.`;
+      return (
+        <>
+          <p className="mt-3 text-justify">{pembuka}</p>
+          <Identitas rows={identitasJamaah(letter)} />
+          <p className="text-justify">
+            adalah benar calon jamaah umrah yang telah terdaftar pada program kami:
+          </p>
+          <Identitas rows={keberangkatan(letter)} />
+          <p className="text-justify">
+            Sehubungan dengan hal tersebut, dan mengingat paspor merupakan dokumen wajib bagi
+            perjalanan ibadah umrah, kami mohon kesediaan Bapak/Ibu untuk berkenan memproses
+            <strong> penerbitan Paspor Republik Indonesia</strong> atas nama yang bersangkutan.
+          </p>
+          <p className="mt-2 text-justify">
+            Kami menyatakan bahwa data yang tercantum di atas adalah benar, dan yang bersangkutan
+            berangkat semata-mata untuk menunaikan ibadah umrah bersama travel kami.
+          </p>
+        </>
+      );
 
-    case "paspor-tambah-nama":
-      return `yang bersangkutan adalah benar calon jamaah umrah kami yang terdaftar pada ${trip}. Sesuai ketentuan Kerajaan Arab Saudi, nama pada paspor jamaah umrah wajib terdiri dari sekurang-kurangnya 3 (tiga) suku kata. Oleh karena itu kami mohon kesediaan Bapak/Ibu untuk dapat memproses penambahan nama pada paspor yang bersangkutan.`;
+    case "paspor-tambah-nama": {
+      const namaBaru = String(letter.extra?.namaBaru ?? "").trim();
+      return (
+        <>
+          <p className="mt-3 text-justify">{pembuka}</p>
+          <Identitas rows={identitasJamaah(letter)} />
+          <p className="text-justify">
+            adalah benar calon jamaah umrah kami yang terdaftar pada program berikut:
+          </p>
+          <Identitas rows={keberangkatan(letter)} />
+          <p className="text-justify">
+            Sesuai ketentuan Kerajaan Arab Saudi, nama pada paspor jamaah umrah wajib terdiri dari
+            sekurang-kurangnya <strong>3 (tiga) suku kata</strong>. Nama yang bersangkutan saat ini
+            belum memenuhi ketentuan tersebut, sehingga permohonan visa tidak dapat diproses.
+          </p>
+          {namaBaru ? (
+            <Identitas rows={[["Nama pada paspor saat ini", letter.recipientName.toUpperCase()],
+                              ["Nama yang dimohonkan", namaBaru.toUpperCase()]]} />
+          ) : null}
+          <p className="text-justify">
+            Oleh karena itu kami mohon kesediaan Bapak/Ibu untuk berkenan memproses
+            <strong> penambahan nama pada paspor</strong> yang bersangkutan.
+          </p>
+        </>
+      );
+    }
 
-    case "paspor-ganti":
-      return `yang bersangkutan adalah benar calon jamaah umrah kami yang terdaftar pada ${trip}. Sehubungan dengan kondisi paspor yang bersangkutan, kami mohon kesediaan Bapak/Ibu untuk dapat memproses penggantian Paspor Republik Indonesia atas nama tersebut guna keperluan perjalanan ibadah umrah.`;
+    case "paspor-ganti": {
+      const alasan = String(letter.extra?.alasan ?? "").trim();
+      return (
+        <>
+          <p className="mt-3 text-justify">{pembuka}</p>
+          <Identitas rows={identitasJamaah(letter)} />
+          <p className="text-justify">
+            adalah benar calon jamaah umrah kami yang terdaftar pada program berikut:
+          </p>
+          <Identitas rows={[...keberangkatan(letter), ...(alasan ? ([["Alasan Penggantian", alasan]] as Baris[]) : [])]} />
+          <p className="text-justify">
+            Sehubungan dengan kondisi paspor yang bersangkutan sebagaimana disebutkan di atas, kami
+            mohon kesediaan Bapak/Ibu untuk berkenan memproses <strong>penggantian Paspor Republik
+            Indonesia</strong> atas nama tersebut, agar keberangkatan ibadah umrah yang bersangkutan
+            dapat berjalan sesuai jadwal.
+          </p>
+        </>
+      );
+    }
 
     case "izin-cuti": {
-      const employer = String(letter.extra?.employer ?? "instansi tempat yang bersangkutan bekerja");
-      const period = String(letter.extra?.leaveDates ?? "masa keberangkatan");
-      return `yang bersangkutan adalah benar calon jamaah umrah kami yang terdaftar pada ${trip}. Sehubungan dengan hal tersebut, kami mohon kesediaan pimpinan ${employer} untuk dapat memberikan izin cuti kepada yang bersangkutan selama ${period} guna menunaikan ibadah umrah.`;
+      const employer = String(letter.extra?.employer ?? "").trim();
+      const periode = String(letter.extra?.leaveDates ?? "").trim();
+      return (
+        <>
+          <p className="mt-3 text-justify">{pembuka}</p>
+          <Identitas rows={[
+            ["Nama Lengkap", letter.recipientName.toUpperCase()],
+            ["NIK", letter.recipientNik],
+            ["Instansi / Perusahaan", employer],
+          ]} />
+          <p className="text-justify">
+            adalah benar calon jamaah umrah kami yang akan menunaikan ibadah umrah pada:
+          </p>
+          <Identitas rows={[...keberangkatan(letter),
+                            ...(periode ? ([["Periode Cuti Dimohonkan", periode]] as Baris[]) : [])]} />
+          <p className="text-justify">
+            Berkenaan dengan hal tersebut, kami mohon kesediaan pimpinan
+            {employer ? <strong> {employer} </strong> : " instansi yang bersangkutan "}
+            untuk berkenan <strong>memberikan izin cuti</strong> kepada yang bersangkutan selama masa
+            keberangkatan, mengingat rangkaian ibadah umrah harus diikuti secara penuh dari
+            keberangkatan hingga kepulangan.
+          </p>
+        </>
+      );
     }
 
     default:
-      return `bersama surat ini kami sampaikan pemberitahuan kepada yang bersangkutan sehubungan dengan ${trip}. Demikian pemberitahuan ini kami sampaikan untuk dapat diperhatikan sebagaimana mestinya.`;
+      return (
+        <>
+          <p className="mt-3 text-justify">
+            Dengan hormat, sehubungan dengan penyelenggaraan program{" "}
+            <strong>{letter.packageName || "ibadah umrah"}</strong>
+            {letter.departureDate ? <> dengan rencana keberangkatan <strong>{tanggalID(letter.departureDate)}</strong></> : null},
+            bersama ini kami sampaikan pemberitahuan kepada Bapak/Ibu calon jamaah untuk dapat
+            diperhatikan sebagaimana mestinya.
+          </p>
+          <p className="mt-2 text-justify">
+            Kami mengimbau seluruh jamaah untuk memastikan kelengkapan dokumen, mengikuti kegiatan
+            manasik sesuai jadwal, serta menyelesaikan kewajiban administrasi sebelum tanggal
+            keberangkatan.
+          </p>
+        </>
+      );
   }
 }
 
 export function LetterDocument({ letter }: { letter: LetterRecord }) {
-  const showIdentity = letter.letterType !== "pemberitahuan";
-
   return (
-    <article className="mx-auto w-full max-w-[210mm] bg-white px-10 py-9 text-[13px] leading-relaxed text-stone-900 print:px-0 print:py-0">
+    <article className="mx-auto w-full max-w-[210mm] bg-white px-12 py-10 text-[13px] leading-relaxed text-stone-900 print:px-10 print:py-8">
 
       {/* Kop surat */}
-      <header className="flex items-start gap-4 border-b-[3px] border-double border-stone-800 pb-3">
+      <header className="flex items-center gap-4 border-b-[3px] border-double border-stone-800 pb-3">
         <img src="/logo-el-massa.png" alt="" className="h-16 w-auto shrink-0 object-contain" />
         <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-lg font-black uppercase tracking-wide text-stone-950">{COMPANY.name}</h1>
-          <p className="text-sm font-bold text-stone-800">{COMPANY.brand}</p>
-          <p className="mt-0.5 text-[11px] text-stone-600">{COMPANY.address}</p>
-          <p className="text-[11px] font-semibold text-stone-700">{COMPANY.license}</p>
+          <h1 className="text-[17px] font-black uppercase leading-tight tracking-wide text-stone-950">
+            {COMPANY.legal}
+          </h1>
+          <p className="text-[14px] font-bold text-stone-800">{COMPANY.brand}</p>
+          <p className="mt-0.5 text-[10.5px] text-stone-600">{COMPANY.address}</p>
+          <p className="text-[10.5px] text-stone-600">
+            Telp. {COMPANY.phone} · {COMPANY.email}
+          </p>
+          <p className="text-[10.5px] font-semibold text-stone-700">{COMPANY.license}</p>
         </div>
       </header>
 
       {/* Nomor & perihal */}
-      <div className="mt-6 space-y-0.5 text-[13px]">
-        <div className="flex gap-2">
-          <span className="w-20 shrink-0">Nomor</span>
-          <span>: <strong className="font-mono">{letter.letterNumber}</strong></span>
+      <div className="mt-5 flex items-start justify-between gap-6">
+        <div className="space-y-0.5">
+          {([
+            ["Nomor", letter.letterNumber],
+            ["Lampiran", "—"],
+            ["Perihal", letter.subject],
+          ] as Baris[]).map(([k, v], i) => (
+            <div key={k} className="flex gap-2">
+              <span className="w-[68px] shrink-0">{k}</span>
+              <span>
+                :{" "}
+                {i === 0 ? <strong className="font-mono">{v}</strong>
+                  : i === 2 ? <strong className="underline">{v}</strong>
+                  : v}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="flex gap-2">
-          <span className="w-20 shrink-0">Lampiran</span>
-          <span>: —</span>
-        </div>
-        <div className="flex gap-2">
-          <span className="w-20 shrink-0">Perihal</span>
-          <span>: <strong className="underline">{letter.subject}</strong></span>
-        </div>
+        <p className="shrink-0 whitespace-nowrap">Pangkalpinang, {tanggalID(letter.issuedDate)}</p>
       </div>
 
+      {/* Tujuan */}
       <div className="mt-5">
+        <p>Kepada</p>
         <p className="font-semibold">{letter.recipientTo}</p>
         <p>di Tempat</p>
       </div>
 
-      <p className="mt-5">
+      <p className="mt-4">
         <em>Assalamu&apos;alaikum Warahmatullahi Wabarakatuh.</em>
       </p>
 
-      <p className="mt-3 text-justify">
-        Dengan hormat, bersama surat ini kami dari <strong>{COMPANY.name} ({COMPANY.brand})</strong> selaku
-        Penyelenggara Perjalanan Ibadah Umrah (PPIU) resmi Kemenag RI menerangkan bahwa
-        {showIdentity ? " calon jamaah berikut:" : ` ${bodyFor(letter)}`}
-      </p>
-
-      {showIdentity ? (
-        <>
-          <table className="mt-3 ml-6 text-[13px]">
-            <tbody>
-              {[
-                ["Nama Lengkap", letter.recipientName.toUpperCase()],
-                ["NIK", letter.recipientNik],
-                ["Tempat / Tgl Lahir", [letter.birthPlace, formatDateID(letter.birthDate)].filter(Boolean).join(" / ")],
-                ["Alamat", letter.address],
-                ["No. Paspor", letter.passportNumber],
-                ["Program", letter.packageName],
-                ["Keberangkatan", letter.departureDate ? formatDateID(letter.departureDate) : ""],
-              ]
-                .filter(([, value]) => String(value ?? "").trim() !== "" && String(value).trim() !== "—")
-                .map(([label, value]) => (
-                  <tr key={String(label)} className="align-top">
-                    <td className="py-0.5 pr-2 whitespace-nowrap">{label}</td>
-                    <td className="py-0.5 pr-2">:</td>
-                    <td className="py-0.5 font-bold text-stone-950">{value}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-
-          <p className="mt-3 text-justify">Bahwa {bodyFor(letter)}</p>
-        </>
-      ) : null}
+      <Isi letter={letter} />
 
       <p className="mt-3 text-justify">
-        Demikian surat ini kami buat dengan sebenarnya. Atas perhatian dan kerja samanya kami ucapkan terima kasih.
+        Demikian surat ini kami buat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
+        Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.
       </p>
 
       <p className="mt-3">
@@ -142,17 +271,22 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
 
       {/* Tanda tangan */}
       <div className="mt-8 flex justify-end">
-        <div className="w-64 text-center">
-          <p>Pangkalpinang, {formatDateID(letter.issuedDate)}</p>
+        <div className="w-[260px] text-center">
           <p className="font-semibold">{COMPANY.brand}</p>
-          <div className="h-16" />
-          <p className="font-bold underline text-stone-950">{letter.issuedBy || "( ....................... )"}</p>
-          <p className="text-[12px]">Pimpinan / Staf Berwenang</p>
+          <div className="h-20" />
+          <p className="font-bold uppercase text-stone-950 underline">
+            {letter.issuedBy || "( ................................. )"}
+          </p>
+          <p className="text-[12px]">Pimpinan</p>
         </div>
       </div>
 
-      <footer className="mt-8 border-t border-stone-300 pt-2 text-[10px] text-stone-500">
-        <p>Surat ini diterbitkan melalui sistem operasional {COMPANY.brand} dan tercatat dengan nomor {letter.letterNumber}.</p>
+      <footer className="mt-10 border-t border-stone-300 pt-2 text-[9.5px] leading-snug text-stone-500">
+        <p>
+          Surat ini diterbitkan melalui sistem operasional {COMPANY.brand} dan tercatat dengan nomor{" "}
+          <span className="font-mono">{letter.letterNumber}</span>. Keaslian dapat dikonfirmasi ke
+          kantor kami pada alamat tertera di atas.
+        </p>
       </footer>
     </article>
   );

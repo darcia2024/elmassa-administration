@@ -24,6 +24,8 @@ const emptyForm = {
   issuedDate: "",
   employer: "",
   leaveDates: "",
+  namaBaru: "",
+  alasan: "",
 };
 
 export function SuratManager({ initialType }: { initialType?: string }) {
@@ -142,7 +144,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
         body: JSON.stringify({
           ...form,
           subject: form.subject || activeTypeDef?.subject,
-          extra: { employer: form.employer, leaveDates: form.leaveDates },
+          extra: { employer: form.employer, leaveDates: form.leaveDates, namaBaru: form.namaBaru, alasan: form.alasan },
         }),
       });
       const json = await res.json();
@@ -422,6 +424,37 @@ export function SuratManager({ initialType }: { initialType?: string }) {
                 className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-brand-cocoa placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
               />
             </label>
+
+            {form.letterType === "paspor-tambah-nama" ? (
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">Nama Baru yang Dimohonkan</span>
+                <input
+                  type="text"
+                  value={form.namaBaru}
+                  onChange={(e) => setForm((prev) => ({ ...prev, namaBaru: e.target.value }))}
+                  placeholder="Nur Aisyah Rahmawati Binti Sulaiman"
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-brand-cocoa placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+                />
+                <span className="block text-[10px] text-stone-500">Minimal 3 suku kata — syarat visa Arab Saudi.</span>
+              </label>
+            ) : null}
+
+            {form.letterType === "paspor-ganti" ? (
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">Alasan Penggantian</span>
+                <select
+                  value={form.alasan}
+                  onChange={(e) => setForm((prev) => ({ ...prev, alasan: e.target.value }))}
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 text-xs font-medium text-brand-cocoa outline-none focus:border-brand-pink focus:bg-white transition"
+                >
+                  <option value="">— Pilih alasan —</option>
+                  <option value="Masa berlaku paspor telah habis">Masa berlaku habis</option>
+                  <option value="Paspor rusak">Paspor rusak</option>
+                  <option value="Paspor hilang">Paspor hilang</option>
+                  <option value="Halaman paspor penuh">Halaman penuh</option>
+                </select>
+              </label>
+            ) : null}
 
             {form.letterType === "izin-cuti" ? (
               <div className="grid gap-3 sm:grid-cols-2">
