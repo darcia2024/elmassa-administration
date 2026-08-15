@@ -28,6 +28,25 @@ export function getPool(): Pool {
     pool = new Pool({
       connectionString: getDatabaseUrl(),
       ssl: { rejectUnauthorized: false },
+
+      // Tanpa pengaturan ini `pg` memakai idleTimeoutMillis 10 detik: begitu
+      // staf berhenti mengklik sebentar, seluruh koneksi ditutup, dan klik
+      // berikutnya harus membangun koneksi baru ke Supabase dari nol --
+      // handshake TCP, TLS, lalu autentikasi. Terukur 1-2 detik hanya untuk
+      // menunggu, padahal datanya sendiri cuma beberapa kilobyte.
+      idleTimeoutMillis: 5 * 60 * 1000,
+
+      // Supabase memakai transaction pooler, jadi tidak perlu banyak koneksi;
+      // yang penting koneksinya tetap hangat, bukan berjumlah besar.
+      max: 10,
+
+      // Kalau jaringan bermasalah, lebih baik gagal cepat dengan pesan jelas
+      // daripada permintaan menggantung tanpa batas (bawaannya: tanpa batas).
+      connectionTimeoutMillis: 10_000,
+
+      // Menahan koneksi agar tidak diputus perantara jaringan saat idle.
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
     });
   }
 
