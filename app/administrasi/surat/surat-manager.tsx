@@ -546,9 +546,9 @@ export function SuratManager({ initialType }: { initialType?: string }) {
       {/* Print preview */}
       {preview ? (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/70 backdrop-blur-xs p-4 print:static print:bg-white print:p-0">
-          <div className="mx-auto w-full max-w-4xl space-y-3 print:max-w-none print:space-y-0">
+          <div className="mx-auto w-fit space-y-3 print:w-auto print:space-y-0">
 
-            <div className="flex items-center justify-between rounded-xl bg-stone-800 px-4 py-2.5 print:hidden">
+            <div className="flex w-[210mm] max-w-full items-center justify-between rounded-xl bg-stone-800 px-4 py-2.5 print:hidden">
               <span className="text-xs font-semibold text-stone-200">
                 Pratinjau — {preview.letterNumber}
               </span>
@@ -570,7 +570,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
               </div>
             </div>
 
-            <div className="rounded-xl bg-white shadow-2xl print:rounded-none print:shadow-none">
+            <div className="overflow-x-auto rounded-xl bg-white shadow-2xl print:overflow-visible print:rounded-none print:shadow-none">
               <LetterDocument letter={preview} />
             </div>
           </div>

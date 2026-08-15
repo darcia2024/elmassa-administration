@@ -42,7 +42,7 @@ function Identitas({ rows }: { rows: Baris[] }) {
   if (isi.length === 0) return null;
 
   return (
-    <table className="my-3 ml-6 text-[13px]">
+    <table className="my-3 ml-8 text-[11pt]">
       <tbody>
         {isi.map(([label, value]) => (
           <tr key={label} className="align-top">
@@ -207,26 +207,44 @@ function Isi({ letter }: { letter: LetterRecord }) {
 
 export function LetterDocument({ letter }: { letter: LetterRecord }) {
   return (
-    <article className="mx-auto w-full max-w-[210mm] bg-white px-12 py-10 text-[13px] leading-relaxed text-stone-900 print:px-10 print:py-8">
+    <article className="surat-a4 mx-auto bg-white text-stone-900">
+      {/* Ukuran kertas dikunci ke A4 supaya pratinjau di layar sama persis
+          dengan hasil cetak, dan warna kop tidak dibuang printer. */}
+      <style>{`
+        .surat-a4 {
+          display: flex;
+          flex-direction: column;
+          width: 210mm;
+          min-height: 297mm;
+          padding: 14mm 20mm 16mm;
+          font-size: 11.5pt;
+          line-height: 1.6;
+          box-sizing: border-box;
+        }
+        @page { size: A4 portrait; margin: 0; }
+        @media print {
+          .surat-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0;
+            box-shadow: none;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      `}</style>
 
-      {/* Kop surat */}
-      <header className="flex items-center gap-4 border-b-[3px] border-double border-stone-800 pb-3">
-        <img src="/logo-el-massa.png" alt="" className="h-16 w-auto shrink-0 object-contain" />
-        <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-[17px] font-black uppercase leading-tight tracking-wide text-stone-950">
-            {COMPANY.legal}
-          </h1>
-          <p className="text-[14px] font-bold text-stone-800">{COMPANY.brand}</p>
-          <p className="mt-0.5 text-[10.5px] text-stone-600">{COMPANY.address}</p>
-          <p className="text-[10.5px] text-stone-600">
-            Telp. {COMPANY.phone} · {COMPANY.email}
-          </p>
-          <p className="text-[10.5px] font-semibold text-stone-700">{COMPANY.license}</p>
-        </div>
+      {/* Kop surat resmi — satu gambar berisi logo, badan hukum, izin PPIU & alamat. */}
+      <header>
+        <img
+          src="/kop-surat-el-massa.png"
+          alt={`Kop surat ${COMPANY.legal}`}
+          className="block w-full"
+        />
       </header>
 
       {/* Nomor & perihal */}
-      <div className="mt-5 flex items-start justify-between gap-6">
+      <div className="mt-6 flex items-start justify-between gap-8">
         <div className="space-y-0.5">
           {([
             ["Nomor", letter.letterNumber],
@@ -234,7 +252,7 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
             ["Perihal", letter.subject],
           ] as Baris[]).map(([k, v], i) => (
             <div key={k} className="flex gap-2">
-              <span className="w-[68px] shrink-0">{k}</span>
+              <span className="w-[72px] shrink-0">{k}</span>
               <span>
                 :{" "}
                 {i === 0 ? <strong className="font-mono">{v}</strong>
@@ -248,7 +266,7 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
       </div>
 
       {/* Tujuan */}
-      <div className="mt-5">
+      <div className="mt-6">
         <p>Kepada</p>
         <p className="font-semibold">{letter.recipientTo}</p>
         <p>di Tempat</p>
@@ -270,10 +288,10 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
       </p>
 
       {/* Tanda tangan */}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-10 flex justify-end">
         <div className="w-[260px] text-center">
           <p className="font-semibold">{COMPANY.brand}</p>
-          <div className="h-20" />
+          <div className="h-24" />
           <p className="font-bold uppercase text-stone-950 underline">
             {letter.issuedBy || "( ................................. )"}
           </p>
@@ -281,7 +299,7 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
         </div>
       </div>
 
-      <footer className="mt-10 border-t border-stone-300 pt-2 text-[9.5px] leading-snug text-stone-500">
+      <footer className="mt-auto border-t border-stone-300 pt-2 text-[8.5pt] leading-snug text-stone-500">
         <p>
           Surat ini diterbitkan melalui sistem operasional {COMPANY.brand} dan tercatat dengan nomor{" "}
           <span className="font-mono">{letter.letterNumber}</span>. Keaslian dapat dikonfirmasi ke
