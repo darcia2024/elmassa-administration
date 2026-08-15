@@ -55,16 +55,17 @@ const navGroups = [
     ],
   },
   {
-    // The five specific letters are one page (app/administrasi/surat) filtered
-    // by ?jenis= -- same archive, same numbering series, different default type.
+    // Each letter type gets its own route rather than a ?jenis= query on one
+    // route: usePathname() cannot tell query strings apart, so the sidebar
+    // indicator stayed stuck on whichever entry was opened first.
     label: "Administrasi",
     items: [
       { label: "Surat Menyurat", icon: Mails, href: "/administrasi/surat" },
-      { label: "Surat Pemberitahuan", icon: FileText, href: "/administrasi/surat?jenis=pemberitahuan" },
-      { label: "Surat Rek. Pembuatan Paspor", icon: FileText, href: "/administrasi/surat?jenis=paspor-baru" },
-      { label: "Surat Rek. Penambahan Nama", icon: FileText, href: "/administrasi/surat?jenis=paspor-tambah-nama" },
-      { label: "Surat Rek. Penggantian Paspor", icon: FileText, href: "/administrasi/surat?jenis=paspor-ganti" },
-      { label: "Surat Rek. Izin Cuti", icon: FileText, href: "/administrasi/surat?jenis=izin-cuti" },
+      { label: "Surat Pemberitahuan", icon: FileText, href: "/administrasi/surat/pemberitahuan" },
+      { label: "Surat Rek. Pembuatan Paspor", icon: FileText, href: "/administrasi/surat/paspor-baru" },
+      { label: "Surat Rek. Penambahan Nama", icon: FileText, href: "/administrasi/surat/paspor-tambah-nama" },
+      { label: "Surat Rek. Penggantian Paspor", icon: FileText, href: "/administrasi/surat/paspor-ganti" },
+      { label: "Surat Rek. Izin Cuti", icon: FileText, href: "/administrasi/surat/izin-cuti" },
       { label: "Dokumen", icon: FolderOpen, href: "/dokumen" },
     ],
   },
@@ -122,33 +123,18 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/operasional/stok": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Admin Master"],
 };
 
-/** The path part of a nav href, ignoring any `?jenis=` style query. */
-function pathOf(href: string) {
-  return href.split("?")[0];
-}
-
 /**
- * Several Administrasi entries point at the same page with a different `?jenis=`,
- * so an exact full-URL match has to win before falling back to path matching —
- * otherwise all six letter entries would light up at once (or none would, since
- * `pathname` never carries the query).
+ * Menu yang sedang aktif. Entri terpanjang yang cocok menang, sehingga
+ * /administrasi/surat/izin-cuti menandai menunya sendiri dan bukan menu induk
+ * /administrasi/surat yang juga cocok sebagai awalan.
  */
-function getActiveHref(pathname: string, search: string) {
-  const fullUrl = `${pathname}${search}`;
-
-  const exact = navItems.find((item) => item.href === fullUrl);
+function getActiveHref(pathname: string) {
+  const exact = navItems.find((item) => item.href === pathname);
   if (exact) return exact.href;
 
-  // On the bare page with no query, prefer the entry that has no query either.
-  const bare = navItems.find((item) => item.href === pathname);
-  if (bare) return bare.href;
-
   return navItems
-    .filter((item) => {
-      const path = pathOf(item.href);
-      return pathname === path || pathname.startsWith(`${path}/`) || item.aliases?.some((alias) => alias === pathname);
-    })
-    .sort((first, second) => pathOf(second.href).length - pathOf(first.href).length)[0]?.href;
+    .filter((item) => pathname.startsWith(`${item.href}/`) || item.aliases?.some((a) => a === pathname))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
 type AppShellProps = {
@@ -354,16 +340,7 @@ export function AppShell({ children }: AppShellProps) {
     });
   };
 
-  // usePathname() drops the query, and useSearchParams() would force a Suspense
-  // boundary around this shell. Read it off location instead, re-syncing on
-  // every navigation so `?jenis=` entries highlight correctly.
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    setSearch(window.location.search);
-  }, [pathname]);
-
-  const activeHref = getActiveHref(pathname, search);
+  const activeHref = getActiveHref(pathname);
   const activeUser = sessionUser ?? fallbackStaff;
 
   useEffect(() => {
@@ -544,7 +521,7 @@ export function AppShell({ children }: AppShellProps) {
               // Keyed by path, so the six `?jenis=` letter entries all inherit
               // the single /administrasi/surat rule instead of falling through
               // to "visible to everyone".
-              const roles = allowedRolesPerItem[pathOf(item.href)];
+              const roles = allowedRolesPerItem[item.href] ?? allowedRolesPerItem["/administrasi/surat"];
               if (!roles) return true;
               return roles.includes(userRole);
             });
