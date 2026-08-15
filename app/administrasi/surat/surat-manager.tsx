@@ -43,6 +43,16 @@ export function SuratManager({ initialType }: { initialType?: string }) {
   const [formError, setFormError] = useState("");
   const [preview, setPreview] = useState<LetterRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<{ signatureUrl?: string; signatureName?: string; signaturePosition?: string; stampUrl?: string } | null>(null);
+
+  // Tanda tangan & stempel dipakai saat mencetak; diambil sekali di sini
+  // supaya setiap pratinjau tidak perlu memuat ulang.
+  useEffect(() => {
+    fetch("/api/company-identity", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => setIdentity(json?.data ?? null))
+      .catch(() => setIdentity(null));
+  }, []);
 
   /**
    * The five per-type menu entries are the same route with a different
@@ -571,7 +581,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
             </div>
 
             <div className="overflow-x-auto rounded-xl bg-white shadow-2xl print:overflow-visible print:rounded-none print:shadow-none">
-              <LetterDocument letter={preview} />
+              <LetterDocument letter={preview} identity={identity ?? undefined} />
             </div>
           </div>
         </div>

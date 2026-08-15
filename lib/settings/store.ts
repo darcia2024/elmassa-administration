@@ -15,6 +15,10 @@ export type CompanyIdentity = {
   email: string;
   website: string;
   logoUrl: string;
+  signatureUrl: string;
+  signatureName: string;
+  signaturePosition: string;
+  stampUrl: string;
   documentFooter: string;
   kemenkumham: string;
   ppiu: string;
@@ -37,6 +41,10 @@ const IDENTITY_COLUMNS = `
   legal_name as "legalName",
   address, phone, email, website,
   logo_url as "logoUrl",
+  signature_url as "signatureUrl",
+  signature_name as "signatureName",
+  signature_position as "signaturePosition",
+  stamp_url as "stampUrl",
   document_footer as "documentFooter",
   COALESCE(kemenkumham, '') as kemenkumham,
   COALESCE(ppiu, '') as ppiu,
@@ -134,6 +142,13 @@ export async function updateCompanyIdentity(patch: Partial<CompanyIdentity>): Pr
   if (patch.email !== undefined) push("email", patch.email);
   if (patch.website !== undefined) push("website", patch.website);
   if (patch.logoUrl !== undefined) push("logo_url", patch.logoUrl);
+  // Tanda tangan & stempel disimpan sebagai data URL di kolom, bukan file di
+  // public/uploads: filesystem host bersifat sementara, dan tanda tangan yang
+  // hilang setelah deploy membuat setiap surat tidak bisa dicetak.
+  if (patch.signatureUrl !== undefined) push("signature_url", patch.signatureUrl);
+  if (patch.signatureName !== undefined) push("signature_name", patch.signatureName);
+  if (patch.signaturePosition !== undefined) push("signature_position", patch.signaturePosition);
+  if (patch.stampUrl !== undefined) push("stamp_url", patch.stampUrl);
   if (patch.documentFooter !== undefined) push("document_footer", patch.documentFooter);
   if (patch.kemenkumham !== undefined) push("kemenkumham", patch.kemenkumham);
   if (patch.ppiu !== undefined) push("ppiu", patch.ppiu);

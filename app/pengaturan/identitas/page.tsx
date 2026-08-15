@@ -35,6 +35,30 @@ export default function IdentitySettingsPage() {
       .catch((e) => console.error("Gagal memuat identitas:", e));
   }, []);
 
+  /**
+   * Tanda tangan & stempel disimpan sebagai data URL di database, bukan file di
+   * public/uploads seperti logo: filesystem host bersifat sementara, dan tanda
+   * tangan yang hilang setelah deploy membuat surat tidak bisa dicetak.
+   */
+  const handleSignatureUpload = (field: "signatureUrl" | "stampUrl") => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.size > 400_000) {
+      alert(`Gambar terlalu besar (${(file.size / 1000).toFixed(0)} KB). Maksimal 400 KB — potong bagian kosongnya dulu.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setIdentity((current) => ({ ...current, [field]: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveIdentity = async () => {
     setIsSaving(true);
     setSavedAt("");
@@ -347,6 +371,83 @@ export default function IdentitySettingsPage() {
                 />
               </div>
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+            <header className="border-b border-stone-100 pb-3">
+              <h3 className="text-sm font-extrabold text-brand-cocoa">Tanda Tangan & Stempel Digital</h3>
+              <p className="text-[11px] text-stone-500 mt-0.5">
+                Dipakai otomatis pada surat resmi. Pakai PNG latar transparan agar tidak menutupi teks.
+              </p>
+            </header>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {([
+                { field: "signatureUrl" as const, label: "Tanda Tangan", hint: "PNG transparan, potong rapat" },
+                { field: "stampUrl" as const, label: "Stempel / Cap", hint: "Opsional" },
+              ]).map(({ field, label, hint }) => {
+                const nilai = (identity as Record<string, unknown>)[field] as string | undefined;
+                return (
+                  <div key={field} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-stone-500">{label}</p>
+                      {nilai ? (
+                        <button
+                          type="button"
+                          onClick={() => setIdentity((c) => ({ ...c, [field]: "" }))}
+                          className="text-[10px] font-bold text-stone-400 hover:text-rose-600 transition"
+                        >
+                          Hapus
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div className="grid h-28 place-items-center rounded-xl border border-stone-200 bg-[repeating-conic-gradient(#f5f5f4_0%_25%,#ffffff_0%_50%)] bg-[length:16px_16px] p-2">
+                      {nilai ? (
+                        <img src={nilai} alt={label} className="max-h-24 w-auto object-contain" />
+                      ) : (
+                        <p className="text-[11px] font-semibold text-stone-400">Belum ada {label.toLowerCase()}</p>
+                      )}
+                    </div>
+
+                    <label className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-bold text-stone-700 hover:bg-stone-100 transition">
+                      <span>{nilai ? "Ganti" : "Upload"} {label}</span>
+                      <input type="file" accept="image/png,image/webp,image/jpeg" className="hidden" onChange={handleSignatureUpload(field)} />
+                    </label>
+                    <p className="text-[10px] text-stone-400">{hint}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 border-t border-stone-100 pt-3">
+              <label className="space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">Nama Penandatangan</span>
+                <input
+                  type="text"
+                  value={(identity as Record<string, unknown>).signatureName as string ?? ""}
+                  onChange={(e) => setIdentity((c) => ({ ...c, signatureName: e.target.value }))}
+                  placeholder="Azriandri"
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-brand-cocoa placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">Jabatan</span>
+                <input
+                  type="text"
+                  value={(identity as Record<string, unknown>).signaturePosition as string ?? ""}
+                  onChange={(e) => setIdentity((c) => ({ ...c, signaturePosition: e.target.value }))}
+                  placeholder="Direktur Utama"
+                  className="w-full h-9 rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-xs font-medium text-brand-cocoa placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
+                />
+              </label>
+            </div>
+
+            <p className="rounded-xl border border-amber-200 bg-amber-50/60 px-3 py-2 text-[11px] font-semibold text-amber-900">
+              Tanda tangan digital berlaku seperti tanda tangan asli. Setiap staf yang bisa membuka Surat Menyurat
+              dapat menerbitkan surat bertanda tangan ini — batasi lewat Pengaturan &gt; Hak Akses.
+            </p>
           </section>
 
         </section>

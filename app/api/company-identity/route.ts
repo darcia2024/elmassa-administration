@@ -46,6 +46,10 @@ export async function PATCH(request: NextRequest) {
     kemenkumham: parsed.data.kemenkumham,
     ppiu: parsed.data.ppiu,
     gmapsUrl: parsed.data.gmapsUrl,
+    signatureUrl: parsed.data.signatureUrl,
+    signatureName: parsed.data.signatureName,
+    signaturePosition: parsed.data.signaturePosition,
+    stampUrl: parsed.data.stampUrl,
   });
 
   return NextResponse.json({ data });
@@ -126,6 +130,10 @@ function parseCompanyIdentityPayload(payload: Record<string, unknown>) {
     email: readTrimmed(payload.email),
     legalName: readTrimmed(payload.legalName),
     logoUrl: readTrimmed(payload.logoUrl),
+    signatureUrl: readTrimmed(payload.signatureUrl),
+    signatureName: readTrimmed(payload.signatureName),
+    signaturePosition: readTrimmed(payload.signaturePosition),
+    stampUrl: readTrimmed(payload.stampUrl),
     name: readTrimmed(payload.name),
     phone: readTrimmed(payload.phone),
     website: readTrimmed(payload.website),

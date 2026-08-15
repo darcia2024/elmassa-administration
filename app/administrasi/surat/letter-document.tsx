@@ -205,7 +205,21 @@ function Isi({ letter }: { letter: LetterRecord }) {
   }
 }
 
-export function LetterDocument({ letter }: { letter: LetterRecord }) {
+export type SignatureIdentity = {
+  signatureUrl?: string;
+  signatureName?: string;
+  signaturePosition?: string;
+  stampUrl?: string;
+};
+
+export function LetterDocument({
+  letter,
+  identity,
+}: {
+  letter: LetterRecord;
+  /** Tanda tangan & stempel dari Pengaturan > Identitas Perusahaan. */
+  identity?: SignatureIdentity;
+}) {
   return (
     <article className="surat-a4 mx-auto bg-white text-stone-900">
       {/* Ukuran kertas dikunci ke A4 supaya pratinjau di layar sama persis
@@ -287,15 +301,34 @@ export function LetterDocument({ letter }: { letter: LetterRecord }) {
         <em>Wassalamu&apos;alaikum Warahmatullahi Wabarakatuh.</em>
       </p>
 
-      {/* Tanda tangan */}
+      {/* Tanda tangan. Stempel ditumpuk di belakang tanda tangan seperti surat
+          basah, dan hanya muncul kalau gambarnya memang sudah diunggah -- kalau
+          belum, blok ini tetap menyisakan ruang untuk tanda tangan manual. */}
       <div className="mt-10 flex justify-end">
         <div className="w-[260px] text-center">
           <p className="font-semibold">{COMPANY.brand}</p>
-          <div className="h-24" />
+
+          <div className="relative mx-auto flex h-24 w-full items-center justify-center">
+            {identity?.stampUrl ? (
+              <img
+                src={identity.stampUrl}
+                alt=""
+                className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-[70%] -translate-y-1/2 object-contain opacity-80"
+              />
+            ) : null}
+            {identity?.signatureUrl ? (
+              <img
+                src={identity.signatureUrl}
+                alt="Tanda tangan"
+                className="relative max-h-20 w-auto object-contain"
+              />
+            ) : null}
+          </div>
+
           <p className="font-bold uppercase text-stone-950 underline">
-            {letter.issuedBy || "( ................................. )"}
+            {letter.issuedBy || identity?.signatureName || "( ................................. )"}
           </p>
-          <p className="text-[12px]">Pimpinan</p>
+          <p className="text-[10pt]">{identity?.signaturePosition || "Pimpinan"}</p>
         </div>
       </div>
 
