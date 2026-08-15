@@ -2,7 +2,7 @@
 
 import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +11,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ?expired=1 dipasang app-shell saat API menjawab 401, supaya staf tahu
+  // sesinya habis dan bukan sedang salah membuka halaman.
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    setSessionExpired(new URLSearchParams(window.location.search).get("expired") === "1");
+  }, []);
 
   const handleSubmit = async () => {
     setError("");
@@ -98,6 +106,11 @@ export default function LoginPage() {
           <div className="space-y-1">
             <h2 className="text-lg font-bold text-brand-cocoa">Login Staf</h2>
             <p className="text-xs text-stone-500">Masukkan email &amp; password akun staf Anda.</p>
+            {sessionExpired ? (
+              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-[11px] font-semibold text-amber-900">
+                Sesi Anda sudah berakhir. Silakan login kembali untuk melanjutkan.
+              </p>
+            ) : null}
           </div>
 
           {error ? (

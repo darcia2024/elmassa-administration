@@ -19,6 +19,36 @@ type PaymentItem = {
 
 export default function PaymentsPage() {
   const [bankAccountsCount, setBankAccountsCount] = useState(0);
+  const [mengubahId, setMengubahId] = useState<string | null>(null);
+
+  /**
+   * Verifikasi kasir. Statusnya sudah lama tampil di tabel ini tapi tidak ada
+   * cara mengubahnya dari aplikasi -- satu-satunya jalan adalah lewat database,
+   * jadi praktiknya tidak pernah dipakai. PATCH-nya sendiri sudah tersedia.
+   */
+  const ubahStatus = async (item: PaymentItem) => {
+    const berikutnya = item.status === "Terverifikasi" ? "Menunggu Cek" : "Terverifikasi";
+    setMengubahId(item.id);
+
+    try {
+      const res = await fetch(`/api/payments/${encodeURIComponent(item.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: berikutnya }),
+      });
+
+      if (res.ok) {
+        setPayments((prev) => prev.map((p) => (p.id === item.id ? { ...p, status: berikutnya } : p)));
+      } else {
+        const json = await res.json().catch(() => ({}));
+        alert(json?.error || "Gagal mengubah status pembayaran.");
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Gagal mengubah status pembayaran.");
+    } finally {
+      setMengubahId(null);
+    }
+  };
   const [bankNamesNote, setBankNamesNote] = useState("Belum Ada Rekening");
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,14 +212,26 @@ export default function PaymentsPage() {
                         <td className="py-3 pr-2 font-semibold text-emerald-700">Rp {Number(item.amount).toLocaleString("id-ID")}</td>
                         <td className="py-3 pr-2 font-medium text-stone-700">{item.method}</td>
                         <td className="py-3 pr-3 text-right">
-                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-                            item.status === "Terverifikasi"
-                              ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
-                              : "bg-amber-50/80 text-amber-800 border-amber-200/60"
-                          }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Terverifikasi" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                            {item.status}
-                          </span>
+                          <div className="inline-flex items-center gap-1.5">
+                            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                              item.status === "Terverifikasi"
+                                ? "bg-emerald-50/80 text-emerald-800 border-emerald-200/60"
+                                : "bg-amber-50/80 text-amber-800 border-amber-200/60"
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Terverifikasi" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                              {item.status}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => void ubahStatus(item)}
+                              disabled={mengubahId === item.id}
+                              title={item.status === "Terverifikasi" ? "Batalkan verifikasi" : "Tandai sudah diverifikasi"}
+                              className="h-7 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition"
+                            >
+                              {mengubahId === item.id ? "..." : item.status === "Terverifikasi" ? "Batalkan" : "Verifikasi"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

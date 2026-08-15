@@ -382,6 +382,44 @@ export function AppShell({ children }: AppShellProps) {
     };
   }, [isMobileNavOpen]);
 
+  /**
+   * Sesi punya dua penanda dengan umur berbeda: cookie httpOnly yang dipakai
+   * semua API (12 jam) dan objek localStorage yang dipakai tampilan ini (tanpa
+   * kedaluwarsa). Begitu cookienya mati, shell masih melihat localStorage dan
+   * tetap menggambar aplikasi seolah login — sementara setiap panggilan API
+   * dijawab 401. Hasilnya staf terjebak di aplikasi yang terlihat normal tapi
+   * semua datanya error, tanpa petunjuk untuk login ulang.
+   *
+   * Satu-satunya sinyal yang benar bahwa sesi sudah mati adalah 401 dari
+   * server, jadi itu yang didengarkan di sini: bersihkan penanda yang basi lalu
+   * antar ke halaman login sambil mengingat halaman yang sedang dibuka.
+   */
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    let redirecting = false;
+
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+
+      if (response.status === 401 && !redirecting) {
+        const url = typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url ?? "";
+        const isOwnApi = url.startsWith("/api/") || url.includes(`${window.location.origin}/api/`);
+
+        if (isOwnApi && !window.location.pathname.startsWith("/login")) {
+          redirecting = true;
+          window.localStorage.removeItem("el-massa-session");
+          router.replace(`/login?next=${encodeURIComponent(window.location.pathname)}&expired=1`);
+        }
+      }
+
+      return response;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [router]);
+
   useEffect(() => {
     if (pathname.startsWith("/pengaturan/lisensi-master") || pathname.startsWith("/lisensi-master") || pathname.startsWith("/master")) {
       setIsAuthChecked(true);
