@@ -224,6 +224,13 @@ export default function DashboardPage() {
 
   const heroPaket = paketTerdekat[0] ?? null;
 
+  const formatTanggal = (iso: unknown) => {
+    const m = String(iso ?? "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return "";
+    const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+    return `${Number(m[3])} ${bulan[Number(m[2]) - 1]} ${m[1]}`;
+  };
+
   const heroTanggal = useMemo(() => {
     const iso = String(heroPaket?.departureDate ?? "");
     const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -721,12 +728,12 @@ export default function DashboardPage() {
           </section>
 
           {/* 🌟 FEATURED HERO CAROUSEL BANNER CARD (EMERALD GRADIENT PERSIS REFERENSI) */}
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-900 to-stone-950 p-5 text-white shadow-xl border border-emerald-800/40">
-            <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-pink via-pink-700 to-[#2a170e] p-5 text-white shadow-xl border border-pink-400/30">
+            <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-pink-300/20 blur-3xl" />
 
             <div className="relative z-10 space-y-3.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-300 border border-emerald-400/30">
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-pink-100 border border-white/25">
                   <Sparkles className="h-3 w-3 text-amber-300" strokeWidth={2} />
                   Keberangkatan Terdekat
                 </span>
@@ -737,7 +744,7 @@ export default function DashboardPage() {
                 <h2 className="text-base font-black text-white leading-snug">
                   {heroPaket?.name || "Belum ada grup keberangkatan"}
                 </h2>
-                <p className="text-[11px] font-normal text-emerald-100/90 mt-1 line-clamp-2">
+                <p className="text-[11px] font-normal text-pink-50/90 mt-1 line-clamp-2">
                   {heroPaket
                     ? [heroPaket.duration, heroPaket.makkahHotel && `Hotel ${heroPaket.makkahHotel}`, heroPaket.airline]
                         .filter(Boolean).join(" · ")
@@ -748,7 +755,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 pt-1">
                 <Link
                   href="/booking/form"
-                  className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-3.5 text-xs font-black text-emerald-950 shadow-md active:scale-95 transition"
+                  className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-3.5 text-xs font-black text-brand-pink shadow-md active:scale-95 transition"
                 >
                   <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
                   <span>Booking</span>
@@ -846,7 +853,7 @@ export default function DashboardPage() {
 
                     <p className="mt-1 flex items-center gap-1 text-[10px] font-medium text-stone-500">
                       <Clock className="h-3 w-3 shrink-0 text-stone-400" />
-                      <span className="truncate">{paket.departureDate || paket.departuresDate || "Jadwal belum diisi"}</span>
+                      <span className="truncate">{formatTanggal(paket.departureDate) || paket.departuresDate || "Jadwal belum diisi"}</span>
                     </p>
                     {paket.airline ? (
                       <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-stone-500">
