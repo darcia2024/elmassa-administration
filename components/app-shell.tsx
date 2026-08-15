@@ -587,7 +587,7 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Mobile Nav Drawer */}
       {isMobileNavOpen ? (
-        <div className="fixed inset-0 z-30 lg:hidden">
+        <div className="fixed inset-0 z-[110] lg:hidden">
           <button
             className="absolute inset-0 bg-stone-900/20 backdrop-blur-xs"
             aria-label="Tutup menu"
