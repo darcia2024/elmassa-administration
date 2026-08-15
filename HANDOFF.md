@@ -196,6 +196,26 @@ sini biar nggak basi lagi.
      hardcode, dan booking yang lahir dari situ nggak nyambung ke paket asli
      manapun (ngerusak Seat & Manifest buat booking itu). Sekarang fetch live
      dulu, localStorage cuma fallback.
+6. ✅ **Halaman detail Pelanggan (`app/pelanggan/[id]/page.tsx`) — SELESAI per
+   2026-08-05.** Kartu "Dokumen Imigrasi Digital" yang tadinya baca
+   `listParticipantsForBooking("book-001")` (booking id hardcode + fallback
+   nomor paspor/visa RANDOM tiap reload) dan tabel "Riwayat Booking &
+   Transaksi" yang hardcode satu baris (`BK-2407-018`, dst) buat SEMUA
+   pelanggan sekarang narik data asli: booking history dari `real_bookings`
+   by phone (`listBookingsByPhone` di `lib/bookings/store.ts`), dokumen
+   jamaah dari `participants` dicocokin by nama (filter `phone` baru di
+   `listParticipants`, `lib/participants/store.ts`). Genuine empty state
+   ("Belum ada riwayat booking" / "Belum ada data paspor/visa") kalau
+   pelanggan belum punya booking atau bookingnya belum punya data manifest —
+   bukan data fiktif. Diverifikasi end-to-end: bikin 2 pelanggan + 3 booking
+   + 1 data manifest lewat form & Manifest beneran, cocokin tampilan vs query
+   database langsung (kode booking, paket, nominal, status bayar, nomor
+   paspor/visa, tanggal berlaku visa) — semua match dan beda antar pelanggan.
+   Ketemu juga & langsung dibenerin: `total_amount` dari `real_bookings` itu
+   kolom `numeric`, balik dari `pg` sebagai string, jadi `.toLocaleString()`
+   langsung di situ diem-diem nggak ngefek (nampilin "Rp 34526744" tanpa titik
+   ribuan) — dibungkus `Number(...)` dulu, sama kayak pola yang udah dipakai
+   di `app/api/bookings/route.ts`.
 
 Ada 3 route yang masih balikin `source: "dummy"` per 2026-08-05 (angka "26" di sini
 sebelumnya udah basi duluan sebelum sesi ini — jangan percaya angka manapun di
@@ -283,16 +303,6 @@ grep -rl 'source: "dummy"' app/api
   Program" di form berisi 12 dan itinerary-nya juga 12 hari. Kartu paket jadi
   kontradiktif. Belum diubah karena ini teks yang dibaca jamaah.
   Lokasi: `app/paket/kalkulator/page.tsx`, di `handleConfirmPublish`.
-- **Halaman detail Pelanggan (`app/pelanggan/[id]/page.tsx`) masih 100% fiktif** —
-  ketemu pas ngerjain Manifest tapi belum dibenerin (di luar scope waktu itu).
-  Kartu "Dokumen Imigrasi Digital" baca `listParticipantsForBooking("book-001")`
-  (booking id hardcode, ngaco buat siapapun bukan pemilik booking itu) dan kalau
-  nggak ketemu, generate nomor paspor/visa RANDOM tiap kali halaman dibuka. Tabel
-  "Riwayat Booking & Transaksi" di bawahnya malah satu baris hardcode penuh
-  ("BK-2407-018", dst) buat SEMUA pelanggan, nggak peduli siapa yang dibuka.
-  Sekarang data asli udah ada (`real_bookings` by phone, tabel `participants` by
-  booking code / `GET /api/manifest/participants?bookingCode=`) — tinggal
-  disambungin.
 - **Kartu "Jamaah Terdaftar" di Dashboard (`app/page.tsx`) claim "100% Akun
   UmrahMe Aktif"** tiap kali `customerCount > 0`, nggak peduli berapa akun yang
   beneran aktif. `real_bookings.umrah_me_status` (lihat `app/umrahme/page.tsx`)
