@@ -257,7 +257,7 @@ export function AgendaManager() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 p-1">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar rounded-xl border border-stone-200 bg-stone-50 p-1 max-w-full">
               {([
                 { id: "kalender", label: "Kalender", icon: CalendarDays },
                 { id: "daftar", label: "Daftar", icon: LayoutList },

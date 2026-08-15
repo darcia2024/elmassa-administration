@@ -916,7 +916,7 @@ export function AppShell({ children }: AppShellProps) {
       </section>
 
       {/* 📱 100% FIXED ALWAYS-VISIBLE MOBILE BOTTOM NAVBAR */}
-      <nav className="fixed bottom-0 inset-x-0 z-[100] flex items-center justify-around border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-2xl lg:hidden font-sans">
+      <nav className="fixed bottom-0 inset-x-0 z-[100] flex items-center justify-between gap-0.5 overflow-hidden border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-1.5 py-2 shadow-2xl lg:hidden font-sans">
         {[
           { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },
           { label: "Jadwal", icon: Plane, href: "/paket" },
@@ -938,10 +938,10 @@ export function AppShell({ children }: AppShellProps) {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="flex items-center gap-1.5 rounded-full bg-brand-pink px-3.5 py-1.5 text-xs font-black text-white shadow-md active:scale-95 transition shrink-0"
+                className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full bg-brand-pink px-2.5 py-1.5 text-xs font-black text-white shadow-md active:scale-95 transition"
               >
-                <Icon className="h-4 w-4 stroke-[2.5]" />
-                <span className="text-[11px]">{tab.label}</span>
+                <Icon className="h-4 w-4 shrink-0 stroke-[2.5]" />
+                <span className="truncate text-[11px]">{tab.label}</span>
               </Link>
             );
           }
@@ -950,10 +950,10 @@ export function AppShell({ children }: AppShellProps) {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 text-stone-400 hover:text-stone-700 active:scale-90 transition"
+              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-stone-400 hover:text-stone-700 active:scale-90 transition"
             >
-              <Icon className="h-5 w-5 stroke-[1.75]" />
-              <span className="text-[10px] font-semibold tracking-tight">{tab.label}</span>
+              <Icon className="h-5 w-5 shrink-0 stroke-[1.75]" />
+              <span className="w-full truncate text-center text-[10px] font-semibold tracking-tight">{tab.label}</span>
             </Link>
           );
         })}

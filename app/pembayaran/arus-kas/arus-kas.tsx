@@ -209,7 +209,7 @@ export function ArusKas() {
       <section className="rounded-2xl border border-stone-200/70 bg-white p-4 sm:p-5 shadow-2xs space-y-4">
 
         <header className="flex flex-col gap-3 border-b border-stone-100 pb-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 p-1">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar rounded-xl border border-stone-200 bg-stone-50 p-1 max-w-full">
             {([
               { id: "ringkasan", label: "Ringkasan Bulanan" },
               { id: "pengeluaran", label: `Pengeluaran (${expenses.length})` },
