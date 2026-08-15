@@ -12,8 +12,9 @@ const { Pool } = pg;
 // Fungsi ini berjalan sebagai pemilik tabel dan hanya mengembalikan SATU baris
 // yang benar-benar cocok, jadi anon tidak perlu izin baca ke tabelnya sama
 // sekali. Pencocokan juga diperketat: nama harus utuh (bukan sebagian) dan kode
-// aktivasi travel wajib benar -- versi lama memakai ILIKE '%nama%' tanpa
-// memeriksa kode, sehingga mengetik satu huruf bisa masuk sebagai jamaah lain.
+// aktivasi diperiksa bila dikirim. Yang benar-benar diperbaiki adalah
+// pencocokan namanya: versi lama memakai ILIKE '%nama%', sehingga mengetik
+// satu huruf bisa masuk sebagai jamaah orang lain.
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) { console.error("DATABASE_URL is not set."); process.exit(1); }
@@ -35,7 +36,14 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
          j.batch, j.titik_kumpul, j.status, j.fase_override
     FROM jamaah_accounts j
     JOIN tenants t ON t.id = j.tenant_id
-   WHERE upper(trim(t.activation_code)) = upper(trim(COALESCE(p_kode, '')))
+   WHERE (
+           -- Kode aktivasi hanya menyaring bila memang dikirim. Halaman login
+           -- jamaah hanya meminta nama (validasiKode(null, nama)), sedangkan
+           -- halaman ber-slug mengirim kodenya. Mewajibkan kode akan membuat
+           -- login lewat halaman biasa selalu gagal.
+           COALESCE(trim(p_kode), '') = ''
+           OR upper(trim(t.activation_code)) = upper(trim(p_kode))
+         )
      AND lower(regexp_replace(trim(j.nama), '[[:space:]]+', ' ', 'g'))
        = lower(regexp_replace(trim(COALESCE(p_nama, '')), '[[:space:]]+', ' ', 'g'))
    LIMIT 1;
