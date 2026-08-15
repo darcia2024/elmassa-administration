@@ -209,6 +209,21 @@ export default function DashboardPage() {
   const [realBookings, setRealBookings] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
+  /**
+   * Kartu sorotan & rekomendasi di tampilan ponsel dulu berisi paket karangan
+   * ("Umrah Spesial Oktober", rating 4.9 dari 128 ulasan) yang tidak ada di
+   * database -- dan sistem ini memang tidak punya fitur rating sama sekali.
+   * Keduanya sekarang memakai grup yang benar-benar terbit, diurutkan dari
+   * keberangkatan terdekat.
+   */
+  const paketTerdekat = useMemo(() => {
+    return [...publishedPackages]
+      .filter((p) => p?.name)
+      .sort((a, b) => String(a.departureDate ?? "").localeCompare(String(b.departureDate ?? "")));
+  }, [publishedPackages]);
+
+  const heroPaket = paketTerdekat[0] ?? null;
+
   useEffect(() => {
     // Supabase is the record for all three -- no localStorage fallback or
     // merge. A cached copy that outlives what the server actually has (e.g.
@@ -707,15 +722,18 @@ export default function DashboardPage() {
                   <Sparkles className="h-3 w-3 text-amber-300" strokeWidth={2} />
                   Keberangkatan Terdekat
                 </span>
-                <span className="text-[10px] font-bold text-stone-300">1-12 Okt 2026</span>
+                <span className="text-[10px] font-bold text-stone-300">{heroPaket?.departuresDate || heroPaket?.departureDate || "Belum dijadwalkan"}</span>
               </div>
 
               <div>
                 <h2 className="text-base font-black text-white leading-snug">
-                  Umrah Spesial Oktober (12 Hari)
+                  {heroPaket?.name || "Belum ada grup keberangkatan"}
                 </h2>
                 <p className="text-[11px] font-normal text-emerald-100/90 mt-1 line-clamp-2">
-                  Program Umrah 3x + 2x Jum'at di Makkah. Free City Tour Thaif & Air Zam-zam 5L.
+                  {heroPaket
+                    ? [heroPaket.duration, heroPaket.makkahHotel && `Hotel ${heroPaket.makkahHotel}`, heroPaket.airline]
+                        .filter(Boolean).join(" · ")
+                    : "Buat grup lewat Kalkulator HPP untuk menampilkannya di sini."}
                 </p>
               </div>
 
@@ -792,73 +810,52 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
-              {/* Card 1 */}
-              <article className="min-w-[260px] rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-xs space-y-2.5 shrink-0 flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black text-emerald-700 border border-emerald-200/60">
-                      Bestseller
-                    </span>
-                    <span className="text-[9px] font-bold text-amber-600 flex items-center gap-0.5">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> 4.9 (128)
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-black text-stone-900 leading-snug">
-                    Umrah Spesial Oktober (12 Hari)
-                  </h4>
-                  <p className="text-[10px] font-medium text-stone-500 flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-stone-400" /> 1-12 Oktober • Saudia / Garuda
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                  <div>
-                    <span className="text-[9px] font-bold uppercase text-stone-400 block">Harga</span>
-                    <span className="text-xs font-black text-brand-cocoa">Rp 33.500.000</span>
-                  </div>
-                  <Link
-                    href="/booking/form"
-                    className="inline-flex h-7 items-center gap-1 rounded-lg bg-brand-pink px-3 text-[11px] font-bold text-white shadow-2xs active:scale-95 transition"
+            {paketTerdekat.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
+                <p className="text-xs font-bold text-stone-700">Belum ada grup keberangkatan</p>
+                <Link href="/paket/kalkulator" className="mt-1 inline-block text-[11px] font-bold text-brand-pink">
+                  Buat lewat Kalkulator HPP →
+                </Link>
+              </div>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+                {paketTerdekat.slice(0, 6).map((paket) => (
+                  <article
+                    key={paket.id}
+                    className="min-w-[260px] shrink-0 flex flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-xs space-y-2.5"
                   >
-                    Booking
-                  </Link>
-                </div>
-              </article>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-black text-brand-pink border border-brand-pink/20">
+                          {paket.category || "Umrah"}
+                        </span>
+                        <span className="text-[9px] font-bold text-stone-500">{paket.duration}</span>
+                      </div>
+                      <h4 className="text-xs font-black text-stone-900 leading-snug line-clamp-2">{paket.name}</h4>
+                      <p className="text-[10px] font-medium text-stone-500 flex items-center gap-1">
+                        <Clock className="h-3 w-3 shrink-0 text-stone-400" />
+                        <span className="truncate">
+                          {[paket.departuresDate || paket.departureDate, paket.airline].filter(Boolean).join(" • ")}
+                        </span>
+                      </p>
+                    </div>
 
-              {/* Card 2 */}
-              <article className="min-w-[260px] rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-xs space-y-2.5 shrink-0 flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-black text-brand-pink border border-brand-pink/20">
-                      Populer
-                    </span>
-                    <span className="text-[9px] font-bold text-amber-600 flex items-center gap-0.5">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> 4.8 (95)
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-black text-stone-900 leading-snug">
-                    Umrah Berkah November (11 Hari)
-                  </h4>
-                  <p className="text-[10px] font-medium text-stone-500 flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-stone-400" /> 8-18 November • Garuda
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                  <div>
-                    <span className="text-[9px] font-bold uppercase text-stone-400 block">Harga</span>
-                    <span className="text-xs font-black text-brand-cocoa">Rp 35.500.000</span>
-                  </div>
-                  <Link
-                    href="/booking/form"
-                    className="inline-flex h-7 items-center gap-1 rounded-lg bg-stone-900 px-3 text-[11px] font-bold text-white shadow-2xs active:scale-95 transition"
-                  >
-                    Booking
-                  </Link>
-                </div>
-              </article>
-            </div>
+                    <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-2">
+                      <div className="min-w-0">
+                        <span className="block text-[9px] font-bold uppercase text-stone-400">Harga</span>
+                        <span className="block truncate text-xs font-black text-brand-cocoa">{paket.price}</span>
+                      </div>
+                      <Link
+                        href="/booking/form"
+                        className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg bg-brand-pink px-3 text-[11px] font-bold text-white shadow-2xs active:scale-95 transition"
+                      >
+                        Booking
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* 📋 BOOKING TERBARU JAMAAH MOBILE CARDS */}
