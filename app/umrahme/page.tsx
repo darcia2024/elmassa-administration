@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import {
   Sparkles,
   Users,
@@ -81,7 +81,25 @@ export default function PenerbitanUmrahmePage() {
   const [searchQuery, setSearchQuery] = useState("");
   
   // License Quota States (Prepaid Saldo Lisensi Rp 35.000 / Jemaah)
-  const [licenseCredits, setLicenseCredits] = useState<number>(100);
+  const [licenseCredits, setLicenseCredits] = useState<number>(0);
+  const [quotaLoaded, setQuotaLoaded] = useState(false);
+
+  /**
+   * Saldo kuota lisensi dibaca dari server, tidak pernah ditulis dari sini.
+   * Penambahan hanya lewat panel vendor UmrahMe (license_topup), pengurangan
+   * terjadi otomatis di dalam transaksi penerbitan akun (license_consume).
+   */
+  const refreshQuota = useCallback(async () => {
+    try {
+      const res = await fetch("/api/umrahme/quota", { cache: "no-store" });
+      const json = await res.json();
+      if (json?.ok) setLicenseCredits(Number(json.data?.balance) || 0);
+    } catch (e) {
+      console.error("Gagal memuat kuota lisensi:", e);
+    } finally {
+      setQuotaLoaded(true);
+    }
+  }, []);
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState<boolean>(false);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState<boolean>(false);
   const [voucherCodeInput, setVoucherCodeInput] = useState<string>("");
@@ -108,12 +126,10 @@ export default function PenerbitanUmrahmePage() {
       });
 
     try {
-      const savedCredits = localStorage.getItem("el_massa_license_credits");
-      if (savedCredits !== null) {
-        setLicenseCredits(Number(savedCredits));
-      } else {
-        localStorage.setItem("el_massa_license_credits", "100");
-      }
+      // Saldo kuota milik server. Versi lama membacanya dari localStorage dan
+      // memberi 100 kuota gratis ke browser mana pun yang belum punya nilai --
+      // artinya cukup buka incognito untuk menerbitkan akun tanpa membayar.
+      void refreshQuota();
     } catch (e) {
       console.error("Failed reading initial storage:", e);
     }
@@ -314,12 +330,8 @@ export default function PenerbitanUmrahmePage() {
         body: JSON.stringify(newAcc),
       }).catch((e) => console.error("Supabase sync error:", e));
 
-      // Deduct 1 Credit
-      const newCredits = Math.max(0, licenseCredits - 1);
-      setLicenseCredits(newCredits);
-      try {
-        localStorage.setItem("el_massa_license_credits", String(newCredits));
-      } catch (err) {}
+      // Kuota sudah dipotong server saat akun diterbitkan; tinggal ambil sisanya.
+      void refreshQuota();
 
       setSuccessModal({
         nama: inputNama.trim(),
@@ -448,12 +460,7 @@ export default function PenerbitanUmrahmePage() {
       body: JSON.stringify(newBulkAccounts),
     }).catch((e) => console.error("Supabase bulk sync error:", e));
 
-    // Deduct bulk credits
-    const newCredits = Math.max(0, licenseCredits - excelPreviewRows.length);
-    setLicenseCredits(newCredits);
-    try {
-      localStorage.setItem("el_massa_license_credits", String(newCredits));
-    } catch (err) {}
+    void refreshQuota();
 
     setIsExcelModalOpen(false);
     setExcelPreviewRows([]);
@@ -477,16 +484,10 @@ export default function PenerbitanUmrahmePage() {
       addedCredits = 100;
     }
 
-    if (addedCredits > 0) {
-      const newCredits = licenseCredits + addedCredits;
-      setLicenseCredits(newCredits);
-      try {
-        localStorage.setItem("el_massa_license_credits", String(newCredits));
-      } catch (err) {}
-      setVoucherMessage({
-        type: "success",
-        text: `🎉 Berhasil! Kode lisensi dikonfirmasi. +${addedCredits} Kuota Lisensi ditambahkan ke saldo Anda.`,
-      });
+    // Penambahan kuota hanya boleh dari panel vendor UmrahMe (license_topup).
+    // Voucher yang menambah saldo dari sisi travel dimatikan: selama itu ada,
+    // kuota berbayar bisa diterbitkan sendiri tanpa membeli.
+    if (false) {
       setVoucherCodeInput("");
     } else {
       setVoucherMessage({
