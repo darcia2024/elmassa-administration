@@ -224,6 +224,14 @@ export default function DashboardPage() {
 
   const heroPaket = paketTerdekat[0] ?? null;
 
+  const heroTanggal = useMemo(() => {
+    const iso = String(heroPaket?.departureDate ?? "");
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return heroPaket?.departuresDate?.slice(0, 22) || "";
+    const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+    return `${Number(m[3])} ${bulan[Number(m[2]) - 1]} ${m[1]}`;
+  }, [heroPaket]);
+
   useEffect(() => {
     // Supabase is the record for all three -- no localStorage fallback or
     // merge. A cached copy that outlives what the server actually has (e.g.
@@ -722,7 +730,7 @@ export default function DashboardPage() {
                   <Sparkles className="h-3 w-3 text-amber-300" strokeWidth={2} />
                   Keberangkatan Terdekat
                 </span>
-                <span className="text-[10px] font-bold text-stone-300">{heroPaket?.departuresDate || heroPaket?.departureDate || "Belum dijadwalkan"}</span>
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-bold text-stone-300">{heroTanggal || "Belum dijadwalkan"}</span>
               </div>
 
               <div>
@@ -818,41 +826,44 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
-                {paketTerdekat.slice(0, 6).map((paket) => (
-                  <article
+              /* Ditumpuk ke bawah, bukan digeser ke samping. Deret horizontal
+                 memaksa lebar kartu tetap, sehingga satu grup pun tetap harus
+                 digeser untuk dibaca -- padahal layar ponsel punya ruang
+                 vertikal berlimpah dan hampir tidak punya ruang mendatar. */
+              <div className="space-y-2">
+                {paketTerdekat.slice(0, 4).map((paket) => (
+                  <Link
                     key={paket.id}
-                    className="min-w-[260px] shrink-0 flex flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-3.5 shadow-xs space-y-2.5"
+                    href={`/paket/${encodeURIComponent(paket.id)}`}
+                    className="block rounded-2xl border border-stone-200/80 bg-white p-3 shadow-xs active:scale-[0.99] transition"
                   >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-black text-brand-pink border border-brand-pink/20">
-                          {paket.category || "Umrah"}
-                        </span>
-                        <span className="text-[9px] font-bold text-stone-500">{paket.duration}</span>
-                      </div>
-                      <h4 className="text-xs font-black text-stone-900 leading-snug line-clamp-2">{paket.name}</h4>
-                      <p className="text-[10px] font-medium text-stone-500 flex items-center gap-1">
-                        <Clock className="h-3 w-3 shrink-0 text-stone-400" />
-                        <span className="truncate">
-                          {[paket.departuresDate || paket.departureDate, paket.airline].filter(Boolean).join(" • ")}
-                        </span>
-                      </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="min-w-0 flex-1 text-xs font-black leading-snug text-stone-900">
+                        {paket.name}
+                      </h4>
+                      <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-black text-brand-pink border border-brand-pink/20">
+                        {paket.duration || paket.category || "Umrah"}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-2">
-                      <div className="min-w-0">
-                        <span className="block text-[9px] font-bold uppercase text-stone-400">Harga</span>
-                        <span className="block truncate text-xs font-black text-brand-cocoa">{paket.price}</span>
-                      </div>
-                      <Link
-                        href="/booking/form"
-                        className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg bg-brand-pink px-3 text-[11px] font-bold text-white shadow-2xs active:scale-95 transition"
-                      >
-                        Booking
-                      </Link>
+                    <p className="mt-1 flex items-center gap-1 text-[10px] font-medium text-stone-500">
+                      <Clock className="h-3 w-3 shrink-0 text-stone-400" />
+                      <span className="truncate">{paket.departureDate || paket.departuresDate || "Jadwal belum diisi"}</span>
+                    </p>
+                    {paket.airline ? (
+                      <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-stone-500">
+                        <Plane className="h-3 w-3 shrink-0 text-stone-400" />
+                        <span className="truncate">{paket.airline}</span>
+                      </p>
+                    ) : null}
+
+                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-stone-100 pt-2">
+                      <span className="truncate text-sm font-black text-brand-pink">{paket.price}</span>
+                      <span className="shrink-0 text-[10px] font-bold text-stone-400">
+                        Sisa {Math.max((Number(paket.targetPax) || 0) - realBookings.filter((b) => b.packageId === paket.id).reduce((n, b) => n + (Number(b.participants) || 1), 0), 0)} seat
+                      </span>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             )}
