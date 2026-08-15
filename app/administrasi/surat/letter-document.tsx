@@ -42,7 +42,7 @@ function Identitas({ rows }: { rows: Baris[] }) {
   if (isi.length === 0) return null;
 
   return (
-    <table className="my-3 ml-8 text-[11pt]">
+    <table className="my-2 ml-6 text-[10pt]">
       <tbody>
         {isi.map(([label, value]) => (
           <tr key={label} className="align-top">
@@ -230,9 +230,9 @@ export function LetterDocument({
           flex-direction: column;
           width: 210mm;
           min-height: 297mm;
-          padding: 14mm 20mm 16mm;
-          font-size: 11.5pt;
-          line-height: 1.6;
+          padding: 10mm 18mm 12mm;
+          font-size: 10.5pt;
+          line-height: 1.45;
           box-sizing: border-box;
         }
         @page { size: A4 portrait; margin: 0; }
@@ -253,12 +253,12 @@ export function LetterDocument({
         <img
           src="/kop-surat-el-massa.png"
           alt={`Kop surat ${COMPANY.legal}`}
-          className="block w-full"
+          className="block w-full max-h-[30mm] object-contain object-left"
         />
       </header>
 
       {/* Nomor & perihal */}
-      <div className="mt-6 flex items-start justify-between gap-8">
+      <div className="mt-4 flex items-start justify-between gap-8">
         <div className="space-y-0.5">
           {([
             ["Nomor", letter.letterNumber],
@@ -280,47 +280,47 @@ export function LetterDocument({
       </div>
 
       {/* Tujuan */}
-      <div className="mt-6">
+      <div className="mt-4">
         <p>Kepada</p>
         <p className="font-semibold">{letter.recipientTo}</p>
         <p>di Tempat</p>
       </div>
 
-      <p className="mt-4">
+      <p className="mt-3">
         <em>Assalamu&apos;alaikum Warahmatullahi Wabarakatuh.</em>
       </p>
 
       <Isi letter={letter} />
 
-      <p className="mt-3 text-justify">
+      <p className="mt-2.5 text-justify">
         Demikian surat ini kami buat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
         Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.
       </p>
 
-      <p className="mt-3">
+      <p className="mt-2.5">
         <em>Wassalamu&apos;alaikum Warahmatullahi Wabarakatuh.</em>
       </p>
 
       {/* Tanda tangan. Stempel ditumpuk di belakang tanda tangan seperti surat
           basah, dan hanya muncul kalau gambarnya memang sudah diunggah -- kalau
           belum, blok ini tetap menyisakan ruang untuk tanda tangan manual. */}
-      <div className="mt-10 flex justify-end">
+      <div className="mt-6 flex justify-end">
         <div className="w-[260px] text-center">
           <p className="font-semibold">{COMPANY.brand}</p>
 
-          <div className="relative mx-auto flex h-24 w-full items-center justify-center">
+          <div className="relative mx-auto flex h-[18mm] w-full items-center justify-center">
             {identity?.stampUrl ? (
               <img
                 src={identity.stampUrl}
                 alt=""
-                className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-[70%] -translate-y-1/2 object-contain opacity-80"
+                className="pointer-events-none absolute left-1/2 top-1/2 h-[20mm] w-[20mm] -translate-x-[70%] -translate-y-1/2 object-contain opacity-80"
               />
             ) : null}
             {identity?.signatureUrl ? (
               <img
                 src={identity.signatureUrl}
                 alt="Tanda tangan"
-                className="relative max-h-20 w-auto object-contain"
+                className="relative max-h-[16mm] w-auto object-contain"
               />
             ) : null}
           </div>
@@ -332,7 +332,7 @@ export function LetterDocument({
         </div>
       </div>
 
-      <footer className="mt-auto border-t border-stone-300 pt-2 text-[8.5pt] leading-snug text-stone-500">
+      <footer className="mt-auto pt-3 border-t border-stone-300 pt-2 text-[8.5pt] leading-snug text-stone-500">
         <p>
           Surat ini diterbitkan melalui sistem operasional {COMPANY.brand} dan tercatat dengan nomor{" "}
           <span className="font-mono">{letter.letterNumber}</span>. Keaslian dapat dikonfirmasi ke
