@@ -205,7 +205,131 @@ export function PembayaranTab({ pkg }: { pkg: PackageDetail }) {
         ) : filteredRows.length === 0 ? (
           <p className="py-8 text-center text-xs text-stone-500">Tidak ada jamaah yang cocok dengan filter ini.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel 7 kolom di bawah butuh 880px */}
+          <div className="block space-y-3 md:hidden">
+            {filteredRows.map((row) => {
+              const isOpen = expanded[row.bookingCode] ?? false;
+              const dp = row.installments[0];
+              const rest = row.installments.slice(1);
+              const restTotal = rest.reduce((sum, i) => sum + i.amount, 0);
+
+              return (
+                <div key={row.bookingCode} className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((prev) => ({ ...prev, [row.bookingCode]: !isOpen }))}
+                    aria-expanded={isOpen}
+                    className="w-full space-y-2.5 p-4 text-left active:bg-stone-50"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h4 className="truncate text-xs font-bold text-brand-cocoa">{row.customerName}</h4>
+                        <p className="truncate font-mono text-[10px] text-stone-400">
+                          {row.bookingCode} · {row.participants} pax
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                            row.isSettled
+                              ? "border-emerald-200/60 bg-emerald-50/80 text-emerald-800"
+                              : "border-amber-200/60 bg-amber-50/80 text-amber-800"
+                          }`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${row.isSettled ? "bg-emerald-500" : "bg-amber-500"}`} />
+                          {row.isSettled ? "Lunas" : "Belum Lunas"}
+                        </span>
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4 text-stone-400" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-stone-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
+                      <span className="block text-[10px] font-medium text-stone-400">Sisa</span>
+                      <span className="text-sm font-bold text-brand-pink">{formatIDR(row.remainingAmount)}</span>
+                      <div className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-200/70 pt-2 text-[11px]">
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-medium text-stone-400">Total Tagihan</span>
+                          <span className="block truncate font-semibold text-stone-800">{formatIDR(row.totalAmount)}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-medium text-stone-400">Sudah Dibayar</span>
+                          <span className="block truncate font-bold text-emerald-700">{formatIDR(row.paidAmount)}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-medium text-stone-400">DP Awal</span>
+                          {dp ? (
+                            <>
+                              <span className="block truncate font-semibold text-emerald-700">{formatIDR(dp.amount)}</span>
+                              <span className="block text-[10px] text-stone-400">{formatDateID(dp.date)}</span>
+                            </>
+                          ) : (
+                            <span className="block text-[11px] font-semibold text-rose-600">Belum ada DP</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-medium text-stone-400">Cicilan Lanjutan</span>
+                          {rest.length > 0 ? (
+                            <>
+                              <span className="block truncate font-semibold text-stone-800">{formatIDR(restTotal)}</span>
+                              <span className="block text-[10px] text-stone-400">{rest.length}x pembayaran</span>
+                            </>
+                          ) : (
+                            <span className="block text-stone-400">—</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {isOpen ? (
+                    <div className="space-y-2 border-t border-stone-100 bg-stone-50/50 p-4">
+                      {row.installments.length === 0 ? (
+                        <p className="text-[11px] font-semibold text-stone-500">
+                          Belum ada pembayaran tercatat untuk booking ini.
+                        </p>
+                      ) : (
+                        row.installments.map((inst) => (
+                          <div key={inst.id} className="space-y-1.5 rounded-lg border border-stone-200/70 bg-white px-3 py-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="rounded-md bg-brand-cocoa px-2 py-0.5 text-[9px] font-black uppercase text-white">
+                                {inst.label}
+                              </span>
+                              <span className="font-black text-[11px] text-emerald-700">{formatIDR(inst.amount)}</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-stone-500">
+                              <span>{formatDateID(inst.date)}</span>
+                              <span>·</span>
+                              <span>{inst.method}</span>
+                              {inst.receiptNumber ? (
+                                <span className="font-mono font-bold text-stone-600">{inst.receiptNumber}</span>
+                              ) : null}
+                              <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 font-bold text-stone-600">
+                                {inst.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+
+                      <Link
+                        href={`/booking/${encodeURIComponent(row.bookingCode)}`}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-pink"
+                      >
+                        Buka detail booking →
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[880px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -341,6 +465,7 @@ export function PembayaranTab({ pkg }: { pkg: PackageDetail }) {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>

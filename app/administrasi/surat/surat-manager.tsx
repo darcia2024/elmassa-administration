@@ -326,7 +326,57 @@ export function SuratManager({ initialType }: { initialType?: string }) {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel surat di bawah butuh 820px */}
+          <div className="block space-y-3 md:hidden">
+            {filtered.map((letter) => (
+              <div key={letter.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="min-w-0 truncate font-mono text-xs font-bold text-brand-cocoa">
+                    {letter.letterNumber}
+                  </span>
+                  <span className="shrink-0 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-bold text-stone-700">
+                    {types.find((t) => t.id === letter.letterType)?.shortLabel ?? letter.letterType}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="truncate text-xs font-semibold text-stone-800">{letter.recipientName}</p>
+                  {letter.recipientNik ? (
+                    <p className="truncate font-mono text-[10px] text-stone-400">{letter.recipientNik}</p>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <span className="min-w-0 truncate text-stone-600" title={letter.packageName}>
+                    {letter.packageName || "—"}
+                  </span>
+                  <span className="shrink-0 text-stone-600">{formatDateID(letter.issuedDate)}</span>
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreview(withRecipient(letter))}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-bold text-stone-700 transition active:bg-stone-100"
+                  >
+                    <Printer className="h-3.5 w-3.5" /> Cetak
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(letter)}
+                    disabled={deletingId === letter.id}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 text-[11px] font-bold text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                  >
+                    {deletingId === letter.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[820px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -385,6 +435,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 

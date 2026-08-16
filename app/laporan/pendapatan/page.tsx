@@ -137,47 +137,47 @@ export default function IncomeReportPage() {
         </section>
 
         {/* 📊 KPI Metric Cards Grid */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Project Omzet</p>
-              <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Project Omzet</p>
+              <WalletCards className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">
+            <p className="mt-1 text-base sm:text-xl font-extrabold text-brand-cocoa">
               Rp {totalOmzet.toLocaleString("id-ID")}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Total nilai kontrak paket</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Total nilai kontrak paket</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Kas Masuk (Realisasi)</p>
-              <BarChart3 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Kas Masuk (Realisasi)</p>
+              <BarChart3 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+            <p className="mt-1 text-base sm:text-xl font-extrabold text-emerald-700">
               Rp {totalKasMasuk.toLocaleString("id-ID")}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Pemasukan kas terverifikasi</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Pemasukan kas terverifikasi</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Estimasi Gross Margin</p>
-              <TrendingUp className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Estimasi Gross Margin</p>
+              <TrendingUp className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-sm font-semibold text-stone-400">
+            <p className="mt-1 text-xs sm:text-sm font-semibold text-stone-400">
               Data belum tersedia
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Kalkulator HPP belum menyimpan breakdown biaya ke database</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400">Kalkulator HPP belum menyimpan breakdown biaya ke database</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Booking</p>
-              <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Booking</p>
+              <Plane className="h-4 w-4 text-sky-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-sky-800">{filteredRows.length} Booking</p>
-            <p className="mt-1 text-[11px] text-stone-400">Periode real operasional</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-sky-800">{filteredRows.length} Booking</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Periode real operasional</p>
           </article>
         </section>
 
@@ -200,7 +200,46 @@ export default function IncomeReportPage() {
             </label>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel di bawah butuh 900px, layar HP tidak punya itu */}
+          <div className="block space-y-3 md:hidden">
+            {loading && <p className="py-6 text-center text-xs text-stone-400">Memuat laporan pendapatan...</p>}
+
+            {!loading && filteredRows.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Belum ada data booking.</p>
+            )}
+
+            {filteredRows.map((r) => (
+              <div key={r.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block font-mono text-[10px] font-bold text-stone-400">{r.bookingCode}</span>
+                    <h4 className="truncate text-xs font-bold text-stone-900">{r.customer}</h4>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyles[r.status]}`}>
+                    {r.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div>
+                    <span className="block text-[10px] font-medium text-stone-400">Omzet Gross</span>
+                    <span className="font-bold text-stone-900">{r.grossDisplay}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-medium text-stone-400">Kas Terbayar</span>
+                    <span className="font-bold text-emerald-700">{r.paidDisplay}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-1 text-[11px] text-stone-500">
+                  <span className="truncate">{r.serviceType}</span>
+                  <span className="shrink-0">{r.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

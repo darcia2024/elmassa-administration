@@ -158,47 +158,47 @@ export default function ReportsPage() {
         </section>
 
         {/* 📊 KPI Metric Cards Grid */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Sisa Piutang</p>
-              <WalletCards className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Sisa Piutang</p>
+              <WalletCards className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-pink">Rp {totalPiutang.toLocaleString("id-ID")}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Total tagihan belum terbayar</p>
+            <p className="mt-1 text-base sm:text-xl font-extrabold text-brand-pink">Rp {totalPiutang.toLocaleString("id-ID")}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Total tagihan belum terbayar</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Jumlah Transaksi Piutang</p>
-              <FileText className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Jumlah Transaksi Piutang</p>
+              <FileText className="h-4 w-4 text-amber-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{filteredReceivables.length} Booking</p>
-            <p className="mt-1 text-[11px] text-stone-400">Sesuai filter tanggal</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-brand-cocoa">{filteredReceivables.length} Booking</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Sesuai filter tanggal</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Prioritas Penagihan Tinggi</p>
-              <AlertTriangle className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Prioritas Penagihan Tinggi</p>
+              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-rose-600">{countTinggi} Transaksi</p>
-            <p className="mt-1 text-[11px] text-stone-400">Perlu follow-up WhatsApp</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-rose-600">{countTinggi} Transaksi</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Perlu follow-up WhatsApp</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Status Pelunasan</p>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Status Pelunasan</p>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-emerald-700">
               {filteredReceivables.length > 0 ? `${(
                 (filteredReceivables.filter((r) => r.remainingAmount === 0).length /
                   filteredReceivables.length) *
                 100
               ).toFixed(0)}% Terbayar` : "0% Terbayar"}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Rata-rata pelunasan rombongan</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Rata-rata pelunasan rombongan</p>
           </article>
         </section>
 
@@ -215,20 +215,20 @@ export default function ReportsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <input
                 type="date"
-                className="h-9 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none sm:flex-none"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
               <span className="text-xs text-stone-400">s/d</span>
               <input
                 type="date"
-                className="h-9 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-2.5 text-xs text-stone-700 font-medium outline-none sm:flex-none"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
 
               <select
-                className="h-9 rounded-xl border border-stone-200 bg-rose-50/60 px-3 text-xs font-bold text-brand-pink outline-none"
+                className="h-9 w-full rounded-xl border border-stone-200 bg-rose-50/60 px-3 text-xs font-bold text-brand-pink outline-none sm:w-auto"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -238,8 +238,8 @@ export default function ReportsPage() {
                 <option value="Lunas">Lunas</option>
               </select>
 
-              <label className="flex h-9 items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500">
-                <Search className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+              <label className="flex h-9 w-full items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/70 px-3 text-xs text-stone-500 sm:w-auto">
+                <Search className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.5} />
                 <input
                   className="w-full bg-transparent outline-none text-xs placeholder:text-stone-400"
                   placeholder="Cari kode booking / nama..."
@@ -250,7 +250,69 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel 10 kolom di bawah tidak muat di layar HP */}
+          <div className="block space-y-3 md:hidden">
+            {loading && <p className="py-6 text-center text-xs text-stone-400">Memuat laporan piutang...</p>}
+
+            {!loading && filteredReceivables.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Tidak ada piutang tersisa.</p>
+            )}
+
+            {filteredReceivables.map((r) => (
+              <div key={r.bookingCode} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block font-mono text-[10px] font-bold text-stone-400">{r.bookingCode}</span>
+                    <h4 className="truncate text-xs font-bold text-stone-900">{r.customer}</h4>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyles[r.status] || "bg-stone-50 text-stone-700"}`}
+                  >
+                    {r.status}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
+                  <span className="block text-[10px] font-medium text-stone-400">Sisa Piutang</span>
+                  <span className="text-sm font-bold text-rose-600">{r.remainingDisplay}</span>
+                  <div className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-200/70 pt-2 text-[11px]">
+                    <div>
+                      <span className="block text-[10px] font-medium text-stone-400">Total Harga</span>
+                      <span className="font-bold text-stone-800">{r.totalDisplay}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-medium text-stone-400">Terbayar</span>
+                      <span className="font-bold text-emerald-700">{r.paidDisplay}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-500">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Paket & Berangkat</span>
+                    <span className="block truncate text-stone-700">{r.packageName}</span>
+                    <span className="block truncate">{r.departureDate}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Jatuh Tempo</span>
+                    <span className="font-mono text-stone-700">{r.dueDate}</span>
+                  </div>
+                </div>
+
+                <a
+                  href={`https://wa.me/${r.phone}?text=Halo%20${encodeURIComponent(r.customer)},%20kami%20dari%20El%20Massa%20Tour%20mengingatkan%20sisa%20tagihan%20booking%20${r.bookingCode}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-[11px] font-semibold text-emerald-800 transition active:bg-emerald-600 active:text-white"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  Kirim WA
+                </a>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[960px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

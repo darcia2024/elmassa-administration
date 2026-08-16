@@ -304,7 +304,87 @@ export function AgendaManager() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel agenda di bawah butuh 760px */}
+          <div className="block space-y-3 md:hidden">
+            {events.map((event) => (
+              <div key={event.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-brand-cocoa">{formatDateID(event.date)}</p>
+                    {event.time ? <p className="text-[10px] text-stone-400">{event.time}</p> : null}
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${CATEGORY_STYLES[event.category] ?? CATEGORY_STYLES.Lainnya}`}
+                  >
+                    {event.category}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-stone-800">{event.title}</p>
+                  {event.notes ? <p className="text-[10px] text-stone-500">{event.notes}</p> : null}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Grup</span>
+                    {event.packageId ? (
+                      <Link
+                        href={`/paket/${encodeURIComponent(event.packageId)}`}
+                        className="block truncate font-semibold text-brand-pink"
+                        title={event.packageName}
+                      >
+                        {event.packageName || event.packageId}
+                      </Link>
+                    ) : (
+                      <span className="text-stone-400">—</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Lokasi</span>
+                    <span className="block truncate text-stone-700" title={event.location}>
+                      {event.location || "—"}
+                    </span>
+                  </div>
+                </div>
+
+                {event.editable ? (
+                  <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(event)}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-bold text-stone-700 transition active:bg-stone-100"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(event)}
+                      disabled={deletingId === event.id}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 text-[11px] font-bold text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                    >
+                      {deletingId === event.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                      Hapus
+                    </button>
+                  </div>
+                ) : (
+                  <p
+                    className="flex items-center gap-1 border-t border-stone-100 pt-2 text-[10px] font-bold text-stone-400"
+                    title="Dihitung otomatis dari tanggal grup & status pembayaran"
+                  >
+                    <Info className="h-3 w-3" /> Otomatis
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[760px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -393,6 +473,7 @@ export function AgendaManager() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 

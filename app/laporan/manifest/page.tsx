@@ -116,32 +116,32 @@ export default function ManifestReportPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Jamaah Manifest</p>
-              <Users className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Jamaah Manifest</p>
+              <Users className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">{filteredRows.length}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Peserta tercatat dari seluruh booking</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-brand-cocoa">{filteredRows.length}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Peserta tercatat dari seluruh booking</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Dokumen Lengkap</p>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Dokumen Lengkap</p>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">{completedCount}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Paspor, visa & tiket beres</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-emerald-700">{completedCount}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Paspor, visa & tiket beres</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Belum Lengkap</p>
-              <IdCard className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
+          <article className="col-span-2 rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs md:col-span-1">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Belum Lengkap</p>
+              <IdCard className="h-4 w-4 text-amber-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-amber-700">{Math.max(filteredRows.length - completedCount, 0)}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Masih perlu ditindaklanjuti</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-amber-700">{Math.max(filteredRows.length - completedCount, 0)}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Masih perlu ditindaklanjuti</p>
           </article>
         </section>
 
@@ -163,7 +163,55 @@ export default function ManifestReportPage() {
             </label>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel 8 kolom di bawah butuh 1000px */}
+          <div className="block space-y-3 md:hidden">
+            {loading && <p className="py-6 text-center text-xs text-stone-400">Memuat laporan manifest...</p>}
+
+            {!loading && filteredRows.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Belum ada data jamaah.</p>
+            )}
+
+            {filteredRows.map((r) => (
+              <div key={r.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-xs font-bold text-brand-cocoa">{r.name}</h4>
+                    <p className="truncate font-mono text-[10px] text-stone-400">
+                      {r.bookingCode} -- {r.customerName}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyles[r.documentStatus] ?? ""}`}
+                  >
+                    {r.documentStatus}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">No. Paspor</span>
+                    <span className="block truncate font-mono font-bold text-stone-800">{r.passportNumber || "-"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">E-Visa</span>
+                    <span className="block truncate font-mono font-bold text-stone-800">{r.visaNumber || "-"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">E-Tiket</span>
+                    <span className="block truncate font-mono font-bold text-stone-800">{r.ticketNumber || "-"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Kamar</span>
+                    <span className="block truncate font-bold text-stone-800">{r.roomType || "-"}</span>
+                  </div>
+                </div>
+
+                <p className="truncate border-t border-stone-100 pt-1 text-[11px] text-stone-500">{r.packageName}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[1000px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

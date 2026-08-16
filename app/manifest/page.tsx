@@ -1,9 +1,9 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
-import { CheckCircle2, IdCard, Plane, Printer, Save, Search, Users } from "lucide-react";
+import { CheckCircle2, ChevronDown, IdCard, Plane, Printer, Save, Search, Users } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 type Departure = {
   id: string;
@@ -66,6 +66,34 @@ function toDraft(p: Participant): Draft {
   };
 }
 
+function isDraftDirty(p: Participant, draft: Draft) {
+  const saved = toDraft(p);
+  return (Object.keys(saved) as (keyof Draft)[]).some((key) => saved[key] !== draft[key]);
+}
+
+/**
+ * Input di kartu mobile sengaja 16px. Di bawah itu Safari iOS otomatis nge-zoom
+ * halaman tiap kali field difokus, dan staf yang ngetik nomor paspor satu per
+ * satu kena zoom-in/zoom-out terus.
+ */
+const MOBILE_FIELD =
+  "w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-[16px] outline-none focus:border-brand-pink";
+
+function MobileField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">{label}</span>
+      {children}
+    </label>
+  );
+}
+
 export default function ManifestPage() {
   const [departures, setDepartures] = useState<Departure[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -76,6 +104,11 @@ export default function ManifestPage() {
   const [loadingDepartures, setLoadingDepartures] = useState(true);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
   const [query, setQuery] = useState("");
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
 
   useEffect(() => {
     fetch("/api/manifest/departures")
@@ -192,41 +225,41 @@ export default function ManifestPage() {
         </section>
 
         {/* KPI Cards */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Keberangkatan</p>
-              <Plane className="h-4 w-4 text-sky-600" strokeWidth={1.5} />
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Keberangkatan</p>
+              <Plane className="h-4 w-4 text-sky-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">{departures.length}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Paket dengan jadwal terbit</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-brand-cocoa">{departures.length}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Paket dengan jadwal terbit</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Jamaah Manifest</p>
-              <Users className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Jamaah Manifest</p>
+              <Users className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-brand-cocoa">{totalJamaah}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Peserta tercatat dari booking</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-brand-cocoa">{totalJamaah}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Peserta tercatat dari booking</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Dokumen Lengkap</p>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Dokumen Lengkap</p>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">{totalCompleted}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Paspor, visa & tiket beres</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-emerald-700">{totalCompleted}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Paspor, visa & tiket beres</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Belum Lengkap</p>
-              <IdCard className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Belum Lengkap</p>
+              <IdCard className="h-4 w-4 text-amber-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-xl font-extrabold text-amber-700">{Math.max(totalJamaah - totalCompleted, 0)}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Masih perlu ditindaklanjuti</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-amber-700">{Math.max(totalJamaah - totalCompleted, 0)}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Masih perlu ditindaklanjuti</p>
           </article>
         </section>
 
@@ -268,7 +301,151 @@ export default function ManifestPage() {
             </p>
           ) : null}
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu sentuh mobile -- tabel 9 kolom di bawah tidak terpakai di layar HP */}
+          <div className="block space-y-3 md:hidden">
+            {loadingParticipants && <p className="py-6 text-center text-xs text-stone-400">Memuat manifest...</p>}
+
+            {!loadingParticipants && filteredParticipants.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">
+                {participants.length === 0 ? "Belum ada jamaah terdaftar untuk keberangkatan ini." : "Tidak ada hasil yang cocok."}
+              </p>
+            )}
+
+            {filteredParticipants.map((p) => {
+              const draft = drafts[p.id] ?? toDraft(p);
+              const isSaving = savingId === p.id;
+              const isOpen = expandedIds.includes(p.id);
+              const isDirty = isDraftDirty(p, draft);
+
+              return (
+                <div key={p.id} className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(p.id)}
+                    aria-expanded={isOpen}
+                    className="flex w-full items-start justify-between gap-2.5 p-4 text-left active:bg-stone-50"
+                  >
+                    <div className="min-w-0">
+                      <h4 className="truncate text-sm font-bold text-brand-cocoa">{p.name}</h4>
+                      <p className="truncate font-mono text-[10px] text-stone-400">
+                        {p.bookingCode} -- {p.customerName}
+                      </p>
+                      <p className="mt-1.5 font-mono text-[11px] font-semibold text-stone-600">
+                        {draft.passportNumber || <span className="font-sans font-normal text-stone-400">Paspor belum diisi</span>}
+                      </p>
+                      {isDirty ? (
+                        <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-amber-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                          Ada perubahan belum disimpan
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyles[draft.documentStatus] ?? "border border-stone-200 text-stone-600"}`}
+                      >
+                        {draft.documentStatus}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 text-stone-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                  </button>
+
+                  {isOpen ? (
+                    <div className="space-y-3 border-t border-stone-100 bg-stone-50/50 p-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <MobileField label="No. Paspor">
+                          <input
+                            className={`${MOBILE_FIELD} font-mono`}
+                            value={draft.passportNumber}
+                            onChange={(e) => handleDraftChange(p.id, "passportNumber", e.target.value)}
+                            placeholder="C1234567"
+                          />
+                        </MobileField>
+                        <MobileField label="Kontak">
+                          <input
+                            className={MOBILE_FIELD}
+                            inputMode="tel"
+                            value={draft.contact}
+                            onChange={(e) => handleDraftChange(p.id, "contact", e.target.value)}
+                          />
+                        </MobileField>
+                        <MobileField label="No. E-Visa">
+                          <input
+                            className={`${MOBILE_FIELD} font-mono`}
+                            value={draft.visaNumber}
+                            onChange={(e) => handleDraftChange(p.id, "visaNumber", e.target.value)}
+                            placeholder="-"
+                          />
+                        </MobileField>
+                        <MobileField label="Exp. Visa">
+                          <input
+                            type="date"
+                            className={MOBILE_FIELD}
+                            value={draft.visaExpiry}
+                            onChange={(e) => handleDraftChange(p.id, "visaExpiry", e.target.value)}
+                          />
+                        </MobileField>
+                        <MobileField label="No. E-Tiket">
+                          <input
+                            className={`${MOBILE_FIELD} font-mono`}
+                            value={draft.ticketNumber}
+                            onChange={(e) => handleDraftChange(p.id, "ticketNumber", e.target.value)}
+                            placeholder="-"
+                          />
+                        </MobileField>
+                        <MobileField label="Status Dokumen">
+                          <select
+                            className={`${MOBILE_FIELD} font-semibold`}
+                            value={draft.documentStatus}
+                            onChange={(e) => handleDraftChange(p.id, "documentStatus", e.target.value)}
+                          >
+                            {DOCUMENT_STATUSES.map((s) => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </MobileField>
+                      </div>
+
+                      <MobileField label="Tipe Kamar">
+                        <select
+                          className={MOBILE_FIELD}
+                          value={draft.roomType}
+                          onChange={(e) => handleDraftChange(p.id, "roomType", e.target.value)}
+                        >
+                          {!ROOM_TYPES.includes(draft.roomType) && draft.roomType && (
+                            <option value={draft.roomType}>{draft.roomType}</option>
+                          )}
+                          {ROOM_TYPES.map((rt) => (
+                            <option key={rt} value={rt}>{rt}</option>
+                          ))}
+                        </select>
+                      </MobileField>
+
+                      {rowError[p.id] ? (
+                        <p className="text-[11px] font-semibold text-rose-600">{rowError[p.id]}</p>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={() => handleSaveRow(p.id)}
+                        disabled={isSaving}
+                        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand-cocoa text-xs font-bold text-white transition hover:bg-black disabled:opacity-50"
+                      >
+                        <Save className="h-4 w-4" strokeWidth={1.5} />
+                        {isSaving ? "Menyimpan..." : "Simpan Data Jamaah"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[1100px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

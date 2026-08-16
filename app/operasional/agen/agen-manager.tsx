@@ -220,7 +220,73 @@ export function AgenManager() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel agen di bawah butuh 900px */}
+          <div className="block space-y-3 md:hidden">
+            {filtered.map((row) => (
+              <div key={row.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-xs font-bold text-brand-cocoa">{row.name}</h4>
+                    <p className="truncate text-[10px] text-stone-400">
+                      <span className="font-mono font-bold text-stone-600">{row.agentCode || "—"}</span>
+                      {row.city ? ` · ${row.city}` : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                      row.status === "Aktif"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        : "border-stone-200 bg-stone-100 text-stone-600"
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
+                  <span className="block text-[10px] font-medium text-stone-400">Estimasi Komisi</span>
+                  <span className="text-sm font-black text-emerald-700">{formatIDR(row.estimatedCommission)}</span>
+                  <div className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-200/70 pt-2 text-[11px]">
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-medium text-stone-400">Skema</span>
+                      <span className="block truncate text-stone-700">
+                        {row.commissionType === "persen"
+                          ? `${row.commissionValue}% dari omzet`
+                          : `${formatIDR(row.commissionValue)} / jamaah`}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-medium text-stone-400">Rekrutan</span>
+                      <span className="block text-stone-700">{row.jamaahCount} pax</span>
+                      <span className="block text-[10px] text-stone-400">{row.bookingCount} booking</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(row)}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-bold text-stone-700 transition active:bg-stone-100"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(row)}
+                    disabled={deletingId === row.id}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 text-[11px] font-bold text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                  >
+                    {deletingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -290,6 +356,7 @@ export function AgenManager() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 

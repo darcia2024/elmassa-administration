@@ -335,8 +335,52 @@ export default function AccessControlPage() {
               )}
             </div>
 
+            {/* Kartu mobile -- matriks 5 kolom di bawah butuh 750px */}
+            <div className="block space-y-3 md:hidden">
+              {modules.map((m) => {
+                const perm = draftPermissions[m.id] ?? emptyPerm();
+
+                return (
+                  <div key={m.id} className="space-y-3 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                    <div>
+                      <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-600">
+                        {m.category}
+                      </span>
+                      <p className="mt-1.5 text-xs font-bold text-stone-900">{m.name}</p>
+                      <p className="text-[11px] text-stone-500">{m.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 border-t border-stone-100 pt-3">
+                      {([
+                        { action: "view", label: "Lihat" },
+                        { action: "edit", label: "Tambah/Ubah" },
+                        { action: "approve", label: "Verifikasi" },
+                        { action: "delete", label: "Hapus" },
+                      ] as const).map(({ action, label }) => (
+                        <label
+                          key={action}
+                          className={`flex min-h-[44px] items-center gap-2 rounded-xl border border-stone-200 px-2.5 py-2.5 text-[11px] font-semibold ${
+                            selectedRole.isSystem ? "bg-stone-50 text-stone-400" : "bg-white text-stone-700"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={perm[action]}
+                            disabled={selectedRole.isSystem}
+                            onChange={() => togglePermission(m.id, action)}
+                            className="h-4 w-4 shrink-0 accent-brand-pink rounded disabled:cursor-not-allowed"
+                          />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
             {/* PERMISSION MATRIX TABLE */}
-            <div className="overflow-x-auto rounded-xl border border-stone-200/70">
+            <div className="hidden overflow-x-auto rounded-xl border border-stone-200/70 md:block">
               <table className="w-full min-w-[750px] border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-stone-200/70 bg-stone-50/80 font-bold text-stone-600 text-[11px] uppercase tracking-wider">

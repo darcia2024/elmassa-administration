@@ -257,7 +257,73 @@ export function KaryawanManager() {
             <p className="text-[11px] text-stone-500">Catat jabatan, divisi, status kontrak, dan gaji tiap karyawan.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel karyawan di bawah butuh 900px */}
+          <div className="block space-y-3 md:hidden">
+            {filtered.map((row) => (
+              <div key={row.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-xs font-bold text-brand-cocoa">{row.name}</h4>
+                    <p className="truncate text-[10px] text-stone-400">
+                      {[row.employeeNumber, row.phone].filter(Boolean).join(" · ") || "—"}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${STATUS_STYLES[row.status] ?? STATUS_STYLES.Nonaktif}`}
+                  >
+                    {row.status === "Aktif" ? <BadgeCheck className="h-3 w-3" /> : null}
+                    {row.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Jabatan</span>
+                    <span className="block truncate text-stone-700">{row.position || "—"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Divisi</span>
+                    <span className="block truncate text-stone-700">{row.division || "—"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Gaji</span>
+                    <span className="block truncate font-bold text-brand-cocoa">
+                      {row.salary > 0 ? formatIDR(row.salary) : "—"}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Masuk</span>
+                    <span className="block truncate text-stone-700">{formatDateID(row.joinDate)}</span>
+                    <span className="mt-0.5 inline-flex rounded-full border border-stone-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                      {row.employmentStatus}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(row)}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-bold text-stone-700 transition active:bg-stone-100"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(row)}
+                    disabled={deletingId === row.id}
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 text-[11px] font-bold text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                  >
+                    {deletingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -323,6 +389,7 @@ export function KaryawanManager() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 

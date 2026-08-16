@@ -573,7 +573,7 @@ export default function DashboardPage() {
                               </td>
 
                               <td className="py-3 pr-2 text-stone-500">
-                                {(booking as any).departure || (booking as any).departureLabel || "30 Sep 2026"}
+                                {(booking as any).departure || (booking as any).departureLabel || "—"}
                               </td>
 
                               <td className="py-3 pr-2">

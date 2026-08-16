@@ -242,7 +242,71 @@ export default function PaymentAccountsPage() {
               {selectedAccount ? `Edit ${selectedAccount.bankName}` : "Mode tambah"}
             </span>
           </div>
-          <div className="mt-4 overflow-x-auto rounded-lg border border-stone-200">
+          {/* Kartu mobile -- tabel rekening di bawah butuh 920px */}
+          <div className="mt-4 block space-y-3 md:hidden">
+            {accounts.map((account) => (
+              <div key={account.id} className="space-y-2.5 rounded-xl border border-stone-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-sm font-bold text-brand-cocoa">{account.bankName}</h4>
+                    <p className="truncate font-mono text-xs text-stone-600">{account.accountNumber}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ring-1 ${statusStyles[account.status]}`}>
+                      {account.status}
+                    </span>
+                    {account.isPrimary ? (
+                      <span className="rounded-full bg-brand-rose px-2.5 py-1 text-[10px] font-bold text-brand-pink ring-1 ring-brand-pink/20">
+                        Utama
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-lg border border-stone-100 bg-brand-cream/50 p-2.5 text-xs">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-500">Atas Nama</span>
+                    <span className="block truncate text-stone-700">{account.accountName}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-500">Cabang</span>
+                    <span className="block truncate text-stone-700">{account.branch}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                  {!account.isPrimary ? (
+                    <button
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-stone-200 bg-white text-xs font-bold text-brand-cocoa"
+                      type="button"
+                      onClick={() => handleSetPrimary(account.id)}
+                    >
+                      <Star className="h-3.5 w-3.5" aria-hidden="true" />
+                      Jadikan utama
+                    </button>
+                  ) : null}
+                  <button
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-stone-200 bg-white text-brand-cocoa"
+                    type="button"
+                    aria-label={`Edit ${account.bankName}`}
+                    onClick={() => handleEdit(account)}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-stone-200 bg-white text-rose-700"
+                    type="button"
+                    aria-label={`Hapus ${account.bankName}`}
+                    onClick={() => handleDelete(account.id)}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 hidden overflow-x-auto rounded-lg border border-stone-200 md:block">
             <table className="w-full min-w-[920px] border-collapse text-left text-sm">
               <thead className="bg-brand-cream text-xs uppercase text-stone-500">
                 <tr>

@@ -321,7 +321,153 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
             {filtered.length === 0 ? (
               <p className="py-8 text-center text-xs text-stone-500">Tidak ada jamaah yang cocok dengan pencarian ini.</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+              <>
+              {/* Kartu mobile -- tabel di bawah butuh 900px. Input 16px supaya
+                  Safari iOS tidak auto-zoom tiap kali field disentuh. */}
+              <div className="block space-y-3 md:hidden">
+                {filtered.map((p, index) => {
+                  const draft = drafts[p.id] ?? {};
+                  const isSaving = savingId === p.id;
+                  const hotel =
+                    view === "makkah" ? pkg.makkahHotel : view === "madinah" ? pkg.madinahHotel : "Hotel Transit Jakarta";
+                  const field =
+                    "h-11 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-[16px] text-brand-cocoa outline-none focus:border-brand-pink transition";
+
+                  return (
+                    <div key={p.id} className="space-y-3 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h4 className="truncate text-xs font-bold text-brand-cocoa">
+                            <span className="font-mono text-stone-400">{index + 1}.</span> {p.name}
+                          </h4>
+                          <p className="truncate font-mono text-[10px] text-stone-400">{p.bookingCode}</p>
+                        </div>
+                      </div>
+
+                      {view === "dokumen" ? (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">No. Paspor</span>
+                            <input
+                              type="text"
+                              value={draft.passportNumber ?? ""}
+                              onChange={(e) => setField(p.id, "passportNumber", e.target.value)}
+                              placeholder="A1234567"
+                              className={`${field} font-mono font-semibold`}
+                            />
+                          </label>
+
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">Status Dokumen</span>
+                            <select
+                              value={draft.documentStatus ?? "Belum Lengkap"}
+                              onChange={(e) => setField(p.id, "documentStatus", e.target.value)}
+                              className={`h-11 w-full rounded-lg border px-2.5 text-[16px] font-bold outline-none transition ${
+                                statusStyles[draft.documentStatus ?? "Belum Lengkap"] ?? statusStyles["Belum Lengkap"]
+                              }`}
+                            >
+                              {DOCUMENT_STATUSES.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">No. Visa</span>
+                            <input
+                              type="text"
+                              value={draft.visaNumber ?? ""}
+                              onChange={(e) => setField(p.id, "visaNumber", e.target.value)}
+                              placeholder="Belum terbit"
+                              className={`${field} font-mono font-semibold`}
+                            />
+                          </label>
+
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">Berlaku Visa</span>
+                            <input
+                              type="date"
+                              value={draft.visaExpiry ?? ""}
+                              onChange={(e) => setField(p.id, "visaExpiry", e.target.value)}
+                              className={`${field} font-semibold`}
+                            />
+                          </label>
+
+                          <label className="col-span-2 block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">No. Tiket</span>
+                            <input
+                              type="text"
+                              value={draft.ticketNumber ?? ""}
+                              onChange={(e) => setField(p.id, "ticketNumber", e.target.value)}
+                              placeholder="SV-817"
+                              className={`${field} font-mono font-semibold`}
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">Tipe Kamar</span>
+                            <select
+                              value={String(draft[activeRoomlist!.typeKey] ?? "")}
+                              onChange={(e) => setField(p.id, activeRoomlist!.typeKey, e.target.value)}
+                              className={`${field} font-semibold`}
+                            >
+                              {ROOM_TYPES.map((t) => (
+                                <option key={t} value={t}>{t || "— Belum diatur —"}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="block min-w-0">
+                            <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-stone-400">No. Kamar</span>
+                            <input
+                              type="text"
+                              value={String(draft[activeRoomlist!.noKey] ?? "")}
+                              onChange={(e) => setField(p.id, activeRoomlist!.noKey, e.target.value)}
+                              placeholder="812"
+                              className={`${field} font-mono font-bold`}
+                            />
+                          </label>
+
+                          <div className="col-span-2 grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                            <div className="min-w-0">
+                              <span className="block text-[10px] font-medium text-stone-400">No. Paspor</span>
+                              <span className="block truncate font-mono text-stone-600">{p.passportNumber || "—"}</span>
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-[10px] font-medium text-stone-400">Hotel</span>
+                              <span className="block truncate font-semibold text-stone-600" title={hotel}>
+                                {hotel || "—"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {rowError[p.id] ? (
+                        <p className="text-[11px] font-bold text-rose-600">{rowError[p.id]}</p>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={() => saveRow(p.id)}
+                        disabled={isSaving}
+                        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-bold text-stone-700 transition active:bg-stone-100 disabled:opacity-40"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : savedIds[p.id] ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : null}
+                        {isSaving ? "Menyimpan…" : savedIds[p.id] ? "Tersimpan" : "Simpan"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
                 <table className="w-full min-w-[900px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -478,6 +624,7 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
 
             {view === "dokumen" && filtered.length > 0 ? (

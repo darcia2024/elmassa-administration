@@ -58,38 +58,38 @@ export default function TransactionReportPage() {
         <ReportNav />
 
         {/* Metric Cards Row */}
-        <section className="grid gap-4 md:grid-cols-4">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <p className="text-xs font-semibold text-stone-500">Total Transaksi</p>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{transactions.length}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Periode operasional</p>
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-4">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Transaksi</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-brand-cocoa">{transactions.length}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Periode operasional</p>
           </article>
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Pemasukan</p>
-              <ArrowDownCircle className="h-4 w-4 text-emerald-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Pemasukan</p>
+              <ArrowDownCircle className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">
+            <p className="mt-1 text-base sm:text-2xl font-bold text-emerald-700">
               {formatRupiah(totalPemasukan)}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Pembayaran jamaah masuk</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Pembayaran jamaah masuk</p>
           </article>
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-stone-500">Total Pengeluaran</p>
-              <ArrowUpCircle className="h-4 w-4 text-rose-600" strokeWidth={1.5} />
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Pengeluaran</p>
+              <ArrowUpCircle className="h-4 w-4 text-rose-600 shrink-0" strokeWidth={1.5} />
             </div>
-            <p className="mt-1 text-2xl font-bold text-rose-600">
+            <p className="mt-1 text-base sm:text-2xl font-bold text-rose-600">
               {formatRupiah(0)}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Belum ada fitur pencatatan biaya operasional</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400">Belum ada fitur pencatatan biaya operasional</p>
           </article>
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <p className="text-xs font-semibold text-stone-500">Saldo Arus Kas</p>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Saldo Arus Kas</p>
+            <p className="mt-1 text-base sm:text-2xl font-bold text-brand-cocoa">
               {formatRupiah(totalPemasukan)}
             </p>
-            <p className="mt-1 text-[11px] text-stone-400">Net selisih arus kas</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Net selisih arus kas</p>
           </article>
         </section>
 
@@ -123,7 +123,48 @@ export default function TransactionReportPage() {
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel 8 kolom di bawah tidak muat di layar HP */}
+          <div className="block space-y-3 md:hidden">
+            {loading && <p className="py-6 text-center text-xs text-stone-400">Memuat transaksi...</p>}
+
+            {!loading && transactions.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Belum ada transaksi.</p>
+            )}
+
+            {transactions.map((trx) => (
+              <div key={trx.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block font-mono text-[10px] font-bold text-stone-400">{trx.id}</span>
+                    <h4 className="truncate text-xs font-bold text-stone-900">{trx.customer}</h4>
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {trx.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div>
+                    <span className="block text-[10px] font-medium text-stone-400">Nominal</span>
+                    <span className="font-bold text-emerald-700">{trx.amountDisplay}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Tipe & Kategori</span>
+                    <span className="block truncate font-bold text-stone-800">{trx.type}</span>
+                    <span className="block truncate text-stone-500">{trx.category}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-1 text-[11px] text-stone-500">
+                  <span className="truncate font-mono">{trx.bookingCode}</span>
+                  <span className="shrink-0">{trx.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[800px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

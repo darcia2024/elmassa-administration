@@ -264,7 +264,68 @@ export default function InstallmentsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
+        {/* Kartu mobile -- tabel 9 kolom di bawah butuh 1080px */}
+        <div className="block space-y-3 md:hidden">
+          {loading && <p className="py-6 text-center text-xs text-stone-400">Memuat cicilan...</p>}
+
+          {!loading && installments.length === 0 && (
+            <p className="py-6 text-center text-xs text-stone-400">Belum ada cicilan tercatat.</p>
+          )}
+
+          {installments.map((installment) => (
+            <div key={installment.id} className="space-y-2.5 rounded-xl border border-stone-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <Link className="block truncate font-mono text-xs font-bold text-brand-cocoa" href={`/booking/${installment.bookingCode}`}>
+                    {installment.bookingCode}
+                  </Link>
+                  <p className="truncate text-xs text-stone-600">{installment.customer}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ring-1 ${statusStyles[installment.status] ?? ""}`}>
+                  {installment.status}
+                </span>
+              </div>
+
+              <p className="truncate text-[11px] font-semibold text-stone-700">
+                Termin {installment.sequence}
+                {installment.label ? ` · ${installment.label}` : ""}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 rounded-lg border border-stone-100 bg-brand-cream/50 p-2.5 text-xs">
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-medium text-stone-500">Tagihan</span>
+                  <span className="block truncate font-bold text-brand-cocoa">
+                    Rp {Number(installment.amount).toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-medium text-stone-500">Terbayar</span>
+                  <span className="block truncate text-stone-700">
+                    Rp {Number(installment.paidAmount).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-2 text-[11px] text-stone-500">
+                <span className="min-w-0 truncate">{installment.packageName}</span>
+                <span className="shrink-0">Tempo {installment.dueDate}</span>
+              </div>
+
+              {installment.status !== "Lunas" && installment.status !== "Dibatalkan" && (
+                <button
+                  type="button"
+                  onClick={() => handleMarkPaid(installment.id)}
+                  disabled={pendingActionId === installment.id}
+                  className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-700 transition active:bg-emerald-100 disabled:opacity-50"
+                >
+                  {pendingActionId === installment.id ? "..." : "Tandai Lunas"}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-stone-200 md:block">
           <table className="w-full min-w-[1080px] border-collapse text-left text-sm">
             <thead className="bg-brand-cream text-xs uppercase text-stone-500">
               <tr>

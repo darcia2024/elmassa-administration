@@ -193,7 +193,45 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
             <article className="rounded-2xl border border-stone-200/70 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
               <h3 className="text-base font-bold text-brand-cocoa">Riwayat Booking & Transaksi</h3>
 
-              <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+              {/* Kartu mobile -- tabel riwayat di bawah butuh 640px */}
+              <div className="block space-y-3 md:hidden">
+                {bookings.length === 0 && (
+                  <p className="py-6 text-center text-xs text-stone-400">Belum ada riwayat booking untuk pelanggan ini.</p>
+                )}
+
+                {bookings.map((b) => (
+                  <div key={b.code} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="block truncate font-mono text-[10px] font-bold text-stone-400">{b.code}</span>
+                        <h4 className="truncate text-xs font-bold text-brand-cocoa">{b.packageName}</h4>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                          bookingStatusStyles[b.status] ?? "border-stone-200 bg-stone-50 text-stone-600"
+                        }`}
+                      >
+                        {b.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-medium text-stone-400">Total Harga</span>
+                        <span className="block truncate font-bold text-brand-pink">
+                          Rp {Number(b.totalAmount).toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="min-w-0 text-right">
+                        <span className="block text-[10px] font-medium text-stone-400">Keberangkatan</span>
+                        <span className="block truncate text-stone-700">{b.departure || "-"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
                 <table className="w-full min-w-[640px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

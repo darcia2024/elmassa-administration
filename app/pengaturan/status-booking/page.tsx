@@ -85,7 +85,41 @@ export default async function BookingStatusesPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-stone-200">
+        {/* Kartu mobile -- tabel 7 kolom di bawah butuh 980px */}
+        <div className="block space-y-3 md:hidden">
+          {bookingStatuses.map((item) => (
+            <div key={item.name} className="space-y-2.5 rounded-xl border border-stone-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h4 className="truncate text-sm font-bold text-brand-cocoa">{item.name}</h4>
+                  <p className="truncate text-xs text-stone-500">{item.stage}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ring-1 ${statusStyles[item.status]}`}>
+                  {item.status}
+                </span>
+              </div>
+
+              <p className="text-xs leading-5 text-stone-600">{item.description}</p>
+
+              <div className="grid gap-2 rounded-lg border border-stone-100 bg-brand-cream/50 p-2.5 text-xs">
+                <div>
+                  <span className="block text-[10px] font-medium text-stone-500">Dampak Pembayaran</span>
+                  <span className="text-stone-700">{item.paymentImpact}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-medium text-stone-500">Dampak Dokumen</span>
+                  <span className="text-stone-700">{item.documentImpact}</span>
+                </div>
+              </div>
+
+              <p className="border-t border-stone-100 pt-2 text-xs text-stone-500">
+                Owner <span className="font-semibold text-stone-700">{item.owner}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-stone-200 md:block">
           <table className="w-full min-w-[980px] border-collapse text-left text-sm">
             <thead className="bg-brand-cream text-xs uppercase text-stone-500">
               <tr>

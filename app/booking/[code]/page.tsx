@@ -333,23 +333,23 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         </section>
 
         {/* Financial KPI Breakdown Cards */}
-        <section className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <p className="text-xs font-semibold text-stone-500">Total Harga Paket</p>
-            <p className="mt-1 text-2xl font-bold text-brand-cocoa">{booking.totalDisplay}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Termasuk fasilitas All In</p>
+        <section className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Harga Paket</p>
+            <p className="mt-1 text-base sm:text-2xl font-bold text-brand-cocoa">{booking.totalDisplay}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Termasuk fasilitas All In</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <p className="text-xs font-semibold text-stone-500">Total Terbayar</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{booking.paidDisplay}</p>
-            <p className="mt-1 text-[11px] text-stone-400">Verifikasi Tim Keuangan</p>
+          <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">
+            <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Total Terbayar</p>
+            <p className="mt-1 text-base sm:text-2xl font-bold text-emerald-700">{booking.paidDisplay}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">Verifikasi Tim Keuangan</p>
           </article>
 
-          <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
-            <p className="text-xs font-semibold text-stone-500">Sisa Tagihan Pelunasan</p>
-            <p className="mt-1 text-2xl font-bold text-rose-700">{booking.remainingDisplay}</p>
-            <p className="mt-1 text-[11px] text-stone-400">
+          <article className="col-span-2 rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs md:col-span-1">
+            <p className="text-[11px] sm:text-xs font-semibold text-stone-500 truncate">Sisa Tagihan Pelunasan</p>
+            <p className="mt-1 text-base sm:text-2xl font-bold text-rose-700">{booking.remainingDisplay}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400 truncate">
               {booking.remainingAmount === 0 ? "Lunas Sempurna" : "Menunggu pelunasan"}
             </p>
           </article>
@@ -367,7 +367,44 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel peserta di bawah butuh 700px */}
+          <div className="block space-y-3 md:hidden">
+            {participants.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Belum ada data jamaah tercatat untuk booking ini.</p>
+            )}
+
+            {participants.map((p, idx) => (
+              <div key={idx} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="min-w-0 truncate text-xs font-bold text-brand-cocoa">{p.name}</h4>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      p.documentStatus === "Lengkap"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200/60"
+                        : "bg-amber-50 text-amber-800 border border-amber-200/60"
+                    }`}
+                  >
+                    {p.documentStatus}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">No. Paspor RI</span>
+                    <span className="block truncate font-mono font-bold text-stone-800">{p.passport}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Kontak / WhatsApp</span>
+                    <span className="block truncate font-mono text-stone-700">{p.contact}</span>
+                  </div>
+                </div>
+
+                <p className="truncate border-t border-stone-100 pt-1 text-[11px] font-semibold text-stone-700">{p.roomType}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[700px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">
@@ -425,7 +462,38 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             </Link>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          {/* Kartu mobile -- tabel kuitansi di bawah butuh 700px */}
+          <div className="block space-y-3 md:hidden">
+            {paymentHistory.length === 0 && (
+              <p className="py-6 text-center text-xs text-stone-400">Belum ada pembayaran tercatat.</p>
+            )}
+
+            {paymentHistory.map((pay) => (
+              <div key={pay.receipt} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="min-w-0 truncate font-mono text-xs font-bold text-brand-pink">{pay.receipt}</span>
+                  <span className="shrink-0 text-[11px] text-stone-500">{pay.date}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Nominal Terbayar</span>
+                    <span className="block truncate font-bold text-emerald-800">{pay.amountDisplay}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Metode</span>
+                    <span className="block truncate font-bold text-stone-800">{pay.method}</span>
+                  </div>
+                </div>
+
+                <p className="truncate border-t border-stone-100 pt-1 text-[11px] text-stone-500">
+                  Diverifikasi <span className="font-semibold text-stone-700">{pay.staff}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[700px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 font-semibold text-stone-500 text-[11px] uppercase tracking-wider">

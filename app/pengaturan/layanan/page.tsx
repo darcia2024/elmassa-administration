@@ -216,7 +216,54 @@ export default function ServiceTypesPage() {
             </Link>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-stone-200">
+          {/* Kartu mobile -- tabel layanan di bawah butuh 860px */}
+          <div className="block space-y-3 md:hidden">
+            {services.map((service) => (
+              <div key={service.id} className="space-y-2.5 rounded-xl border border-stone-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-sm font-bold text-brand-cocoa">{service.name}</h4>
+                    <p className="truncate text-xs text-stone-500">{service.category}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ring-1 ${statusStyles[service.status]}`}>
+                    {service.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-lg border border-stone-100 bg-brand-cream/50 p-2.5 text-xs">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-500">Durasi</span>
+                    <span className="block truncate text-stone-700">{service.defaultDuration}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-500">Template</span>
+                    <span className="block truncate text-stone-700">{service.documentTemplate}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                  <button
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-stone-200 bg-white text-xs font-bold text-brand-cocoa"
+                    type="button"
+                    aria-label={`Edit ${service.name}`}
+                    onClick={() => handleEdit(service)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+                  </button>
+                  <button
+                    className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-stone-200 bg-white text-xs font-bold text-rose-700"
+                    type="button"
+                    aria-label={`Hapus ${service.name}`}
+                    onClick={() => handleDelete(service.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-lg border border-stone-200 md:block">
             <table className="w-full min-w-[860px] border-collapse text-left text-sm">
               <thead className="bg-brand-cream text-xs uppercase text-stone-500">
                 <tr>

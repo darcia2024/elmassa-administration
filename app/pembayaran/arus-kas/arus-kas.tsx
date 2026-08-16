@@ -306,7 +306,49 @@ export function ArusKas() {
               <p className="text-[11px] text-stone-500">Catat biaya visa, tiket, hotel, gaji, atau operasional kantor di sini.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <>
+            {/* Kartu mobile -- tabel pengeluaran di bawah butuh 780px */}
+            <div className="block space-y-3 md:hidden">
+              {expenses.map((row) => (
+                <div key={row.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="truncate text-xs font-semibold text-stone-800">{row.description}</h4>
+                      {row.packageName ? <p className="truncate text-[10px] text-stone-400">{row.packageName}</p> : null}
+                    </div>
+                    <span className="shrink-0 rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-bold text-stone-700">
+                      {row.category}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-medium text-stone-400">Nominal</span>
+                      <span className="block truncate font-black text-rose-700">{formatIDR(row.amount)}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-medium text-stone-400">Metode</span>
+                      <span className="block truncate text-stone-700">{row.method}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-2">
+                    <span className="text-[11px] font-semibold text-brand-cocoa">{formatDateID(row.date)}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(row)}
+                      disabled={deletingId === row.id}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 text-[11px] font-bold text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                    >
+                      {deletingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
               <table className="w-full min-w-[780px] border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -349,6 +391,7 @@ export function ArusKas() {
                 </tbody>
               </table>
             </div>
+            </>
           )
         ) : cashflow.piutang.rows.length === 0 ? (
           <p className="py-8 text-center text-xs text-stone-500">Tidak ada piutang berjalan — semua jamaah sudah lunas.</p>
@@ -361,7 +404,44 @@ export function ArusKas() {
               </p>
             ) : null}
 
-            <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            {/* Kartu mobile -- tabel piutang di bawah butuh 760px */}
+            <div className="block space-y-3 md:hidden">
+              {cashflow.piutang.rows.map((row) => (
+                <Link
+                  key={row.bookingCode}
+                  href={`/booking/${encodeURIComponent(row.bookingCode)}`}
+                  className="block space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs active:bg-stone-50"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="truncate text-xs font-bold text-brand-cocoa">{row.customer}</h4>
+                      <p className="truncate font-mono text-[10px] text-stone-400">{row.bookingCode}</p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                        row.priority === "Tinggi"
+                          ? "border-rose-200 bg-rose-50 text-rose-700"
+                          : "border-stone-200 bg-stone-50 text-stone-600"
+                      }`}
+                    >
+                      {row.priority}
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
+                    <span className="block text-[10px] font-medium text-stone-400">Sisa Tagihan</span>
+                    <span className="text-sm font-black text-brand-pink">{formatIDR(row.remaining)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-1 text-[11px] text-stone-600">
+                    <span className="min-w-0 truncate">{row.packageName}</span>
+                    <span className="shrink-0">{formatDateID(row.dueDate)} · {row.ageDays} hari</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
               <table className="w-full min-w-[760px] border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">

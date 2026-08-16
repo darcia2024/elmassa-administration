@@ -128,7 +128,57 @@ export default function BookingDepartureReportPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+                <>
+                {/* Kartu mobile -- tabel okupansi di bawah butuh 760px */}
+                <div className="block space-y-3 md:hidden">
+                  {rows.map((r) => {
+                    const kuota = Number(r.targetPax) || 0;
+                    const terisi = Number(r.bookedSeats) || 0;
+                    const persen = kuota > 0 ? Math.min((terisi / kuota) * 100, 100) : 0;
+                    const penuh = persen >= 90;
+
+                    return (
+                      <div key={r.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                        <div>
+                          <Link
+                            href={`/paket/${encodeURIComponent(r.id)}`}
+                            className="block truncate text-xs font-bold text-brand-cocoa"
+                            title={r.name}
+                          >
+                            {r.name}
+                          </Link>
+                          <p className="text-[10px] text-stone-400">Berangkat {formatDateID(r.departureDate)}</p>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-center text-[11px]">
+                          <div>
+                            <span className="block text-[10px] font-medium text-stone-400">Kuota</span>
+                            <span className="font-bold text-stone-700">{kuota}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-medium text-stone-400">Terisi</span>
+                            <span className="font-bold text-emerald-700">{terisi}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-medium text-stone-400">Sisa</span>
+                            <span className="font-bold text-brand-pink">{Math.max(kuota - terisi, 0)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-stone-100">
+                            <div className={`h-full rounded-full ${penuh ? "bg-emerald-500" : "bg-brand-pink"}`} style={{ width: `${persen}%` }} />
+                          </div>
+                          <span className="w-11 shrink-0 text-right text-[11px] font-bold text-stone-700">
+                            {persen.toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
                   <table className="w-full min-w-[760px] border-collapse text-left text-xs">
                     <thead>
                       <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -174,6 +224,7 @@ export default function BookingDepartureReportPage() {
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </section>
           </>

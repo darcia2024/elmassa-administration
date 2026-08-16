@@ -314,7 +314,83 @@ export function StokManager() {
               <p className="text-[11px] text-stone-500">Koper, kain ihram, buku doa, tas serut, bantal leher, dan sejenisnya.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+            <>
+            {/* Kartu mobile -- tabel stok di bawah butuh 860px */}
+            <div className="block space-y-3 md:hidden">
+              {filtered.map((item) => (
+                <div key={item.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="truncate text-xs font-bold text-brand-cocoa">{item.name}</h4>
+                      <p className="truncate text-[10px] text-stone-400">
+                        {[item.sku, `min. ${item.minimumStock} ${item.unit}`].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 text-xs font-black ${item.isLow ? "text-rose-700" : "text-brand-cocoa"}`}
+                    >
+                      {item.isLow ? <TriangleAlert className="h-3.5 w-3.5" /> : null}
+                      {item.stock} {item.unit}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-center text-[11px]">
+                    <div>
+                      <span className="block text-[10px] font-medium text-stone-400">Masuk</span>
+                      <span className="font-bold text-emerald-700">{item.stockIn}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-medium text-stone-400">Keluar</span>
+                      <span className="font-bold text-amber-700">{item.stockOut}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-medium text-stone-400">Nilai</span>
+                      <span className="block truncate font-bold text-stone-700">{formatIDR(item.stockValue)}</span>
+                    </div>
+                  </div>
+
+                  <p className="truncate text-[11px] text-stone-500">{item.category}</p>
+
+                  <div className="flex items-center gap-2 border-t border-stone-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => openMove("keluar", item.id)}
+                      className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-white text-[11px] font-bold text-stone-600 transition active:bg-stone-100"
+                    >
+                      Catat Keluar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setItemForm({
+                          ...emptyItemForm,
+                          ...item,
+                          minimumStock: String(item.minimumStock),
+                          unitCost: String(item.unitCost),
+                        });
+                        setFormError("");
+                        setIsItemFormOpen(true);
+                      }}
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-stone-200 bg-white text-stone-500 transition active:bg-stone-100"
+                      title="Edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteItem(item)}
+                      disabled={deletingId === item.id}
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition active:bg-rose-100 disabled:opacity-40"
+                      title="Hapus"
+                    >
+                      {deletingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
               <table className="w-full min-w-[860px] border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -391,11 +467,50 @@ export function StokManager() {
                 </tbody>
               </table>
             </div>
+            </>
           )
         ) : movements.length === 0 ? (
           <p className="py-8 text-center text-xs text-stone-500">Belum ada pergerakan stok tercatat.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel pergerakan di bawah butuh 700px */}
+          <div className="block space-y-3 md:hidden">
+            {movements.map((m) => (
+              <div key={m.id} className="space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-xs font-bold text-brand-cocoa">{m.itemName}</h4>
+                    <p className="text-[10px] text-stone-400">{formatDateID(m.movedAt)}</p>
+                  </div>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                      m.movementType === "masuk"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        : "border-amber-200 bg-amber-50 text-amber-900"
+                    }`}
+                  >
+                    {m.movementType === "masuk" ? <ArrowDownLeft className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+                    {m.movementType}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-[11px]">
+                  <div>
+                    <span className="block text-[10px] font-medium text-stone-400">Jumlah</span>
+                    <span className="font-black text-brand-cocoa">{m.quantity}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-medium text-stone-400">Grup</span>
+                    <span className="block truncate text-stone-600">{m.packageName || "—"}</span>
+                  </div>
+                </div>
+
+                <p className="truncate border-t border-stone-100 pt-1 text-[11px] text-stone-500">{m.notes || "—"}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[700px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -430,6 +545,7 @@ export function StokManager() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 

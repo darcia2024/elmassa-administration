@@ -145,7 +145,60 @@ export function RekapGrup() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-stone-200/60">
+          <>
+          {/* Kartu mobile -- tabel rekap di bawah butuh 900px */}
+          <div className="block space-y-3 md:hidden">
+            {rows.map((row) => {
+              const t = row.totals;
+              const progress = t && t.totalBilled > 0 ? Math.min((t.totalPaid / t.totalBilled) * 100, 100) : 0;
+
+              return (
+                <Link
+                  key={row.id}
+                  href={`/paket/${encodeURIComponent(row.id)}`}
+                  className="block space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs active:bg-stone-50"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 truncate text-xs font-bold text-brand-cocoa" title={row.name}>
+                      {row.name}
+                    </p>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-stone-400" />
+                  </div>
+
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
+                  </div>
+
+                  <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
+                    <span className="block text-[10px] font-medium text-stone-400">Sisa Tagihan</span>
+                    <span className="text-sm font-bold text-brand-pink">{formatIDR(t?.totalOutstanding ?? 0)}</span>
+                    <div className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-200/70 pt-2 text-[11px]">
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-medium text-stone-400">Tagihan</span>
+                        <span className="block truncate font-semibold text-stone-800">{formatIDR(t?.totalBilled ?? 0)}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-medium text-stone-400">Dibayar</span>
+                        <span className="block truncate font-bold text-emerald-700">{formatIDR(t?.totalPaid ?? 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-1 text-[11px] text-stone-600">
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="h-3 w-3 text-stone-400" />
+                      {t?.jamaah ?? 0} / {row.targetPax} pax
+                    </span>
+                    <span>Lunas {t ? `${t.settled}/${t.bookings}` : "—"}</span>
+                  </div>
+
+                  <p className="text-[11px] text-stone-500">Berangkat {formatDateID(row.departureDate)}</p>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
@@ -206,6 +259,7 @@ export function RekapGrup() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>
