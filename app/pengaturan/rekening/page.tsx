@@ -232,7 +232,10 @@ export default function PaymentAccountsPage() {
           </div>
         </form>
 
-        <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
+        {/* min-w-0: lihat catatan yang sama di app/pengaturan/layanan/page.tsx --
+            tanpa ini kolom `1fr` melebar mengikuti tabel rekening dan halaman
+            bisa digeser ke samping di desktop. */}
+        <section className="min-w-0 rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-bold text-brand-cocoa">Daftar Rekening</h3>

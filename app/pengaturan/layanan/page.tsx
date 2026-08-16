@@ -205,7 +205,11 @@ export default function ServiceTypesPage() {
           </div>
         </form>
 
-        <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
+        {/* min-w-0: kolom `1fr` di grid atas defaultnya `min-width: auto`, jadi
+            ia melebar mengikuti tabel di dalamnya alih-alih membiarkan tabel
+            itu bergulung sendiri -- track-nya jadi 964px di wadah 982px yang
+            sudah terpakai 360px oleh formulir, dan halaman terdorong melebar. */}
+        <section className="min-w-0 rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-bold text-brand-cocoa">Daftar Jenis Layanan</h3>

@@ -456,8 +456,14 @@ export default function DashboardPage() {
           {/* 🗂️ MAIN CONTENT GRID (2 COLUMNS: TABLE & SIDEBAR) */}
           <section className="grid gap-5 xl:grid-cols-[1fr_320px]">
             
-            {/* LEFT COLUMN: KATALOG & BOOKING TABLE */}
-            <div className="space-y-5">
+            {/* LEFT COLUMN: KATALOG & BOOKING TABLE
+
+                min-w-0 wajib: kolom `1fr` di atas defaultnya `min-width: auto`,
+                jadi ia menolak menyusut di bawah lebar minimum isinya. Tanpa
+                ini track-nya jadi 684px alih-alih 642px, sisi kanan dashboard
+                terdorong keluar layar, dan halaman bisa digeser ke samping di
+                desktop 1280px. */}
+            <div className="min-w-0 space-y-5">
               
               {/* Catalog Cards Row */}
               <article className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs">
@@ -479,7 +485,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     publishedPackages.slice(0, 3).map((pkg, idx) => (
-                      <div key={pkg.id || idx} className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
+                      <div key={pkg.id || idx} className="min-w-0 rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 flex flex-col justify-between">
                         <div className="flex items-center gap-2.5">
                           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-50 text-brand-pink border border-brand-pink/20">
                             <Plane className="h-4 w-4" strokeWidth={1.5} />

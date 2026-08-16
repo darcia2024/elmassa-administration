@@ -450,7 +450,13 @@ export function PackageList() {
               />
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0 max-w-full">
+            {/* min-w-0, bukan shrink-0 + max-w-full. Pasangan lama itu melarang
+                strip menyusut sekaligus menguncinya selebar penuh induk,
+                padahal kolom pencarian duduk di baris yang sama -- jadi isinya
+                minta 62px lebih lebar dari ruang yang ada dan halaman katalog
+                bisa digeser ke samping. overflow-x-auto di bawah ini yang
+                mengurus gulungannya. */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar min-w-0">
               {([
                 "Semua",
                 "Oktober 2026",
