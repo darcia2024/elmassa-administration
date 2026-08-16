@@ -367,3 +367,33 @@ export async function getStaffAuthForModule(
 
   return { active, role: row.role, name: row.name, permissions: toPermissionSet(row) };
 }
+
+/**
+ * Modul yang boleh DILIHAT seorang staf, sekali query.
+ *
+ * getStaffAuthForModule di atas menjawab satu modul per panggilan, karena
+ * proxy.ts memang hanya perlu memeriksa modul dari route yang sedang diminta.
+ * Pusat notifikasi kebalikannya: ia memotong banyak modul sekaligus dan harus
+ * membuang peringatan yang tidak boleh dibaca staf tersebut -- kalau tidak,
+ * staf yang cuma dikasih akses Pelanggan akan tetap membaca nominal tagihan
+ * dan nomor paspor lewat bel notifikasi.
+ *
+ * Mengembalikan himpunan kosong untuk akun nonaktif atau role tanpa izin apa
+ * pun, jadi pemanggilnya gagal tertutup tanpa perlu memeriksa status lagi.
+ */
+export async function getStaffViewableModules(staffId: string): Promise<Set<string>> {
+  await ensureTables();
+
+  const res = await getPool().query(
+    `
+    SELECT rp.module_id AS "moduleId"
+    FROM staff_users su
+    JOIN roles r ON r.name = su.role
+    JOIN role_permissions rp ON rp.role_id = r.id
+    WHERE su.id = $1 AND su.status = 'Aktif' AND rp.can_view = TRUE;
+    `,
+    [staffId],
+  );
+
+  return new Set<string>(res.rows.map((row) => row.moduleId));
+}

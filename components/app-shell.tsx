@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
   Bell,
@@ -165,14 +165,44 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+type NotificationSeverity = "kritis" | "peringatan" | "info";
+
 type NotificationItem = {
-  id: string;
+  key: string;
   title: string;
   message: string;
-  time: string;
-  category: "Keuangan" | "Flight" | "Dokumen";
+  severity: NotificationSeverity;
+  category: "Keuangan" | "Flight" | "Dokumen" | "Operasional";
+  /** Hari menuju tenggat. Negatif = sudah lewat. null = tanpa tenggat. */
+  daysUntil: number | null;
   read: boolean;
   link: string;
+};
+
+/** Label tenggat lebih berguna daripada "2 jam lalu" untuk kerja operasional. */
+function labelTenggat(daysUntil: number | null): string {
+  if (daysUntil === null) return "Tanpa tenggat";
+  if (daysUntil === 0) return "Hari ini";
+  if (daysUntil > 0) return `H-${daysUntil}`;
+  return `Lewat ${Math.abs(daysUntil)} hari`;
+}
+
+const GAYA_SEVERITY: Record<NotificationSeverity, { kartu: string; pil: string; label: string }> = {
+  kritis: {
+    kartu: "border-rose-200 bg-rose-50/60",
+    pil: "bg-rose-100 text-rose-800 border-rose-200",
+    label: "Kritis",
+  },
+  peringatan: {
+    kartu: "border-amber-200 bg-amber-50/50",
+    pil: "bg-amber-100 text-amber-900 border-amber-200",
+    label: "Perlu tindakan",
+  },
+  info: {
+    kartu: "border-stone-200 bg-white",
+    pil: "bg-stone-100 text-stone-700 border-stone-200",
+    label: "Info",
+  },
 };
 
 
@@ -261,73 +291,78 @@ export function AppShell({ children }: AppShellProps) {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  useEffect(() => {
+  const [notifMemuat, setNotifMemuat] = useState(true);
+
+  /**
+   * Notifikasi datang dari server, bukan localStorage.
+   *
+   * Versi lama menyimpannya per browser dan menyemai dua pesan tentang
+   * aplikasinya sendiri ("Database Supabase Terhubung"), lalu tidak pernah
+   * menambah apa pun -- daftarnya cuma bisa berkurang. Sekarang isinya
+   * diturunkan dari data yang sedang berlaku (lihat lib/notifications/store.ts),
+   * jadi peringatan hilang sendiri begitu penyebabnya dibereskan, dan status
+   * "sudah dibaca" ikut staf ke perangkat mana pun.
+   */
+  const muatNotifikasi = useCallback(async () => {
     try {
-      const saved = localStorage.getItem("el_massa_real_notifications");
-      if (saved) {
-        setNotifications(JSON.parse(saved));
-      } else {
-        const initialSys: NotificationItem[] = [
-          {
-            id: "notif-sys-001",
-            title: "🟢 Database Supabase Cloud Terhubung",
-            message: "Koneksi PostgreSQL Cloud Supabase PT. AL MASSA AZKA WISATA aktif & terintegrasi.",
-            time: "Baru saja",
-            category: "Keuangan",
-            read: false,
-            link: "/dashboard",
-          },
-          {
-            id: "notif-sys-002",
-            title: "🧮 Kalkulator HPP Berfungsi Real-Time",
-            message: "Merancang HPP & menerbitkan paket otomatis tersimpan ke katalog.",
-            time: "Baru saja",
-            category: "Dokumen",
-            read: false,
-            link: "/paket/kalkulator",
-          },
-        ];
-        localStorage.setItem("el_massa_real_notifications", JSON.stringify(initialSys));
-        setNotifications(initialSys);
-      }
+      const res = await fetch("/api/notifications", { cache: "no-store" });
+      if (!res.ok) return;
+      const json = await res.json();
+      setNotifications((json.data ?? []) as NotificationItem[]);
     } catch (e) {
-      console.error(e);
+      console.error("Gagal memuat notifikasi:", e);
+    } finally {
+      setNotifMemuat(false);
     }
   }, []);
 
+  // Dimuat ulang tiap kali pindah halaman -- itu penanda paling murah bahwa
+  // staf baru saja mengerjakan sesuatu -- dan tiap 60 detik supaya tenggat yang
+  // lewat tetap muncul di layar yang dibiarkan terbuka seharian.
+  useEffect(() => {
+    void muatNotifikasi();
+  }, [muatNotifikasi, pathname]);
+
+  useEffect(() => {
+    const timer = setInterval(() => void muatNotifikasi(), 60_000);
+    return () => clearInterval(timer);
+  }, [muatNotifikasi]);
+
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+  const kritisCount = useMemo(
+    () => notifications.filter((n) => !n.read && n.severity === "kritis").length,
+    [notifications],
+  );
+
+  /**
+   * Status baca disimpan optimistis: tampilan berubah lebih dulu, lalu server
+   * menyusul. Kalau simpanannya gagal, muatNotifikasi() berikutnya akan
+   * mengembalikan keadaan yang sebenarnya -- tidak ada yang hilang permanen.
+   */
+  const simpanStatusBaca = useCallback(async (keys: string[], read: boolean) => {
+    if (keys.length === 0) return;
+    setNotifications((prev) => prev.map((n) => (keys.includes(n.key) ? { ...n, read } : n)));
+
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keys, read }),
+      });
+    } catch (e) {
+      console.error("Gagal menyimpan status baca:", e);
+      void muatNotifikasi();
+    }
+  }, [muatNotifikasi]);
 
   const handleMarkAllAsRead = () => {
-    setNotifications((prev) => {
-      const updated = prev.map((item) => ({ ...item, read: true }));
-      try {
-        localStorage.setItem("el_massa_real_notifications", JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+    void simpanStatusBaca(notifications.filter((n) => !n.read).map((n) => n.key), true);
   };
 
-  const handleClearAll = () => {
-    setNotifications([]);
-    try {
-      localStorage.setItem("el_massa_real_notifications", JSON.stringify([]));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleToggleRead = (id: string) => {
-    setNotifications((prev) => {
-      const updated = prev.map((item) => (item.id === id ? { ...item, read: !item.read } : item));
-      try {
-        localStorage.setItem("el_massa_real_notifications", JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+  const handleToggleRead = (key: string) => {
+    const item = notifications.find((n) => n.key === key);
+    if (!item) return;
+    void simpanStatusBaca([key], !item.read);
   };
 
   const activeHref = getActiveHref(pathname);
@@ -777,8 +812,19 @@ export function AppShell({ children }: AppShellProps) {
               >
                 <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.5} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-brand-pink text-[9px] font-black text-white ring-2 ring-white animate-pulse">
-                    {unreadCount}
+                  // Denyut hanya dipakai kalau ada yang kritis. Kalau semua
+                  // lencana berdenyut, tidak ada yang berdenyut.
+                  <span
+                    className={`absolute -top-1 -right-1 grid h-4 w-4 place-items-center rounded-full text-[9px] font-black text-white ring-2 ring-white ${
+                      kritisCount > 0 ? "bg-rose-600 animate-pulse" : "bg-brand-pink"
+                    }`}
+                    title={
+                      kritisCount > 0
+                        ? `${kritisCount} peringatan kritis dari ${unreadCount} belum dibaca`
+                        : `${unreadCount} notifikasi belum dibaca`
+                    }
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </button>
@@ -797,11 +843,15 @@ export function AppShell({ children }: AppShellProps) {
                     <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
                       <div className="flex items-center gap-2">
                         <h4 className="text-xs font-extrabold text-brand-cocoa">Notifikasi Operasional</h4>
-                        {unreadCount > 0 && (
+                        {kritisCount > 0 ? (
+                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 border border-rose-200">
+                            {kritisCount} kritis
+                          </span>
+                        ) : unreadCount > 0 ? (
                           <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-brand-pink border border-brand-pink/20">
                             {unreadCount} baru
                           </span>
-                        )}
+                        ) : null}
                       </div>
 
                       {unreadCount > 0 && (
@@ -818,61 +868,71 @@ export function AppShell({ children }: AppShellProps) {
 
                     {/* Notification Items List */}
                     <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                      {notifications.length === 0 ? (
-                        <p className="text-xs text-stone-400 py-6 text-center">Tidak ada notifikasi saat ini.</p>
+                      {notifMemuat ? (
+                        <p className="text-xs text-stone-400 py-6 text-center">Memeriksa data operasional...</p>
+                      ) : notifications.length === 0 ? (
+                        <div className="py-6 text-center space-y-1">
+                          <p className="text-xs font-semibold text-stone-600">Semua beres</p>
+                          <p className="text-[11px] text-stone-400 leading-relaxed">
+                            Tidak ada tagihan lewat tempo, dokumen jamaah tertinggal,
+                            <br className="hidden sm:block" /> atau stok menipis yang perlu ditangani.
+                          </p>
+                        </div>
                       ) : (
-                        notifications.map((item) => (
-                          <div
-                            key={item.id}
-                            className={`rounded-xl border p-3 transition text-xs space-y-1 ${
-                              item.read
-                                ? "border-stone-100 bg-stone-50/50 opacity-75"
-                                : "border-rose-100 bg-rose-50/30 font-medium shadow-2xs"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="font-bold text-brand-cocoa leading-tight">{item.title}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleRead(item.id)}
-                                title={item.read ? "Tandai Belum Dibaca" : "Tandai Sudah Dibaca"}
-                                className="text-stone-400 hover:text-brand-pink shrink-0"
-                              >
-                                <Check className={`h-3.5 w-3.5 ${item.read ? "text-stone-300" : "text-brand-pink"}`} />
-                              </button>
-                            </div>
+                        notifications.map((item) => {
+                          const gaya = GAYA_SEVERITY[item.severity];
+                          return (
+                            <div
+                              key={item.key}
+                              className={`rounded-xl border p-3 transition text-xs space-y-1.5 ${
+                                item.read ? "border-stone-100 bg-stone-50/50 opacity-70" : `${gaya.kartu} shadow-2xs`
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-bold text-brand-cocoa leading-tight">{item.title}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleRead(item.key)}
+                                  title={item.read ? "Tandai belum dibaca" : "Tandai sudah dibaca"}
+                                  className="text-stone-400 hover:text-brand-pink shrink-0"
+                                >
+                                  <Check className={`h-3.5 w-3.5 ${item.read ? "text-stone-300" : "text-brand-pink"}`} />
+                                </button>
+                              </div>
 
-                            <p className="text-[11px] text-stone-600 leading-relaxed">{item.message}</p>
+                              <p className="text-[11px] text-stone-600 leading-relaxed">{item.message}</p>
 
-                            <div className="flex items-center justify-between pt-1 text-[10px]">
-                              <span className="text-stone-400 flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> {item.time}
-                              </span>
-                              <Link
-                                href={item.link}
-                                onClick={() => {
-                                  handleToggleRead(item.id);
-                                  setIsNotifOpen(false);
-                                }}
-                                className="font-bold text-brand-pink hover:underline"
-                              >
-                                Buka Modul →
-                              </Link>
+                              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px]">
+                                <span className="flex items-center gap-1.5">
+                                  <span className={`rounded-full border px-1.5 py-0.5 font-bold ${gaya.pil}`}>
+                                    {gaya.label}
+                                  </span>
+                                  <span className="text-stone-400 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" /> {labelTenggat(item.daysUntil)}
+                                  </span>
+                                </span>
+                                <Link
+                                  href={item.link}
+                                  onClick={() => setIsNotifOpen(false)}
+                                  className="font-bold text-brand-pink hover:underline"
+                                >
+                                  Tindak lanjuti →
+                                </Link>
+                              </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
 
-                    {/* Footer Link */}
+                    {/* Footer: menjelaskan dari mana isinya, supaya staf tahu
+                        peringatan hilang karena dibereskan -- bukan karena
+                        ditutup. */}
                     <div className="border-t border-stone-100 pt-2 text-center">
-                      <Link
-                        href="/booking"
-                        onClick={() => setIsNotifOpen(false)}
-                        className="text-[11px] font-semibold text-stone-500 hover:text-brand-cocoa"
-                      >
-                        Lihat Seluruh Aktivitas Operasional
-                      </Link>
+                      <p className="text-[10px] leading-relaxed text-stone-400">
+                        Dihitung ulang dari data booking, manifest, kasir & stok.
+                        Peringatan hilang sendiri setelah penyebabnya dibereskan.
+                      </p>
                     </div>
 
                   </div>

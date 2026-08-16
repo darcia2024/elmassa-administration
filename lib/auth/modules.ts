@@ -72,6 +72,12 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "installments", module: "pembayaran" },
   { prefix: "invoices", module: "dokumen" },
   { prefix: "manifest", module: "manifest" },
+  // Pusat notifikasi memotong banyak modul sekaligus, jadi tidak bisa dikunci
+  // ke satu modul: mengunci ke "laporan" akan membuat kasir kehilangan
+  // peringatan pembayaran. Penyaringannya dikerjakan per-peringatan di
+  // lib/notifications/store.ts, memakai izin `view` staf yang bersangkutan --
+  // jadi yang lolos ke sini tetap hanya yang boleh dibaca staf itu.
+  { prefix: "notifications", module: null },
   { prefix: "packages", module: "paket" },
   { prefix: "payment-accounts", module: "pengaturan" },
   { prefix: "payments", module: "pembayaran" },
