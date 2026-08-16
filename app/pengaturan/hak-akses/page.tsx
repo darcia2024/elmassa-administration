@@ -460,7 +460,7 @@ export default function AccessControlPage() {
 
       {/* MODAL: BUAT ROLE BARU */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <form onSubmit={handleCreateRole} className="relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-brand-cocoa flex items-center gap-2">

@@ -1164,7 +1164,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* 📊 MODAL BULK EXCEL IMPORT */}
       {isExcelModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
           <div className="w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 animate-fade-up">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
@@ -1278,7 +1278,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* 👁️ MODAL DETAIL LENGKAP & EDIT JAMAAH */}
       {viewDetailModal && editingForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
           <div className="w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 animate-fade-up max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
@@ -1577,7 +1577,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* 🚀 MODAL SUCCESS PENERBITAN AKUN */}
       {successModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 animate-fade-up">
             
             <div className="text-center space-y-2">
@@ -1670,7 +1670,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* 📢 MODAL BROADCAST PENGUMUMAN REAL-TIME */}
       {isBroadcastModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs font-sans">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 animate-fade-up">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
@@ -1757,7 +1757,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* 💳 MODAL TOP UP SALDO KUOTA LISENSI UMRAHME */}
       {isTopUpModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
           <div className="w-full max-w-xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-6 animate-fade-up max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
@@ -1884,7 +1884,7 @@ export default function PenerbitanUmrahmePage() {
 
       {/* ⚠️ MODAL QUOTA EXCEEDED WARNING */}
       {isQuotaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs font-sans">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 text-center animate-fade-up">
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
               <AlertTriangle className="h-8 w-8 stroke-[2.5]" />

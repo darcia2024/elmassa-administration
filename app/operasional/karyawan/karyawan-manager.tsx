@@ -394,7 +394,7 @@ export function KaryawanManager() {
       </section>
 
       {isFormOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-stone-900/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 el-modal grid place-items-center bg-stone-900/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-5 sm:p-6 shadow-2xl space-y-4">
 
             <div className="flex items-start justify-between border-b border-stone-100 pb-3">

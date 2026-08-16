@@ -441,7 +441,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
 
       {/* Create form */}
       {isFormOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-stone-900/60 backdrop-blur-xs p-4 print:hidden">
+        <div className="fixed inset-0 z-50 el-modal grid place-items-center bg-stone-900/60 backdrop-blur-xs p-4 print:hidden">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-5 sm:p-6 shadow-2xl space-y-4">
 
             <div className="flex items-start justify-between border-b border-stone-100 pb-3">
@@ -678,7 +678,7 @@ export function SuratManager({ initialType }: { initialType?: string }) {
 
       {/* Print preview */}
       {preview ? (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/70 backdrop-blur-xs p-4 print:static print:bg-white print:p-0">
+        <div className="fixed inset-0 z-50 el-modal overflow-y-auto bg-stone-900/70 backdrop-blur-xs p-4 print:static print:bg-white print:p-0">
           <div className="mx-auto w-fit space-y-3 print:w-auto print:space-y-0">
 
             <div className="flex w-[210mm] max-w-full items-center justify-between rounded-xl bg-stone-800 px-4 py-2.5 print:hidden">

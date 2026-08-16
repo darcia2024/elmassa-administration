@@ -392,7 +392,7 @@ export default function EasyDocumentsPage() {
 
       {/* 📜 MODAL GENERATOR SURAT REKOMENDASI PASPOR */}
       {isGeneratorOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <form onSubmit={handlePrintLetter} className="relative w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
@@ -461,7 +461,7 @@ export default function EasyDocumentsPage() {
 
       {/* 🖨️ PREVIEW CETAK SURAT REKOMENDASI PASPOR (A4 PAPER FORMAT & FULL VERSION PREVIEW) */}
       {isLetterPreviewOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/80 backdrop-blur-sm p-4 sm:p-8 flex flex-col items-center justify-start">
+        <div className="fixed inset-0 z-50 el-modal overflow-y-auto bg-stone-950/80 backdrop-blur-sm p-4 sm:p-8 flex flex-col items-center justify-start">
           
           {/* Top Floating Control Bar (Non-printable) */}
           <div className="sticky top-0 z-10 mb-4 flex items-center justify-between gap-4 w-full max-w-[210mm] rounded-2xl border border-stone-800 bg-stone-900/90 backdrop-blur-md p-3 text-white shadow-xl">

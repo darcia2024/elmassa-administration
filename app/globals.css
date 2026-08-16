@@ -70,6 +70,160 @@ input:focus-visible {
   background: #765039;
 }
 
+/* ---------------------------------------------------------------------------
+   Gerak & transisi
+
+   Kelas animate-in / fade-in / slide-in-from-bottom-2 / animate-fade-up dan
+   no-scrollbar sudah dipakai di beberapa halaman sejak lama, tapi tidak pernah
+   menghasilkan apa pun: plugin tailwindcss-animate tidak pernah dipasang dan
+   tailwind.config.ts masih `plugins: []`. Transisi antar halaman di app-shell
+   karena itu diam saja, dan strip tab yang minta `no-scrollbar` tetap
+   memperlihatkan scrollbar.
+
+   Definisinya ditulis di sini supaya semua pemakaian yang sudah ada langsung
+   hidup tanpa menambah dependency. Seluruh gerakan dibungkus
+   prefers-reduced-motion: kalau sistem minta gerak dikurangi, tidak ada satu
+   pun aturan di blok ini yang aktif -- elemen tampil apa adanya, bukan tampil
+   transparan lalu tidak pernah dianimasikan.
+--------------------------------------------------------------------------- */
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Satu keyframe dipakai bersama; tiap kelas hanya menggeser variabelnya,
+     jadi fade + slide + zoom bisa dipasang bersamaan tanpa saling menimpa. */
+  @keyframes el-enter {
+    from {
+      opacity: var(--el-enter-opacity, 1);
+      transform: translate3d(var(--el-enter-x, 0), var(--el-enter-y, 0), 0)
+        scale(var(--el-enter-scale, 1));
+    }
+  }
+
+  .animate-in {
+    animation: el-enter var(--el-enter-duration, 300ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .fade-in {
+    --el-enter-opacity: 0;
+  }
+
+  .zoom-in-95 {
+    --el-enter-scale: 0.95;
+  }
+
+  .slide-in-from-bottom-2 {
+    --el-enter-y: 0.5rem;
+  }
+
+  .slide-in-from-bottom-4 {
+    --el-enter-y: 1rem;
+  }
+
+  .slide-in-from-top-2 {
+    --el-enter-y: -0.5rem;
+  }
+
+  .slide-in-from-left-4 {
+    --el-enter-x: -1rem;
+  }
+
+  .slide-in-from-right-4 {
+    --el-enter-x: 1rem;
+  }
+
+  /* Dipakai panel modal UmrahMe. */
+  .animate-fade-up {
+    --el-enter-opacity: 0;
+    --el-enter-y: 0.75rem;
+    --el-enter-scale: 0.98;
+    animation: el-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Modal. `el-modal` menandai latar gelapnya; panel isinya adalah anak
+     langsung, jadi keduanya bisa diatur dari sini tanpa menyentuh daftar kelas
+     tiap panel. Latar cukup memudar, panel naik sedikit sambil membesar --
+     latar yang ikut bergerak membuat seluruh layar terasa bergeser. */
+  .el-modal {
+    --el-enter-opacity: 0;
+    animation: el-enter 180ms ease-out both;
+  }
+
+  .el-modal > *:not(.animate-in):not(.animate-fade-up) {
+    --el-enter-opacity: 0;
+    --el-enter-y: 0.75rem;
+    --el-enter-scale: 0.97;
+    animation: el-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Laci navigasi mobile: masuk dari tepi kiri, bukan memudar di tempat. */
+  .el-drawer-panel {
+    --el-enter-opacity: 0;
+    --el-enter-x: -1.5rem;
+    animation: el-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .el-drawer-scrim {
+    --el-enter-opacity: 0;
+    animation: el-enter 200ms ease-out both;
+  }
+
+  /* Dasar untuk semua kontrol. Elemen yang sudah membawa kelas `transition`
+     dari Tailwind menang atas aturan ini (selector kelas > selector elemen),
+     jadi ini hanya mengisi yang belum punya. */
+  a,
+  button,
+  summary,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease,
+      opacity 160ms ease,
+      transform 130ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Umpan balik saat ditekan. transform tidak berlaku pada elemen inline yang
+     bukan replaced, jadi tautan teks di tengah kalimat otomatis tidak ikut
+     mengecil -- hanya tombol, kartu, dan tautan yang memang berbentuk kotak. */
+  a:active,
+  button:not(:disabled):active,
+  summary:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Halaman ini juga memakai utilitas `transition-*` dan `active:scale-*` bawaan
+   Tailwind yang ditulis langsung di JSX, dan itu tidak ikut mati oleh blok di
+   atas. Reset berikut memadamkannya juga, supaya permintaan sistem untuk
+   mengurangi gerak benar-benar dihormati di seluruh aplikasi. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media print {
   @page {
     margin: 12mm;

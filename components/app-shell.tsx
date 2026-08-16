@@ -579,14 +579,14 @@ export function AppShell({ children }: AppShellProps) {
       {isMobileNavOpen ? (
         <div className="fixed inset-0 z-[110] lg:hidden">
           <button
-            className="absolute inset-0 bg-stone-900/20 backdrop-blur-xs"
+            className="el-drawer-scrim absolute inset-0 bg-stone-900/20 backdrop-blur-xs"
             aria-label="Tutup menu"
             type="button"
             onClick={() => setIsMobileNavOpen(false)}
           />
           <aside
             id="mobile-sidebar"
-            className="relative h-full w-[min(85vw,260px)] overflow-y-auto border-r border-stone-200 bg-white px-4 py-5 shadow-lg"
+            className="el-drawer-panel relative h-full w-[min(85vw,260px)] overflow-y-auto border-r border-stone-200 bg-white px-4 py-5 shadow-lg"
           >
             <button
               className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-lg border border-stone-200 bg-white text-stone-500"

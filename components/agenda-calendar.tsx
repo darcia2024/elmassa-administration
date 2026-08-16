@@ -297,7 +297,7 @@ export function AgendaCalendar({ events: eventsProp }: AgendaCalendarProps = {})
 
       {/* 🔍 EVENT DETAIL MODAL POPUP */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4">
           <div className="relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl space-y-4 text-stone-800 animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex items-start justify-between gap-3 border-b border-stone-100 pb-3">

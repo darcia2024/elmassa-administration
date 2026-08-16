@@ -986,8 +986,14 @@ export default function PackageCalculatorPage() {
         {/* MAIN INPUT & CALCULATOR GRID */}
         <div className="grid gap-6 lg:grid-cols-12">
           
-          {/* LEFT 7 COLUMNS: INPUT COMPONENT FORM */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* LEFT 7 COLUMNS: INPUT COMPONENT FORM
+
+              min-w-0 wajib ada: item grid defaultnya `min-width: auto`, jadi ia
+              menolak menyusut di bawah lebar minimum isinya. Salah satu tabel
+              biaya di dalam sini minta 418px, dan tanpa min-w-0 angka itulah
+              yang dipakai sebagai lebar kolom -- seluruh halaman kalkulator
+              jadi bisa digeser ke samping di layar HP. */}
+          <div className="min-w-0 lg:col-span-7 space-y-6">
             
             {/* 1. Parameter Utama */}
             <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
@@ -1196,8 +1202,14 @@ export default function PackageCalculatorPage() {
                               updated[idx].activities[aIdx].time = e.target.value;
                               setItineraryList(updated);
                             }}
-                            className="w-28 shrink-0 font-extrabold text-stone-800 bg-white border border-stone-200 rounded-md px-2 py-1 text-[11px] outline-none focus:border-brand-pink shadow-2xs"
+                            className="w-20 shrink-0 font-extrabold text-stone-800 bg-white border border-stone-200 rounded-md px-2 py-1 text-[11px] outline-none focus:border-brand-pink shadow-2xs sm:w-28"
                           />
+                          {/* min-w-0 wajib: input punya lebar minimum bawaan
+                              (~180px dari atribut `size`), dan flex-1 sendiri
+                              tidak mengizinkannya menyusut di bawah itu. Tanpa
+                              ini baris di dalam indentasi pl-8 minta ~330px
+                              padahal ruangnya 227px, dan halaman kalkulator
+                              ikut melebar di layar HP. */}
                           <input
                             type="text"
                             placeholder="Deskripsi kegiatan..."
@@ -1207,7 +1219,7 @@ export default function PackageCalculatorPage() {
                               updated[idx].activities[aIdx].description = e.target.value;
                               setItineraryList(updated);
                             }}
-                            className="flex-1 bg-white border border-stone-200 rounded-md px-2.5 py-1 text-[11px] text-stone-700 outline-none focus:border-brand-pink font-medium shadow-2xs"
+                            className="min-w-0 flex-1 bg-white border border-stone-200 rounded-md px-2.5 py-1 text-[11px] text-stone-700 outline-none focus:border-brand-pink font-medium shadow-2xs"
                           />
                           <button
                             type="button"
@@ -1654,7 +1666,7 @@ export default function PackageCalculatorPage() {
               <div className="grid gap-4 md:grid-cols-2 text-xs">
                 
                 {/* PAKET LAKI-LAKI (11 ITEM EDITABLE) */}
-                <div className="rounded-xl border border-sky-200/80 bg-sky-50/20 p-3.5 space-y-3">
+                <div className="min-w-0 rounded-xl border border-sky-200/80 bg-sky-50/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between border-b border-sky-100 pb-2">
                     <span className="font-extrabold text-sky-950 flex items-center gap-1.5 text-xs">
                       <span>👨 Paket Laki-Laki (11 Item)</span>
@@ -1778,7 +1790,7 @@ export default function PackageCalculatorPage() {
                 </div>
 
                 {/* PAKET PEREMPUAN (12 ITEM EDITABLE) */}
-                <div className="rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 space-y-3">
+                <div className="min-w-0 rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 space-y-3">
                   <div className="flex items-center justify-between border-b border-rose-100 pb-2">
                     <span className="font-extrabold text-rose-950 flex items-center gap-1.5 text-xs">
                       <span>👩 Paket Perempuan (12 Item)</span>
@@ -1991,7 +2003,7 @@ export default function PackageCalculatorPage() {
           </div>
 
           {/* RIGHT 5 COLUMNS: LIVE COST BREAKDOWN & SELLING PRICE TIERS */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="min-w-0 lg:col-span-5 space-y-6">
             
             {/* 💰 HIGHLIGHT CARD: TOTAL KEUNTUNGAN BERSIH ROMBONGAN */}
             <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-5 text-white shadow-lg space-y-3">
@@ -2273,7 +2285,7 @@ export default function PackageCalculatorPage() {
       {/* 🚀 MODAL 1: FORM TERBITKAN KAN PAKET KE KATALOG */}
       {/* ========================================================================= */}
       {isPublishModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
@@ -2388,7 +2400,7 @@ export default function PackageCalculatorPage() {
       {/* 🎉 MODAL 2: NOTIFIKASI SUKSES DITERBITKAN */}
       {/* ========================================================================= */}
       {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <Sparkles className="h-8 w-8" />

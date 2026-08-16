@@ -256,14 +256,17 @@ export default function BookingsPage() {
             </div>
 
             {/* Filter Group Dropdown */}
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <span className="text-xs font-medium text-stone-500 flex items-center gap-1 shrink-0">
                 <Filter className="h-3.5 w-3.5" strokeWidth={1.5} /> Filter Rombongan:
               </span>
+              {/* min-w-0 wajib: tanpa itu lebar select dipaksa mengikuti teks
+                  opsi terpanjang ("Semua Rombongan Keberangkatan", 250px) dan
+                  barisnya mendorong seluruh halaman melebar di layar HP. */}
               <select
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
-                className="h-9 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-brand-cocoa outline-none shadow-2xs"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 text-xs font-bold text-brand-cocoa outline-none shadow-2xs md:flex-none"
               >
                 <option value="Semua">Semua Rombongan Keberangkatan</option>
                 {groupsList.map((grp) => (

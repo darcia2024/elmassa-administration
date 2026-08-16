@@ -934,7 +934,7 @@ export function PackageList() {
 
       {/* 📝 INTERACTIVE DETAIL & BROCHURE MODAL */}
       {selectedPkg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="relative w-full max-w-3xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
@@ -1142,7 +1142,7 @@ export function PackageList() {
 
       {/* ✏️ EDIT PACKAGE MODAL (RESTRICTED TO AUTHORIZED ROLES) */}
       {editingPkg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="relative w-full max-w-2xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
@@ -1328,7 +1328,7 @@ export function PackageList() {
 
       {/* ⚠️ DELETE PACKAGE CONFIRMATION MODAL */}
       {deletingPkg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 el-modal flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4">
           <div className="relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center gap-3 border-b border-stone-100 pb-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
