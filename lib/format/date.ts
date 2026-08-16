@@ -87,3 +87,50 @@ export function todayForDateInput(): string {
   const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+const NAMA_BULAN = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
+
+const NAMA_BULAN_PENDEK = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+];
+
+function pecahISO(value: unknown): [string, string, string] | null {
+  const match = String(value ?? "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? [match[1], match[2], match[3]] : null;
+}
+
+/**
+ * Tanggal untuk dibaca manusia: "2026-10-01" -> "1 Oktober 2026".
+ *
+ * Modul ini sebelumnya hanya berisi pengurai tanggal, tidak ada pemformatnya,
+ * jadi setiap halaman yang butuh menampilkan tanggal menulis fungsinya sendiri
+ * -- ada delapan salinan formatDateID yang identik tersebar di app/. Halaman
+ * yang penulisnya tidak sempat menyalin ya mencetak nilai mentah dari kolom,
+ * dan begitulah "2026-10-01" bisa muncul di depan staf. Dua fungsi berikut
+ * adalah rumahnya sekarang.
+ *
+ * Nilai yang tidak berbentuk ISO dikembalikan apa adanya, bukan diganti tanda
+ * hubung: kolom tanggal di sistem ini sebagian masih teks bebas yang diketik
+ * staf ("01 Oktober 2026"), dan itu sudah terbaca -- menyembunyikannya justru
+ * menghilangkan informasi.
+ */
+export function formatDateID(value: unknown, kosong = "—"): string {
+  if (!value) return kosong;
+  const bagian = pecahISO(value);
+  if (!bagian) return String(value);
+  const [tahun, bulan, hari] = bagian;
+  return `${Number(hari)} ${NAMA_BULAN[Number(bulan) - 1]} ${tahun}`;
+}
+
+/** Bentuk ringkas: "2026-10-01" -> "1 Okt 2026". Untuk tempat yang sempit. */
+export function formatDateShortID(value: unknown, kosong = "—"): string {
+  if (!value) return kosong;
+  const bagian = pecahISO(value);
+  if (!bagian) return String(value);
+  const [tahun, bulan, hari] = bagian;
+  return `${Number(hari)} ${NAMA_BULAN_PENDEK[Number(bulan) - 1]} ${tahun}`;
+}

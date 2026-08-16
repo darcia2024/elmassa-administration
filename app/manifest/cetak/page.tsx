@@ -4,6 +4,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { formatDateID } from "@/lib/format/date";
 
 type Participant = {
   id: string;
@@ -112,7 +113,7 @@ function ManifestPrintContent() {
             <h1 className="text-2xl font-black uppercase tracking-tight text-stone-950">Manifest Peserta Umrah</h1>
             <p className="text-sm font-semibold text-stone-700">{departure.name}</p>
             <p className="text-xs text-stone-500">
-              Berangkat {departure.departureDate || "-"} -- Kembali {departure.returnDate || "-"}
+              Berangkat {formatDateID(departure.departureDate, "-")} -- Kembali {formatDateID(departure.returnDate, "-")}
             </p>
           </div>
 

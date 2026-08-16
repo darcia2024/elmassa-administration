@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { CheckCircle2, ChevronDown, IdCard, Plane, Printer, Save, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { formatDateShortID } from "@/lib/format/date";
 
 type Departure = {
   id: string;
@@ -277,7 +278,7 @@ export default function ManifestPage() {
                 {departures.length === 0 && <option value="">Belum ada paket terbit</option>}
                 {departures.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name} -- {d.departureDate || "Tanggal belum diatur"} ({d.bookedSeats}/{d.targetPax} pax)
+                    {d.name} -- {formatDateShortID(d.departureDate, "Tanggal belum diatur")} ({d.bookedSeats}/{d.targetPax} pax)
                   </option>
                 ))}
               </select>
@@ -296,7 +297,7 @@ export default function ManifestPage() {
 
           {selectedDeparture ? (
             <p className="text-[11px] text-stone-500">
-              Maskapai <span className="font-semibold text-stone-700">{selectedDeparture.airline || "-"}</span> -- Kembali {selectedDeparture.returnDate || "-"} -- Kuota Sisa{" "}
+              Maskapai <span className="font-semibold text-stone-700">{selectedDeparture.airline || "-"}</span> -- Kembali {formatDateShortID(selectedDeparture.returnDate, "-")} -- Kuota Sisa{" "}
               <span className="font-semibold text-stone-700">{Math.max(selectedDeparture.targetPax - selectedDeparture.bookedSeats, 0)} seat</span>
             </p>
           ) : null}

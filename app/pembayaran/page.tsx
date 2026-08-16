@@ -181,6 +181,28 @@ export default function PaymentsPage() {
                       <span className="truncate max-w-[180px]">{item.packageName}</span>
                       <span>{item.date}</span>
                     </div>
+
+                    {/* Verifikasi kasir. Sebelumnya tombol ini hanya ada di
+                        tabel desktop, jadi kasir yang memegang HP bisa melihat
+                        status "Menunggu Cek" tapi tidak punya cara mengubahnya
+                        -- dan selama belum diverifikasi, nominalnya tidak
+                        dihitung sebagai kas masuk di laporan. */}
+                    <button
+                      type="button"
+                      onClick={() => void ubahStatus(item)}
+                      disabled={mengubahId === item.id}
+                      className={`inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition disabled:opacity-50 ${
+                        item.status === "Terverifikasi"
+                          ? "border border-stone-200 bg-white text-stone-700 active:bg-stone-100"
+                          : "bg-emerald-600 text-white active:bg-emerald-700"
+                      }`}
+                    >
+                      {mengubahId === item.id
+                        ? "Menyimpan..."
+                        : item.status === "Terverifikasi"
+                          ? "Batalkan Verifikasi"
+                          : "Verifikasi Pembayaran"}
+                    </button>
                   </div>
                 ))}
               </div>
