@@ -46,6 +46,17 @@ ${NEXT_PUBLIC_APP_URL}/pendataan/<token>
 Halaman ini sudah mobile-friendly, bisa ditaruh di tombol "Lengkapi Data" atau
 dibuka di WebView. Tidak perlu CORS.
 
+Tambahkan `?kembali=<URL halaman UmrahMe>` supaya form menampilkan tombol
+**Kembali ke Dashboard** (di header, di bar bawah, dan setelah simpan/upload):
+
+```
+${NEXT_PUBLIC_APP_URL}/pendataan/<token>?kembali=https%3A%2F%2Fapp.umrahme.id%2Fprofil
+```
+
+URL itu hanya dipakai kalau origin-nya ada di `UMRAHME_ORIGINS` (mencegah open
+redirect). Tanpa `kembali` yang sah, tombolnya mengarah ke `/beranda` di origin
+pertama `UMRAHME_ORIGINS`; kalau env itu kosong, tombolnya tidak muncul.
+
 ## Pilihan B — bangun form sendiri di UmrahMe, panggil API
 
 Base URL: `${NEXT_PUBLIC_APP_URL}/api/pendataan/<token>`

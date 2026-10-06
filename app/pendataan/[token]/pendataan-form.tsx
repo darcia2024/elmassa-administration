@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Save } from "lucide-react";
 import { STATUS_STYLES, validateFields, type Companion, type Completeness } from "@/lib/jamaah/rules";
 import { DocumentPanel } from "@/app/jamaah/document-panel";
 import { EMPTY_FORM, JamaahFields, type JamaahFormValues } from "@/app/jamaah/jamaah-fields";
@@ -78,7 +78,24 @@ function hintsFor(v: PublicView) {
   };
 }
 
-export function PendataanForm({ token }: { token: string }) {
+/** Tombol kembali ke UmrahMe. `returnUrl` sudah divalidasi server (lihat safeReturnUrl). */
+function TombolKembali({ href, variant }: { href: string; variant: "solid" | "outline" }) {
+  return (
+    <a
+      href={href}
+      className={`inline-flex h-11 items-center justify-center gap-1.5 rounded-xl px-5 text-sm font-bold transition ${
+        variant === "solid"
+          ? "w-full bg-emerald-600 text-white hover:bg-emerald-700"
+          : "flex-1 border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 sm:flex-none"
+      }`}
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Kembali ke Dashboard
+    </a>
+  );
+}
+
+export function PendataanForm({ token, returnUrl }: { token: string; returnUrl: string | null }) {
   const [view, setView] = useState<PublicView | null>(null);
   const [form, setForm] = useState<JamaahFormValues>(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +104,7 @@ export function PendataanForm({ token }: { token: string }) {
   const [saveError, setSaveError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
 
   const api = `/api/pendataan/${encodeURIComponent(token)}`;
 
@@ -153,6 +171,11 @@ export function PendataanForm({ token }: { token: string }) {
     <main className="min-h-screen bg-brand-cream pb-28 font-sans">
       <header className="bg-brand-pink px-4 pb-10 pt-6 text-white">
         <div className="mx-auto max-w-3xl">
+          {returnUrl ? (
+            <a href={returnUrl} className="mb-3 inline-flex items-center gap-1 text-[11px] font-bold text-white/85 hover:text-white">
+              <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke UmrahMe
+            </a>
+          ) : null}
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">El Massa Tour & Travel</p>
           <h1 className="mt-1 text-xl font-black">Pendataan Jamaah Umrah</h1>
           <p className="mt-1 text-xs text-white/85">Lengkapi data diri dan upload dokumen. Data tersimpan langsung ke kantor El Massa.</p>
@@ -176,9 +199,12 @@ export function PendataanForm({ token }: { token: string }) {
                 <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${STATUS_STYLES[c.status]}`}>{c.status}</span>
               </div>
               {saved ? (
-                <p className="flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                  <Check className="h-3.5 w-3.5" /> Data berhasil disimpan. Terima kasih!
-                </p>
+                <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <p className="flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                    <Check className="h-3.5 w-3.5" /> Data berhasil disimpan. Terima kasih!
+                  </p>
+                  {returnUrl ? <TombolKembali href={returnUrl} variant="solid" /> : null}
+                </div>
               ) : null}
               {c.missingFields.length > 0 ? (
                 <p className="text-[11px] text-rose-700">
@@ -206,8 +232,22 @@ export function PendataanForm({ token }: { token: string }) {
                 mode="public"
                 documents={view.documents}
                 uploadUrl={`${api}/documents`}
-                onChanged={(data) => setView(data as PublicView)}
+                onChanged={(data) => {
+                  setView(data as PublicView);
+                  setUploaded(true);
+                }}
               />
+              {uploaded ? (
+                <div className="space-y-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="flex items-center gap-1 text-xs font-bold text-emerald-800">
+                    <Check className="h-4 w-4" /> Dokumen terkirim ke kantor El Massa.
+                  </p>
+                  <p className="text-[11px] text-emerald-800/80">
+                    Masih ada yang mau diupload? Lanjutkan saja. Kalau sudah, kembali ke dashboard UmrahMe kamu.
+                  </p>
+                  {returnUrl ? <TombolKembali href={returnUrl} variant="solid" /> : null}
+                </div>
+              ) : null}
             </section>
           </>
         ) : null}
@@ -225,6 +265,7 @@ export function PendataanForm({ token }: { token: string }) {
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Data
             </button>
+            {returnUrl ? <TombolKembali href={returnUrl} variant="outline" /> : null}
             {saveError ? <span className="w-full text-[11px] font-semibold text-rose-700 sm:w-auto">{saveError}</span> : null}
           </div>
         </div>

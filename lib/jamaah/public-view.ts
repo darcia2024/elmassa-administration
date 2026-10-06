@@ -47,13 +47,37 @@ export function toPublicView(j: JamaahRecord) {
 
 export type PublicJamaahView = ReturnType<typeof toPublicView>;
 
-/** Origin aplikasi UmrahMe yang boleh memanggil API pendataan langsung dari browser. */
-export function corsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get("origin");
-  const allowed = (process.env.UMRAHME_ORIGINS ?? "")
+/** Origin aplikasi UmrahMe (env UMRAHME_ORIGINS), tanpa garis miring di akhir. */
+function umrahmeOrigins(): string[] {
+  return (process.env.UMRAHME_ORIGINS ?? "")
     .split(",")
     .map((o) => o.trim().replace(/\/+$/, ""))
     .filter(Boolean);
+}
+
+/**
+ * Alamat tombol "Kembali ke Dashboard" di form pendataan. UmrahMe mengirim
+ * halaman asalnya lewat ?kembali=; hanya diterima kalau origin-nya terdaftar,
+ * supaya link pendataan tidak bisa dipakai untuk mengarahkan jamaah ke situs lain.
+ * Tanpa ?kembali= yang sah, jatuh ke beranda origin UmrahMe pertama.
+ */
+export function safeReturnUrl(raw: string | undefined): string | null {
+  const allowed = umrahmeOrigins();
+  if (raw) {
+    try {
+      const url = new URL(raw);
+      if (allowed.includes(url.origin)) return url.toString();
+    } catch {
+      // bukan URL absolut: abaikan
+    }
+  }
+  return allowed[0] ? `${allowed[0]}/beranda` : null;
+}
+
+/** Origin aplikasi UmrahMe yang boleh memanggil API pendataan langsung dari browser. */
+export function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("origin");
+  const allowed = umrahmeOrigins();
 
   if (!origin || !allowed.includes(origin)) return { Vary: "Origin" };
   return {
