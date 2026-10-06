@@ -5,6 +5,33 @@ Database jamaah terpusat ada di El Massa Web (tabel `jamaah_profiles` dan
 Ia memakai salah satu jalur di bawah, dan semua data tetap masuk ke profil yang
 sama dengan yang diisi staf kantor.
 
+## Yang tersinkron otomatis
+
+Dua repo ini memakai satu database Supabase. Hal-hal berikut dijaga kodenya, bukan diketik dua kali:
+
+| Hal | Sumbernya | Yang ikut | Kapan |
+|---|---|---|---|
+| Nama, tanggal berangkat/pulang, dan hotel batch | Paket (`published_packages`) | Batch UmrahMe (`keberangkatan`, terikat lewat `package_id`) | Paket disimpan atau diubah, dan saat akun diterbitkan (`syncKeberangkatanFromPackage`) |
+| Pembimbing, tour leader, titik kumpul, catatan darurat, fase manual | Diisi travel di UmrahMe | (tidak disentuh sinkron) | – |
+| Tautan akun ke profil (`jamaah_accounts.jamaah_id`) | Peserta booking atau profil master | Token pendataan dan status kelengkapan di UmrahMe | Akun diterbitkan (`linkAccountsToProfiles`) |
+| Status dokumen peserta di manifest | Kelengkapan profil (`lib/jamaah/rules.ts`) | `participants.document_status` | Profil, dokumen, atau tautannya berubah (`syncParticipantStatus`) |
+
+Aturan penautan akun hanya membuat tautan yang pasti: peserta booking di paket yang sama (cocok lewat nomor
+paspor atau nama persis, dan hanya kalau hasilnya satu profil), atau profil dengan nomor paspor atau NIK
+16 digit yang sama persis. Akun yang tidak cocok dibiarkan; jangan ditebak. Pemetaan status dokumen:
+`Siap Masuk Manifest` = Lengkap, `Siap Diproses` = Proses Visa, selain itu Belum Lengkap. Pengubahan
+manual di manifest bertahan sampai profil itu berubah lagi.
+
+Untuk data yang sudah ada sebelum sinkron ini (aman diulang):
+
+```
+node --import ./scratch/register-alias.mjs --env-file=.env.local scratch/sinkron-umrahme.mjs
+```
+
+Pengenal yang dipakai bersama: tenant `el-massa` (`TENANT_ID` di `lib/umrahme/store.ts`), slug `elmassa`
+(halaman login UmrahMe `/t/elmassa`, bawaan `/login`). Skema database dimiliki repo ini (`scratch/*.mjs`);
+berkas SQL di repo UmrahMe hanya arsip.
+
 ## Konsep: token pendataan
 
 Setiap profil punya `self_service_token` (48 karakter hex). Token ini yang
@@ -50,7 +77,7 @@ Tambahkan `?kembali=<URL halaman UmrahMe>` supaya form menampilkan tombol
 **Kembali ke Dashboard** (di header, di bar bawah, dan setelah simpan/upload):
 
 ```
-${NEXT_PUBLIC_APP_URL}/pendataan/<token>?kembali=https%3A%2F%2Fapp.umrahme.id%2Fprofil
+${NEXT_PUBLIC_APP_URL}/pendataan/<token>?kembali=https%3A%2F%2Fumrahme-elmassa.vercel.app%2Fberanda
 ```
 
 URL itu hanya dipakai kalau origin-nya ada di `UMRAHME_ORIGINS` (mencegah open
@@ -64,7 +91,7 @@ Base URL: `${NEXT_PUBLIC_APP_URL}/api/pendataan/<token>`
 Origin aplikasi UmrahMe harus didaftarkan di environment El Massa Web:
 
 ```
-UMRAHME_ORIGINS=https://app.umrahme.id,http://localhost:5173
+UMRAHME_ORIGINS=https://umrahme-elmassa.vercel.app,http://localhost:5173
 ```
 
 ### `GET /api/pendataan/<token>`

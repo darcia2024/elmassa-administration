@@ -1,4 +1,5 @@
 import { getPool } from "@/lib/db/connection";
+import { parseIndonesianDate } from "@/lib/format/date";
 
 /**
  * Penerbitan akun digital UmrahMe, dan kuota lisensi yang membiayainya.
@@ -56,6 +57,99 @@ export async function listQuotaLedger(limit = 50): Promise<LedgerRow[]> {
 }
 
 /**
+ * Menyamakan batch UmrahMe dengan paketnya. Paket di sistem staf adalah sumber untuk nama,
+ * tanggal berangkat/pulang, dan hotel; sisanya (pembimbing, tour leader, titik kumpul, catatan
+ * darurat, fase manual) diisi travel di UmrahMe dan tidak disentuh. Dipanggil saat paket diubah
+ * dan setiap kali akun diterbitkan, supaya batch tidak ketinggalan dari paketnya.
+ */
+export async function syncKeberangkatanFromPackage(
+  packageId: string,
+  client: Pick<import("pg").PoolClient, "query"> = getPool(),
+): Promise<number> {
+  if (!packageId) return 0;
+  const pkg = await client.query(
+    `SELECT name, departure_date AS "departureDate", return_date AS "returnDate",
+            makkah_hotel AS "makkahHotel", madinah_hotel AS "madinahHotel"
+       FROM published_packages WHERE id = $1 LIMIT 1;`,
+    [packageId],
+  );
+  const p = pkg.rows[0];
+  if (!p) return 0;
+
+  // Tanggal yang tidak terbaca tidak boleh menghapus tanggal yang sudah ada (COALESCE).
+  const res = await client.query(
+    `UPDATE keberangkatan SET
+        nama_batch = COALESCE(NULLIF($3, ''), nama_batch),
+        tanggal_keberangkatan = COALESCE($4, tanggal_keberangkatan),
+        tanggal_kepulangan = COALESCE($5, tanggal_kepulangan),
+        hotel_makkah = COALESCE(NULLIF($6, ''), hotel_makkah),
+        hotel_madinah = COALESCE(NULLIF($7, ''), hotel_madinah)
+      WHERE tenant_id = $1 AND package_id = $2;`,
+    [
+      TENANT_ID,
+      packageId,
+      p.name ?? "",
+      parseIndonesianDate(p.departureDate),
+      parseIndonesianDate(p.returnDate),
+      p.makkahHotel ?? "",
+      p.madinahHotel ?? "",
+    ],
+  );
+  return res.rowCount ?? 0;
+}
+
+/**
+ * Menautkan akun UmrahMe ke profil master (jamaah_accounts.jamaah_id). Tanpa tautan itu aplikasi
+ * jamaah tidak punya token pendataan, dan status kelengkapan tidak pernah tampil. Hanya tautan
+ * yang pasti yang dibuat:
+ *   1. peserta booking di paket yang sama yang sudah punya profil, cocok lewat nomor paspor atau
+ *      nama persis -- dan hanya kalau hasilnya satu profil saja;
+ *   2. profil dengan nomor paspor atau NIK (16 digit) yang sama persis.
+ * Nama yang sama di luar paket itu tidak dianggap cukup. Akun yang tidak ketemu dibiarkan.
+ */
+export async function linkAccountsToProfiles(
+  client: Pick<import("pg").PoolClient, "query">,
+  accountIds?: string[],
+): Promise<number> {
+  const filter = accountIds ? "a.id = ANY($1::text[])" : "TRUE";
+  const params: unknown[] = accountIds ? [accountIds] : [];
+  if (accountIds && accountIds.length === 0) return 0;
+
+  const viaPeserta = await client.query(
+    `UPDATE jamaah_accounts a SET jamaah_id = m.jid
+       FROM (
+         SELECT a2.id AS aid, (array_agg(DISTINCT pa.jamaah_id::text))[1]::uuid AS jid,
+                COUNT(DISTINCT pa.jamaah_id) AS n
+           FROM jamaah_accounts a2
+           JOIN keberangkatan kb ON kb.id = a2.keberangkatan_id AND kb.package_id <> ''
+           JOIN real_bookings b ON b.package_id = kb.package_id
+           JOIN participants pa ON pa.booking_code = b.code AND pa.jamaah_id IS NOT NULL
+          WHERE a2.jamaah_id IS NULL
+            AND (
+              (length(a2.paspor) >= 5 AND upper(replace(pa.passport_number, ' ', '')) = upper(replace(a2.paspor, ' ', '')))
+              OR lower(btrim(pa.name)) = lower(btrim(a2.nama))
+            )
+          GROUP BY a2.id
+       ) m
+      WHERE a.id = m.aid AND m.n = 1 AND a.jamaah_id IS NULL AND ${filter};`,
+    params,
+  );
+
+  const viaIdentitas = await client.query(
+    `UPDATE jamaah_accounts a SET jamaah_id = jp.id
+       FROM jamaah_profiles jp
+      WHERE a.jamaah_id IS NULL AND ${filter}
+        AND (
+          (length(a.paspor) >= 5 AND jp.passport_number <> '' AND upper(replace(a.paspor, ' ', '')) = upper(jp.passport_number))
+          OR (a.nik ~ '^[0-9]{16}$' AND a.nik = jp.nik)
+        );`,
+    params,
+  );
+
+  return (viaPeserta.rowCount ?? 0) + (viaIdentitas.rowCount ?? 0);
+}
+
+/**
  * Memastikan grup keberangkatan di sistem travel punya pasangan batch di
  * UmrahMe. Tanpa ini `jamaah_accounts.keberangkatan_id` kosong, dan aplikasi
  * jamaah -- yang menyaring dengan .eq('keberangkatan_id', ...) -- tidak akan
@@ -71,7 +165,10 @@ export async function ensureKeberangkatan(
     `SELECT id FROM keberangkatan WHERE tenant_id = $1 AND package_id = $2 LIMIT 1;`,
     [TENANT_ID, packageId],
   );
-  if (existing.rowCount && existing.rows[0]) return existing.rows[0].id;
+  if (existing.rowCount && existing.rows[0]) {
+    await syncKeberangkatanFromPackage(packageId, client);
+    return existing.rows[0].id;
+  }
 
   const pkg = await client.query(
     `SELECT name, departure_date AS "departureDate", return_date AS "returnDate",
@@ -87,7 +184,16 @@ export async function ensureKeberangkatan(
        (tenant_id, package_id, nama_batch, tanggal_keberangkatan, tanggal_kepulangan,
         hotel_makkah, hotel_madinah, meeting_point)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id;`,
-    [TENANT_ID, packageId, p.name, p.departureDate, p.returnDate, p.makkahHotel, p.madinahHotel, p.startPoint],
+    [
+      TENANT_ID,
+      packageId,
+      p.name,
+      parseIndonesianDate(p.departureDate),
+      parseIndonesianDate(p.returnDate),
+      p.makkahHotel,
+      p.madinahHotel,
+      p.startPoint,
+    ],
   );
   return inserted.rows[0].id;
 }
@@ -178,6 +284,8 @@ export async function issueAccounts(accounts: IssueInput[], actor = ""): Promise
         ],
       );
     }
+
+    await linkAccountsToProfiles(client, ids);
 
     await client.query("COMMIT");
     const quota = await getQuota();

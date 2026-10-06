@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
 import { hasStaffSession } from "@/lib/auth/request-session";
+import { syncKeberangkatanFromPackage } from "@/lib/umrahme/store";
 import { dataResetBlockedResponse, isDataResetAllowed } from "@/lib/db/destructive-guard";
 
 let isTableEnsured = false;
@@ -130,6 +131,7 @@ export async function POST(req: Request) {
     await ensureTable();
     const pkg = await req.json();
 
+    const packageId = pkg.id || `pkg-custom-${Date.now()}`;
     const client = await getPool().connect();
     try {
       await client.query(
@@ -164,7 +166,7 @@ export async function POST(req: Request) {
           target_pax = EXCLUDED.target_pax,
           costing_data = EXCLUDED.costing_data;`,
         [
-          pkg.id || `pkg-custom-${Date.now()}`,
+          packageId,
           pkg.name || "Paket Umrah Kustom",
           pkg.category || "Umrah Reguler",
           pkg.duration || "12 Hari",
@@ -192,6 +194,13 @@ export async function POST(req: Request) {
           JSON.stringify(pkg.costingData || pkg.costing_data || pkg),
         ]
       );
+
+      // Batch UmrahMe untuk paket ini ikut diperbarui; gagal di sini tidak membatalkan simpan paket.
+      try {
+        await syncKeberangkatanFromPackage(packageId, client);
+      } catch (syncErr) {
+        console.error("Sinkron batch UmrahMe gagal:", syncErr);
+      }
 
       return NextResponse.json({ ok: true, message: "Package saved to Supabase Cloud Database" }, { headers: corsHeaders });
     } finally {

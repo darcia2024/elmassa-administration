@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPool } from "@/lib/db/connection";
 import { hasStaffSession } from "@/lib/auth/request-session";
+import { syncKeberangkatanFromPackage } from "@/lib/umrahme/store";
 
 /**
  * This route used to read/write lib/seed-data/packages.ts -- a dummy array
@@ -172,6 +173,14 @@ export async function PATCH(request: NextRequest, { params }: PackageDetailRoute
 
   if (res.rowCount === 0) {
     return NextResponse.json({ error: "Paket tidak ditemukan" }, { status: 404 });
+  }
+
+  // Batch UmrahMe untuk paket ini ikut diperbarui (tanggal, hotel, nama). Gagal di sini tidak
+  // boleh membatalkan perubahan paket yang sudah tersimpan.
+  try {
+    await syncKeberangkatanFromPackage(id);
+  } catch (err) {
+    console.error("Sinkron batch UmrahMe gagal:", err);
   }
 
   return NextResponse.json({ data: res.rows[0] });

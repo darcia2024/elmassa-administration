@@ -126,6 +126,10 @@ SUPABASE_SERVICE_ROLE_KEY=     # service role (BUKAN anon), cuma dipakai server
 **Port 6543 (transaction pooler), bukan 5432.** Yang 5432 itu session pooler,
 nahan koneksi lebih lama dan gampang bikin kehabisan slot di API route.
 
+**Sinkron dengan UmrahMe.** Batch UmrahMe mengikuti paketnya, akun UmrahMe ditautkan ke profil saat diterbitkan,
+dan `participants.document_status` mengikuti kelengkapan profil. Aturannya ada di `docs/INTEGRASI-UMRAHME.md`
+(bagian "Yang tersinkron otomatis"); untuk data lama jalankan `scratch/sinkron-umrahme.mjs`.
+
 Kalau muncul `ECIRCUITBREAKER: too many authentication failures`, itu Supabase
 lagi nge-block sementara gara-gara percobaan auth gagal berulang. Tunggu beberapa
 menit, dan pastikan `DATABASE_URL` benar.

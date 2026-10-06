@@ -6,6 +6,7 @@ import {
   digitsOnly,
   type Companion,
   type Completeness,
+  type CompletenessStatus,
   type ProfileFields,
 } from "@/lib/jamaah/rules";
 
@@ -66,6 +67,42 @@ async function db() {
 
 function newToken() {
   return randomBytes(24).toString("hex");
+}
+
+/**
+ * Status dokumen peserta di manifest mengikuti kelengkapan profil yang tertaut,
+ * jadi staf tidak perlu mengubahnya dua kali. Pemetaannya mengikuti arti tiap status:
+ *   Siap Masuk Manifest -> Lengkap (visa pun sudah ada)
+ *   Siap Diproses       -> Proses Visa (semua lengkap kecuali visa)
+ *   lainnya             -> Belum Lengkap
+ * Diperbarui setiap kali profil, dokumennya, atau tautannya berubah. Pengubahan manual
+ * di manifest bertahan sampai profil itu berubah lagi.
+ */
+const STATUS_PESERTA: Record<CompletenessStatus, "Belum Lengkap" | "Proses Visa" | "Lengkap"> = {
+  "Data Belum Lengkap": "Belum Lengkap",
+  "Dokumen Belum Lengkap": "Belum Lengkap",
+  "Siap Diproses": "Proses Visa",
+  "Siap Masuk Manifest": "Lengkap",
+};
+
+export async function syncParticipantStatus(jamaahId: string): Promise<number> {
+  const jamaah = await findJamaah(jamaahId);
+  if (!jamaah) return 0;
+  const res = await (await db()).query(
+    `UPDATE participants SET document_status = $1, updated_at = NOW()
+      WHERE jamaah_id = $2 AND document_status <> $1;`,
+    [STATUS_PESERTA[jamaah.completeness.status], jamaahId],
+  );
+  return res.rowCount ?? 0;
+}
+
+/** Sinkron tidak boleh menggagalkan penyimpanan profil/dokumen yang sudah berhasil. */
+async function syncParticipantStatusSafe(jamaahId: string) {
+  try {
+    await syncParticipantStatus(jamaahId);
+  } catch (err) {
+    console.error("Sinkron status peserta gagal:", err);
+  }
 }
 
 const PROFILE_COLUMNS = `
@@ -298,6 +335,7 @@ export async function updateJamaah(id: string, patch: ProfileInput, actor: strin
     values,
   );
   if (res.rowCount === 0) return null;
+  await syncParticipantStatusSafe(id);
   return findJamaah(id);
 }
 
@@ -382,6 +420,7 @@ export async function upsertDocument(input: {
     );
     await client.query(`UPDATE jamaah_profiles SET updated_at = NOW() WHERE id = $1;`, [input.jamaahId]);
     await client.query("COMMIT");
+    await syncParticipantStatusSafe(input.jamaahId);
     const previousPath: string | null = prev.rows[0]?.storage_path ?? null;
     return { previousPath: previousPath && previousPath !== input.storagePath ? previousPath : null };
   } catch (err) {
@@ -398,6 +437,7 @@ export async function deleteDocument(jamaahId: string, docType: string): Promise
     `DELETE FROM jamaah_documents WHERE jamaah_id = $1 AND doc_type = $2 RETURNING storage_path;`,
     [jamaahId, docType],
   );
+  if (res.rows[0]) await syncParticipantStatusSafe(jamaahId);
   return res.rows[0]?.storage_path ?? null;
 }
 
@@ -411,6 +451,7 @@ export async function linkParticipant(participantId: string, jamaahId: string | 
     `UPDATE participants SET jamaah_id = $1, updated_at = NOW() WHERE id = $2;`,
     [jamaahId, participantId],
   );
+  if (jamaahId && (res.rowCount ?? 0) > 0) await syncParticipantStatusSafe(jamaahId);
   return (res.rowCount ?? 0) > 0;
 }
 
@@ -458,8 +499,10 @@ export async function autoLinkByPassport(packageId: string): Promise<number> {
         AND b.package_id = $1
         AND pa.jamaah_id IS NULL
         AND pa.passport_number <> ''
-        AND upper(replace(pa.passport_number, ' ', '')) = upper(jp.passport_number);`,
+        AND upper(replace(pa.passport_number, ' ', '')) = upper(jp.passport_number)
+      RETURNING pa.jamaah_id AS "jamaahId";`,
     [packageId],
   );
+  for (const id of new Set(res.rows.map((r) => r.jamaahId as string))) await syncParticipantStatusSafe(id);
   return res.rowCount ?? 0;
 }
