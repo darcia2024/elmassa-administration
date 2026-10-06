@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { broadcastJamaahUpdateFromAdmin } from "@/lib/syncBridge";
+import { bacaBerkasImpor, petakanBarisImpor, type BarisImpor } from "@/lib/umrahme/impor";
 
 export type DetailedIssuedAccount = {
   id: string;
@@ -56,7 +57,26 @@ export type DetailedIssuedAccount = {
   titikKumpul: string;
   status: "Aktif" | "Pending";
   tanggalTerbit: string;
+  /** Paket (published_packages.id) tempat akun ini berangkat; server memakainya untuk mengikat akun ke batch UmrahMe. */
+  packageId?: string;
 };
+
+/**
+ * Nomor jamaah unik. Tiga digit acak tanpa pemeriksaan bisa kembar (dengan 40 jamaah peluangnya
+ * lebih dari separuh), padahal data jurnal dan progres di UmrahMe terkait ke nomor ini.
+ */
+function buatNomorJamaah(dipakai: Set<string>): string {
+  const d = new Date();
+  const awalan = `JM-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}-`;
+  for (let i = 0; i < 5000; i++) {
+    const nomor = awalan + String(Math.floor(1000 + Math.random() * 9000));
+    if (!dipakai.has(nomor)) {
+      dipakai.add(nomor);
+      return nomor;
+    }
+  }
+  throw new Error("Tidak berhasil membuat nomor jamaah yang unik. Coba lagi.");
+}
 
 const initialAccounts: DetailedIssuedAccount[] = [];
 
@@ -139,47 +159,39 @@ export default function PenerbitanUmrahmePage() {
   // Show detailed fields accordion in form
   const [showDetailFields, setShowDetailFields] = useState(false);
 
-  const [batchOptions, setBatchOptions] = useState<string[]>([]);
-  const [inputBatch, setInputBatch] = useState<string>("");
+  const PLACEHOLDER_PAKET = "-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --";
+  const [paketList, setPaketList] = useState<Array<{ id: string; label: string }>>([]);
+  const [batchOptions, setBatchOptions] = useState<string[]>([PLACEHOLDER_PAKET]);
+  const [inputBatch, setInputBatch] = useState<string>(PLACEHOLDER_PAKET);
 
-  // Load strictly user-created custom packages from localStorage (from Kalkulator HPP / Published Packages)
+  // Paket diambil dari database, jadi sama di semua perangkat staf dan punya id yang dipakai
+  // server untuk mengikat akun ke batch UmrahMe (sebelumnya daftar ini dibaca dari localStorage).
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("el_massa_published_packages");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const customNames = parsed.map((pkg: any) => {
-            const rawName = pkg.name || pkg.packageName || "Paket Umrah";
-            const cleanName = rawName.split("—")[0].split("(")[0].trim();
-            const rawDate = pkg.departureDate || pkg.departuresDate || "";
-            const cleanDate = rawDate.includes("s/d")
-              ? rawDate.split("s/d")[0].trim()
-              : rawDate.split("(")[0].trim() || "Terjadwal";
-            return `${cleanName} (${cleanDate})`;
-          });
-          setBatchOptions(customNames);
-          setInputBatch(customNames[0]);
-          return;
-        }
-      }
-      // If no custom package created by user yet
-      const placeholder = ["-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --"];
-      setBatchOptions(placeholder);
-      setInputBatch(placeholder[0]);
-    } catch (e) {
-      console.error("Failed to parse el_massa_published_packages:", e);
-      const placeholder = ["-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --"];
-      setBatchOptions(placeholder);
-      setInputBatch(placeholder[0]);
-    }
+    let batal = false;
+    fetch("/api/packages", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (batal || !res?.ok || !Array.isArray(res.data) || res.data.length === 0) return;
+        const list = res.data.map((pkg: { id: string; name?: string; departureDate?: string }) => {
+          const nama = String(pkg.name ?? "Paket Umrah").trim();
+          const tgl = String(pkg.departureDate ?? "").trim();
+          return { id: String(pkg.id), label: tgl ? `${nama} (${tgl})` : nama };
+        });
+        setPaketList(list);
+        setBatchOptions(list.map((l: { label: string }) => l.label));
+        setInputBatch(list[0].label);
+      })
+      .catch((e) => console.error("Gagal memuat daftar paket:", e));
+    return () => { batal = true; };
   }, []);
+
+  const paketIdDari = (label: string) => paketList.find((p) => p.label === label)?.id ?? "";
 
   const [inputNama, setInputNama] = useState("");
   const [inputNik, setInputNik] = useState("");
   const [inputPaspor, setInputPaspor] = useState("");
   const [inputTglLahir, setInputTglLahir] = useState("");
-  const [inputGolDarah, setInputGolDarah] = useState("O+ (Positif)");
+  const [inputGolDarah, setInputGolDarah] = useState("-");
   const [inputTelepon, setInputTelepon] = useState("");
   const [inputKontakDarurat, setInputKontakDarurat] = useState("");
   const [inputAlamat, setInputAlamat] = useState("");
@@ -193,7 +205,8 @@ export default function PenerbitanUmrahmePage() {
 
   // Bulk Excel Import States
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
-  const [excelPreviewRows, setExcelPreviewRows] = useState<Partial<DetailedIssuedAccount>[]>([]);
+  const [excelPreviewRows, setExcelPreviewRows] = useState<BarisImpor[]>([]);
+  const [excelDilewati, setExcelDilewati] = useState(0);
   const [excelFileName, setExcelFileName] = useState("");
   const [isImportingExcel, setIsImportingExcel] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -281,6 +294,11 @@ export default function PenerbitanUmrahmePage() {
     e.preventDefault();
     if (!inputNama.trim()) return;
 
+    if (!paketIdDari(inputBatch)) {
+      alert("Pilih paket keberangkatan dulu. Akun harus terikat ke satu paket supaya jamaah masuk ke batch yang benar.");
+      return;
+    }
+
     if (licenseCredits <= 0) {
       setIsQuotaModalOpen(true);
       return;
@@ -288,10 +306,7 @@ export default function PenerbitanUmrahmePage() {
 
     setIsSubmitting(true);
     setTimeout(() => {
-      const yr = new Date().getFullYear();
-      const mo = String(new Date().getMonth() + 1).padStart(2, "0");
-      const rnd = Math.floor(100 + Math.random() * 900);
-      const generatedId = `JM-${yr}${mo}-${rnd}`;
+      const generatedId = buatNomorJamaah(new Set(accounts.map((a) => a.nomorJamaah)));
 
       const newAcc: DetailedIssuedAccount = {
         id: String(Date.now()),
@@ -313,6 +328,7 @@ export default function PenerbitanUmrahmePage() {
         titikKumpul: inputTitikKumpul.trim() || "-",
         status: "Aktif",
         tanggalTerbit: "Hari ini",
+        packageId: paketIdDari(inputBatch),
       };
 
       setAccounts((prev) => {
@@ -351,62 +367,39 @@ export default function PenerbitanUmrahmePage() {
     }, 400);
   }
 
-  // Handle Excel File Select & Simulated Parse
-  function handleExcelFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  // Membaca berkas yang dipilih (.xlsx / .csv) dan menampilkan pratinjau barisnya.
+  async function handleExcelFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
 
     setExcelFileName(file.name);
     setIsImportingExcel(true);
+    setExcelPreviewRows([]);
+    setExcelDilewati(0);
 
-    // Simulate reading Excel file with smart parsed rows
-    setTimeout(() => {
-      const sampleParsedRows: Partial<DetailedIssuedAccount>[] = [
-        {
-          nama: "Budi Santoso",
-          nik: "3515081204850002",
-          paspor: "C8821901",
-          telepon: "+62 812-9900-1122",
-          rombongan: "Rombongan 01 (Bangka)",
-          bus: "Bus 01",
-          kamar: "Kamar #402 (Quad)",
-        },
-        {
-          nama: "Hj. Mariam Ulfah",
-          nik: "3515085409870001",
-          paspor: "C8821902",
-          telepon: "+62 812-9900-3344",
-          rombongan: "Rombongan 01 (Bangka)",
-          bus: "Bus 01",
-          kamar: "Kamar #405 (Triple)",
-        },
-        {
-          nama: "Drs. H. Mulyadi",
-          nik: "3171092003750005",
-          paspor: "C8821903",
-          telepon: "+62 812-9900-5566",
-          rombongan: "Rombongan 02 (Palembang)",
-          bus: "Bus 02",
-          kamar: "Kamar #508 (Double)",
-        },
-        {
-          nama: "Siti Nurhaliza",
-          nik: "1671046101920003",
-          paspor: "C8821904",
-          telepon: "+62 812-9900-7788",
-          rombongan: "Rombongan 02 (Palembang)",
-          bus: "Bus 02",
-          kamar: "Kamar #508 (Double)",
-        },
-      ];
-      setExcelPreviewRows(sampleParsedRows);
+    try {
+      const { rows, dilewati } = petakanBarisImpor(await bacaBerkasImpor(file));
+      if (rows.length === 0) throw new Error("Tidak ada baris jamaah yang bisa dibaca dari berkas ini.");
+      setExcelPreviewRows(rows);
+      setExcelDilewati(dilewati);
+    } catch (err) {
+      setExcelFileName("");
+      alert(err instanceof Error ? err.message : "Berkas tidak bisa dibaca.");
+    } finally {
       setIsImportingExcel(false);
-    }, 600);
+      input.value = ""; // supaya memilih berkas yang sama lagi tetap memicu pembacaan
+    }
   }
 
   // Confirm Bulk Excel Import
   function handleConfirmExcelImport() {
     if (excelPreviewRows.length === 0) return;
+
+    if (!paketIdDari(inputBatch)) {
+      alert("Pilih paket keberangkatan dulu. Akun harus terikat ke satu paket supaya jamaah masuk ke batch yang benar.");
+      return;
+    }
 
     if (excelPreviewRows.length > licenseCredits) {
       alert(
@@ -416,32 +409,32 @@ export default function PenerbitanUmrahmePage() {
       return;
     }
 
-    const yr = new Date().getFullYear();
-    const mo = String(new Date().getMonth() + 1).padStart(2, "0");
+    const nomorDipakai = new Set(accounts.map((a) => a.nomorJamaah));
 
     const newBulkAccounts: DetailedIssuedAccount[] = excelPreviewRows.map((r, idx) => {
-      const rnd = Math.floor(100 + Math.random() * 900) + idx;
-      const generatedId = `JM-${yr}${mo}-${rnd}`;
+      const generatedId = buatNomorJamaah(nomorDipakai);
+      // Yang tidak ada di berkas dibiarkan kosong ("-"), bukan diisi data karangan.
       return {
         id: String(Date.now() + idx),
-        nama: r.nama || "Jamaah Import",
+        nama: r.nama || "",
         nomorJamaah: generatedId,
-        nik: r.nik || "317409" + Math.floor(1000000000 + Math.random() * 9000000000),
-        paspor: r.paspor || "C9824" + (100 + idx),
-        tglLahirUsia: "12 Mar 1987 (39 Tahun)",
-        golonganDarah: "O+ (Positif)",
-        telepon: r.telepon || "+62 812-0000-000" + idx,
-        kontakDarurat: "+62 812-9999-8888 (Keluarga)",
-        alamatLengkap: "Alamat Jamaah Import Excel",
+        nik: r.nik || "-",
+        paspor: r.paspor || "-",
+        tglLahirUsia: "-",
+        golonganDarah: "-",
+        telepon: r.telepon || "-",
+        kontakDarurat: "-",
+        alamatLengkap: "-",
         batch: inputBatch,
-        rombongan: r.rombongan || "Rombongan 01",
-        bus: r.bus || "Bus 01",
-        kamar: r.kamar || "Kamar Quad",
-        flight: "Garuda Indonesia GA-980",
-        eVisa: "EV-9921" + (100 + idx) + " (Issued)",
-        titikKumpul: "Lobby Hotel H-1 15 Menit Sebelum Adzan",
+        rombongan: r.rombongan || "-",
+        bus: r.bus || "-",
+        kamar: r.kamar || "-",
+        flight: "-",
+        eVisa: "-",
+        titikKumpul: "-",
         status: "Aktif",
-        tanggalTerbit: "Hari ini (Bulk Import)",
+        tanggalTerbit: "Hari ini (Impor berkas)",
+        packageId: paketIdDari(inputBatch),
       };
     });
 
@@ -499,11 +492,10 @@ export default function PenerbitanUmrahmePage() {
 
   // Download Excel Template
   function handleDownloadTemplate() {
+    // Hanya judul kolom: baris contoh berisi orang rekaan pernah ikut ter-impor kalau berkasnya dipakai apa adanya.
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      "Nama Jamaah,NIK (16 Digit),No. Paspor,No. Telepon,Rombongan,No. Bus,No. Kamar,Catatan Kesehatan\n" +
-      "Budi Santoso,3515081204850002,C8821901,+62 812-9900-1122,Rombongan 01,Bus 01,Kamar #402,Sehat\n" +
-      "Hj. Siti Rahmawati,3515085409870001,C8821902,+62 812-9900-3344,Rombongan 01,Bus 01,Kamar #408,Sehat\n";
+      "Nama Jamaah,NIK (16 Digit),No. Paspor,No. Telepon,Rombongan,No. Bus,No. Kamar\n";
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -1195,11 +1187,11 @@ export default function PenerbitanUmrahmePage() {
                 <p className="text-xs font-bold text-stone-800">
                   {excelFileName ? `File Terpilih: ${excelFileName}` : "Klik untuk Pilih File Excel / CSV (.xlsx, .csv)"}
                 </p>
-                <p className="text-[10px] text-stone-400">AI akan membaca & mencocokkan kolom Nama, NIK, Paspor, Rombongan, Bus, & Kamar.</p>
+                <p className="text-[10px] text-stone-400">Kolom Nama, NIK, Paspor, Telepon, Rombongan, Bus, dan Kamar dicocokkan dari judul kolomnya.</p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".xlsx,.csv"
                   onChange={handleExcelFileChange}
                   className="hidden"
                 />
@@ -1226,7 +1218,10 @@ export default function PenerbitanUmrahmePage() {
             ) : excelPreviewRows.length > 0 ? (
               <div className="space-y-3">
                 <p className="text-xs font-extrabold text-stone-800">
-                  {excelPreviewRows.length} Jamaah Terbaca dari File Excel:
+                  {excelPreviewRows.length} Jamaah Terbaca dari Berkas:
+                  {excelDilewati > 0 && (
+                    <span className="ml-1 font-medium text-amber-700">({excelDilewati} baris tanpa nama dilewati)</span>
+                  )}
                 </p>
                 <div className="max-h-48 overflow-y-auto rounded-xl border border-stone-200 text-xs">
                   <table className="w-full text-left">

@@ -32,6 +32,21 @@ Pengenal yang dipakai bersama: tenant `el-massa` (`TENANT_ID` di `lib/umrahme/st
 (halaman login UmrahMe `/t/elmassa`, bawaan `/login`). Skema database dimiliki repo ini (`scratch/*.mjs`);
 berkas SQL di repo UmrahMe hanya arsip.
 
+## Jurnal dan data per jamaah (UmrahMe)
+
+Tabel `jurnal_entries` dan `jamaah_data`, kolom `jamaah_accounts.access_token`, dan fungsi `jamaah_access_token`,
+`jamaah_data_get/set`, `jurnal_list/create/delete` dibuat oleh `scratch/umrahme-jurnal-data.mjs` (aman diulang).
+Tabel tertutup untuk anon; akses hanya lewat fungsi yang memeriksa token. Token tidak ikut dalam `jamaah_login()`
+dan tidak bisa dibaca anon. Pengguna `authenticated` (portal travel) tetap bisa membaca kolomnya seperti kolom
+`jamaah_accounts` lain; itu staf yang dipercaya.
+
+## Penerbitan akun UmrahMe
+
+`app/umrahme/page.tsx` membaca daftar paket dari database (`/api/packages`) dan mengirim `packageId`, sehingga
+akun terikat ke batch yang benar. Impor massal membaca berkas .xlsx / .csv yang dipilih (`lib/umrahme/impor.ts`;
+uji: `scratch/uji-impor.mjs`). Kolom yang tidak ada di berkas dibiarkan kosong, tidak diisi data karangan, dan NIK
+yang bertipe angka di Excel dikosongkan karena digit terakhirnya sudah hilang. Nomor jamaah dibuat unik.
+
 ## Konsep: token pendataan
 
 Setiap profil punya `self_service_token` (48 karakter hex). Token ini yang
