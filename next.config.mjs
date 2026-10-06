@@ -8,6 +8,11 @@ const nextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  // Template Siskopatuh dibaca dengan fs saat runtime; tanpa ini berkasnya
+  // tidak ikut terbawa ke fungsi serverless saat deploy.
+  outputFileTracingIncludes: {
+    "/api/manifest/generate": ["./lib/manifest/templates/**"],
+  },
 };
 
 export default nextConfig;

@@ -115,6 +115,10 @@ Dulu dua-duanya bisa dipanggil siapa saja tanpa login dan langsung `TRUNCATE`.
 DATABASE_URL=          # connection string Supabase, WAJIB pooler port 6543
 NEXTAUTH_SECRET=       # dipakai nandatangani token sesi, wajib ada
 NEXT_PUBLIC_APP_URL=
+SUPABASE_URL=                  # https://<project-ref>.supabase.co -- buat dokumen jamaah
+SUPABASE_SERVICE_ROLE_KEY=     # service role (BUKAN anon), cuma dipakai server
+# SUPABASE_DOCS_BUCKET=dokumen-jamaah
+# UMRAHME_ORIGINS=https://...  # origin aplikasi UmrahMe yang boleh panggil /api/pendataan
 # ALLOW_DATA_RESET=true        # cuma saat sengaja mau hapus semua data
 # INITIAL_ADMIN_PASSWORD=      # password admin pertama saat staff_users masih kosong
 ```
@@ -224,6 +228,64 @@ dokumen ini tanpa ngecek ulang, sesuai peringatan di atas). Cari semua:
 ```bash
 grep -rl 'source: "dummy"' app/api
 ```
+
+### 6.1b Database Jamaah & Manifest Otomatis — TAHAP 1 SELESAI per 2026-10-06
+
+Spesifikasi dari pemilik: satu form pendataan jamaah yang diisi dari dua jalur
+(UmrahMe & staf kantor), dengan data yang masuk ke satu profil master, status
+kelengkapan otomatis, dan 3 manifest (Siskopatuh, check-in domestik,
+internasional) yang bisa digenerate tanpa input ulang.
+
+**Tahap 1 (sudah):**
+- Tabel `jamaah_profiles` + `jamaah_documents` (`lib/jamaah/`), menu
+  **Database Jamaah** (`/jamaah`), dan modul izin baru `jamaah`. Role selain
+  Admin Master dapat baris izin `false`, jadi harus diaktifkan di Hak Akses.
+- Status (Data Belum Lengkap → Dokumen Belum Lengkap → Siap Diproses → Siap
+  Masuk Manifest) dihitung saat dibaca di `lib/jamaah/rules.ts`, tidak disimpan.
+- Dokumen disimpan di Supabase Storage bucket private, lewat REST API pakai
+  service key (`lib/jamaah/storage.ts`). Jenis berkas dicek dari byte awalnya.
+- Jalur jamaah: `/pendataan/<token>` + `/api/pendataan/<token>` (publik,
+  dijaga token). Kontrak buat repo UmrahMe ada di `docs/INTEGRASI-UMRAHME.md`.
+- `participants.jamaah_id` menautkan peserta booking ke profil master. Tab
+  **Manifest → Profil Jamaah** di grup keberangkatan: tautkan otomatis lewat
+  paspor, pilih manual, atau buat profil dari data booking. Booking baru juga
+  otomatis tertaut kalau paspornya sudah ada di database.
+- Form booking dulu mengisi nomor paspor ACAK kalau kolomnya kosong, dan
+  nama/paspor/HP karangan di baris peserta tambahan. Sudah dihapus.
+
+**Setup yang harus dijalankan sekali:** isi env `SUPABASE_*` di atas, lalu
+`node --env-file=.env.local scratch/add-jamaah-master.mjs` (RPC UmrahMe + RLS)
+dan `scratch/buat-bucket-dokumen-jamaah.mjs`. Tabelnya sendiri juga dibuat
+otomatis saat runtime (`lib/jamaah/schema.ts`).
+
+**Belum diverifikasi ke database asli.** Waktu dikerjakan, Supabase nolak
+koneksi (`tenant/user ... not found`; project kemungkinan ke-pause). UI dan
+gerbang auth sudah dites, query SQL belum pernah jalan sungguhan.
+
+**Tahap 2 — Generate Manifest (sudah, 2026-10-06):** grup keberangkatan →
+tab Manifest → **Generate Manifest**: pilih jamaah → pilih jenis → pratinjau
+→ Download Excel / Cetak-PDF (dialog cetak browser) / Bagikan (Web Share,
+fallback unduh). Hanya peserta yang sudah ditautkan ke profil yang bisa
+dipilih. Format diambil dari 3 file contoh pemilik:
+- **Siskopatuh** = template import Kemenag (.xlsm, 32 kolom, makro VBA,
+  dropdown Provinsi→Kabupaten). Versi KOSONG-nya disimpan di
+  `lib/manifest/templates/siskopatuh.xlsm` (dibuat dengan
+  `scratch/bersihkan-template-siskopatuh.py`, karena file aslinya berisi NIK
+  42 jamaah sungguhan). `lib/manifest/siskopatuh.ts` menulis baris langsung
+  ke XML Sheet1 lewat jszip, supaya makro & validasi INDIRECT() tidak hilang.
+  Daftar pilihan resmi (provinsi, kabupaten, pekerjaan, dll.) ada di
+  `lib/jamaah/siskopatuh-lists.ts`, hasil ekstrak dari template yang sama.
+- **Domestik** (contoh: manifest Garuda PDF) & **Internasional** (contoh
+  .xlsx): kolom sama, dibuat dengan exceljs di `lib/manifest/airline.ts`.
+  Titel MR/MRS/MSTR/MISS (infant) dihitung dari umur pada tanggal berangkat;
+  keluarga = satu booking, label FAMILY/SUAMI ISTRI bisa dikoreksi di
+  pratinjau. PNR diisi staf saat generate.
+- Profil jamaah ditambah kolom yang diminta Siskopatuh: nama ayah, nama di
+  paspor, provinsi/kabupaten/kecamatan/kelurahan, status nikah, pendidikan,
+  pekerjaan. Semuanya (kecuali nama paspor) masuk syarat status lengkap.
+- Belum diisi otomatis karena sistem belum menyimpannya: Provider Visa,
+  Tanggal Berlaku Visa, Asuransi/Polis, No BPJS (kolom Siskopatuh W, Y,
+  AA–AF). Isi manual di Excel kalau dibutuhkan.
 
 ### 6.2 Utang teknis & keamanan
 

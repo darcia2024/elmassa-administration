@@ -9,8 +9,10 @@ import { logActivity } from "@/lib/audit/store";
 // only records mutations that make it past the permission check below.
 const AUDITABLE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
-// No login required at all, for any method.
-const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout"];
+// No login required at all, for any method. /api/pendataan is the jamaah's own
+// self-service form (web link & UmrahMe app): it is guarded by the per-profile
+// token in its path instead of a staff session -- see app/api/pendataan.
+const publicApiPrefixes = ["/api/auth/login", "/api/auth/logout", "/api/pendataan/"];
 
 // No login required to browse, but a mutation (POST/PATCH/DELETE) still needs
 // one -- these used to be prefix-matched with no method check, which meant

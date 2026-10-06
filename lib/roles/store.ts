@@ -46,6 +46,7 @@ const SEED_ROLES: Array<{ name: string; description: string; isSystem: boolean; 
       jadwal: { view: true, edit: true, approve: true },
       pelanggan: { view: true, edit: true },
       booking: { view: true, edit: true, approve: true },
+      jamaah: { view: true, edit: true, approve: true },
       manifest: { view: true, edit: true, approve: true },
       umrahme: { view: true, edit: true, approve: true },
       dokumen: { view: true, edit: true },
@@ -86,6 +87,7 @@ const SEED_ROLES: Array<{ name: string; description: string; isSystem: boolean; 
     permissions: {
       dash: { view: true },
       jadwal: { view: true },
+      jamaah: { view: true, edit: true },
       manifest: { view: true, edit: true },
       umrahme: { view: true },
       dokumen: { view: true },

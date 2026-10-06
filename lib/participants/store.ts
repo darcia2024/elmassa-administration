@@ -1,4 +1,5 @@
 import { getPool } from "@/lib/db/connection";
+import { ensureJamaahSchema } from "@/lib/jamaah/schema";
 
 /**
  * Per-jamaah manifest records, stored in `participants`. `booking_code` points
@@ -31,6 +32,8 @@ export type ParticipantRecord = {
   makkahRoomNo: string;
   madinahRoomType: string;
   madinahRoomNo: string;
+  /** Profil master di jamaah_profiles; null = belum ditautkan. */
+  jamaahId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -66,6 +69,7 @@ const LIST_QUERY = `
     p.makkah_room_no AS "makkahRoomNo",
     p.madinah_room_type AS "madinahRoomType",
     p.madinah_room_no AS "madinahRoomNo",
+    p.jamaah_id AS "jamaahId",
     p.created_at AS "createdAt",
     p.updated_at AS "updatedAt"
   FROM participants p
@@ -89,12 +93,14 @@ export async function listParticipants(filter?: { bookingCode?: string; packageI
     conditions.push(`b.phone = $${values.length}`);
   }
 
+  await ensureJamaahSchema();
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const res = await getPool().query(`${LIST_QUERY} ${where} ORDER BY p.created_at ASC;`, values);
   return res.rows;
 }
 
 export async function findParticipant(id: string): Promise<ParticipantRecord | null> {
+  await ensureJamaahSchema();
   const res = await getPool().query(`${LIST_QUERY} WHERE p.id = $1 LIMIT 1;`, [id]);
   return res.rows[0] ?? null;
 }
@@ -111,15 +117,21 @@ export async function createParticipantsForBooking(
 ): Promise<void> {
   if (!Array.isArray(participants) || participants.length === 0) return;
 
+  await ensureJamaahSchema();
   const pool = getPool();
   for (const raw of participants) {
     const p = raw as Record<string, unknown>;
     const name = String(p?.name ?? "").trim();
     if (!name) continue;
 
+    // Jamaah yang sudah punya profil master (nomor paspor sama) langsung
+    // tertaut, jadi manifest grup ini bisa menarik data lengkapnya.
     await pool.query(
-      `INSERT INTO participants (booking_code, name, passport_number, contact, document_status, room_type)
-       VALUES ($1, $2, $3, $4, $5, $6);`,
+      `INSERT INTO participants (booking_code, name, passport_number, contact, document_status, room_type, jamaah_id)
+       VALUES ($1, $2, $3, $4, $5, $6,
+         (SELECT id FROM jamaah_profiles
+           WHERE $3 <> '' AND upper(passport_number) = upper(replace($3, ' ', ''))
+           LIMIT 1));`,
       [
         bookingCode,
         name,
@@ -149,6 +161,7 @@ export async function updateParticipant(
     makkahRoomNo?: string;
     madinahRoomType?: string;
     madinahRoomNo?: string;
+    jamaahId?: string | null;
   },
 ): Promise<ParticipantRecord | null> {
   const sets: string[] = [];
@@ -172,6 +185,7 @@ export async function updateParticipant(
   if (patch.makkahRoomNo !== undefined) push("makkah_room_no", patch.makkahRoomNo.trim());
   if (patch.madinahRoomType !== undefined) push("madinah_room_type", patch.madinahRoomType.trim());
   if (patch.madinahRoomNo !== undefined) push("madinah_room_no", patch.madinahRoomNo.trim());
+  if (patch.jamaahId !== undefined) push("jamaah_id", patch.jamaahId || null);
 
   if (sets.length === 0) return findParticipant(id);
 

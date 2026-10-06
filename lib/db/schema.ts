@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, date, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 /**
  * This file is a typed map of the database, not a query layer -- every
@@ -111,6 +111,64 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Profil master jamaah (scratch/add-jamaah-master.mjs, juga dibuat saat
+// runtime oleh lib/jamaah/schema.ts). Status kelengkapan dihitung saat
+// dibaca, bukan kolom -- lihat lib/jamaah/rules.ts.
+export const jamaahProfiles = pgTable("jamaah_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  fullName: text("full_name").notNull(),
+  passportName: text("passport_name").notNull().default(""),
+  fatherName: text("father_name").notNull().default(""),
+  gender: text("gender").notNull().default(""),
+  birthPlace: text("birth_place").notNull().default(""),
+  birthDate: date("birth_date"),
+  nik: text("nik").notNull().default(""),
+  passportNumber: text("passport_number").notNull().default(""),
+  passportIssuePlace: text("passport_issue_place").notNull().default(""),
+  passportIssueDate: date("passport_issue_date"),
+  passportExpiry: date("passport_expiry"),
+  phone: text("phone").notNull().default(""),
+  address: text("address").notNull().default(""),
+  province: text("province").notNull().default(""),
+  regency: text("regency").notNull().default(""),
+  district: text("district").notNull().default(""),
+  village: text("village").notNull().default(""),
+  maritalStatus: text("marital_status").notNull().default(""),
+  education: text("education").notNull().default(""),
+  occupation: text("occupation").notNull().default(""),
+  emergencyName: text("emergency_name").notNull().default(""),
+  emergencyRelation: text("emergency_relation").notNull().default(""),
+  emergencyPhone: text("emergency_phone").notNull().default(""),
+  companions: jsonb("companions").notNull().default([]),
+  notes: text("notes").notNull().default(""),
+  source: text("source").notNull().default("admin"),
+  selfServiceToken: text("self_service_token").unique(),
+  createdBy: text("created_by").notNull().default(""),
+  updatedBy: text("updated_by").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const jamaahDocuments = pgTable(
+  "jamaah_documents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    jamaahId: uuid("jamaah_id")
+      .notNull()
+      .references(() => jamaahProfiles.id, { onDelete: "cascade" }),
+    docType: text("doc_type").notNull(),
+    docSubtype: text("doc_subtype").notNull().default(""),
+    storagePath: text("storage_path").notNull(),
+    fileName: text("file_name").notNull().default(""),
+    mimeType: text("mime_type").notNull().default(""),
+    sizeBytes: integer("size_bytes").notNull().default(0),
+    uploadedVia: text("uploaded_via").notNull().default("admin"),
+    uploadedBy: text("uploaded_by").notNull().default(""),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.jamaahId, t.docType)],
+);
+
 export const participants = pgTable("participants", {
   id: uuid("id").defaultRandom().primaryKey(),
   bookingCode: text("booking_code")
@@ -133,6 +191,7 @@ export const participants = pgTable("participants", {
   makkahRoomNo: text("makkah_room_no").notNull().default(""),
   madinahRoomType: text("madinah_room_type").notNull().default(""),
   madinahRoomNo: text("madinah_room_no").notNull().default(""),
+  jamaahId: uuid("jamaah_id").references(() => jamaahProfiles.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -469,3 +528,5 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Receipt = typeof receipts.$inferSelect;
 export type NewReceipt = typeof receipts.$inferInsert;
+export type JamaahProfile = typeof jamaahProfiles.$inferSelect;
+export type JamaahDocumentRow = typeof jamaahDocuments.$inferSelect;

@@ -51,6 +51,7 @@ export type GroupParticipant = {
   makkahRoomNo: string;
   madinahRoomType: string;
   madinahRoomNo: string;
+  jamaahId: string | null;
 };
 
 export type GroupPaymentInstallment = {

@@ -38,6 +38,14 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     );
   }
 
+  if (
+    body.jamaahId !== undefined &&
+    body.jamaahId !== null &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(body.jamaahId))
+  ) {
+    return NextResponse.json({ error: "Profil jamaah tidak valid", fields: { jamaahId: "ID profil tidak valid" } }, { status: 400 });
+  }
+
   const updated = await updateParticipant(id, {
     name: body.name,
     passportNumber: body.passportNumber,
@@ -53,6 +61,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     makkahRoomNo: body.makkahRoomNo,
     madinahRoomType: body.madinahRoomType,
     madinahRoomNo: body.madinahRoomNo,
+    jamaahId: body.jamaahId,
   });
 
   if (!updated) {

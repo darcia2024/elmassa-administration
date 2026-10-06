@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BedDouble,
   Check,
@@ -11,10 +11,13 @@ import {
   Plus,
   Printer,
   Search,
+  UserCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { exportToCSV } from "@/lib/export-excel";
 
+import { GenerateManifestView } from "./generate-manifest-view";
+import { ProfileLinkView } from "./profile-link-view";
 import { formatDateID, type GroupParticipant, type PackageDetail } from "./types";
 
 const DOCUMENT_STATUSES = ["Belum Lengkap", "Proses Visa", "Lengkap"] as const;
@@ -32,7 +35,7 @@ const ROOMLIST_VIEWS = [
   { id: "madinah", label: "Roomlist Madinah", typeKey: "madinahRoomType", noKey: "madinahRoomNo", hint: "" },
 ] as const;
 
-type ViewId = "dokumen" | (typeof ROOMLIST_VIEWS)[number]["id"] | "siskopatuh";
+type ViewId = "dokumen" | "profil" | (typeof ROOMLIST_VIEWS)[number]["id"] | "generate";
 
 type Draft = Partial<Record<keyof GroupParticipant, string>>;
 
@@ -47,9 +50,8 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
   const [view, setView] = useState<ViewId>("dokumen");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    setIsLoading(true);
-    fetch(`/api/manifest/departures/${encodeURIComponent(pkg.id)}/participants`, { cache: "no-store" })
+  const load = useCallback(() => {
+    return fetch(`/api/manifest/departures/${encodeURIComponent(pkg.id)}/participants`, { cache: "no-store" })
       .then(async (res) => {
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || "Gagal memuat manifest jamaah");
@@ -58,9 +60,13 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
         setDrafts(Object.fromEntries(rows.map((p) => [p.id, { ...p } as Draft])));
         setLoadError("");
       })
-      .catch((err) => setLoadError(err instanceof Error ? err.message : "Gagal memuat manifest jamaah"))
-      .finally(() => setIsLoading(false));
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Gagal memuat manifest jamaah"));
   }, [pkg.id]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    load().finally(() => setIsLoading(false));
+  }, [load]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -154,24 +160,6 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
     );
   };
 
-  const exportRaw = () => {
-    exportToCSV(
-      `data-jamaah-mentah-${pkg.name}`,
-      [
-        "No", "Nama Jamaah", "Kode Booking", "Pemesan", "No. Paspor", "Kontak",
-        "Status Dokumen", "No. Visa", "Berlaku Visa", "No. Tiket",
-        "Kamar Jakarta", "No. Kamar Jakarta", "Kamar Makkah", "No. Kamar Makkah",
-        "Kamar Madinah", "No. Kamar Madinah",
-      ],
-      participants.map((p, i) => [
-        i + 1, p.name, p.bookingCode, p.customerName, p.passportNumber, p.contact,
-        p.documentStatus, p.visaNumber, p.visaExpiry ?? "", p.ticketNumber,
-        p.jakartaRoomType, p.jakartaRoomNo, p.makkahRoomType, p.makkahRoomNo,
-        p.madinahRoomType, p.madinahRoomNo,
-      ]),
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-stone-200/70 bg-white p-10 text-center shadow-2xs">
@@ -214,8 +202,9 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
         <nav className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-stone-200 bg-stone-50 p-1 no-scrollbar">
           {([
             { id: "dokumen" as const, label: "Dokumen & Visa", icon: IdCard },
+            { id: "profil" as const, label: "Profil Jamaah", icon: UserCheck },
             ...ROOMLIST_VIEWS.map((v) => ({ id: v.id, label: v.label, icon: BedDouble })),
-            { id: "siskopatuh" as const, label: "Manifest Siskopatuh", icon: FileSpreadsheet },
+            { id: "generate" as const, label: "Generate Manifest", icon: FileSpreadsheet },
           ]).map((tab) => (
             <button
               key={tab.id}
@@ -245,37 +234,15 @@ export function ManifestTab({ pkg }: { pkg: PackageDetail }) {
               <span>Daftarkan Jamaah</span>
             </Link>
           </div>
-        ) : view === "siskopatuh" ? (
-          <div className="space-y-3 pt-1">
-            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-2">
-              <h4 className="text-xs font-extrabold text-amber-900">Menunggu template resmi Siskopatuh</h4>
-              <p className="text-[11px] leading-relaxed text-amber-900">
-                Export khusus Siskopatuh belum dibuat karena format kolomnya harus persis mengikuti template
-                Kemenag. Selain itu, data jamaah di sistem ini <b>belum menyimpan NIK, tempat & tanggal lahir,
-                jenis kelamin, dan nama ayah</b> — field yang biasanya wajib di Siskopatuh.
-              </p>
-              <p className="text-[11px] leading-relaxed text-amber-900">
-                Kirim file template aslinya, nanti kolom & urutannya diikuti persis dan field yang kurang
-                ditambahkan ke input manifest.
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-stone-200/70 bg-stone-50/60 p-4 space-y-2">
-              <h4 className="text-xs font-extrabold text-brand-cocoa">Sementara: export data mentah</h4>
-              <p className="text-[11px] text-stone-600">
-                Semua field jamaah yang tersimpan sekarang ({participants.length} pax), buat ditempel manual ke
-                template Siskopatuh.
-              </p>
-              <button
-                type="button"
-                onClick={exportRaw}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 text-xs font-bold text-stone-700 hover:bg-stone-100 transition"
-              >
-                <Download className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
-                <span>Export Data Jamaah (CSV)</span>
-              </button>
-            </div>
-          </div>
+        ) : view === "profil" ? (
+          <ProfileLinkView
+            packageId={pkg.id}
+            participants={participants}
+            onUpdated={(updated) => setParticipants((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+            onReload={load}
+          />
+        ) : view === "generate" ? (
+          <GenerateManifestView pkg={pkg} participants={participants} />
         ) : (
           <>
             {/* Toolbar */}

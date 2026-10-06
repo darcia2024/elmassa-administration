@@ -91,14 +91,9 @@ export default function BookingFormPage() {
   const remainingAmount = Math.max(totalPrice - paidAmount, 0);
 
   const handleAddParticipant = () => {
-    setParticipants([
-      ...participants,
-      {
-        name: `Jamaah Peserta ${participants.length + 1}`,
-        passport: `C982${4100 + participants.length + 1}`,
-        phone: `0812-7199-${1000 + participants.length + 1}`,
-      },
-    ]);
+    // Baris baru kosong. Dulu terisi nama/paspor/HP karangan yang ikut
+    // tersimpan ke manifest kalau staf lupa menimpanya.
+    setParticipants([...participants, { name: "", passport: "", phone: "" }]);
   };
 
   const handleRemoveParticipant = (index: number) => {
@@ -128,7 +123,9 @@ export default function BookingFormPage() {
       participants: participants.length,
       participantsList: participants.map((p) => ({
         name: p.name,
-        passport: p.passport || "C" + Math.floor(1000000 + Math.random() * 9000000),
+        // Kosong tetap kosong: nomor paspor acak akan lolos ke manifest dan
+        // tidak bisa dibedakan dari paspor asli. Diisi nanti lewat Database Jamaah.
+        passport: p.passport.trim(),
         contact: p.phone || customerPhone || "-",
         documentStatus: "Belum Lengkap" as const,
         roomType: "Quad (Sekamar Ber-4)",
@@ -356,6 +353,7 @@ export default function BookingFormPage() {
                     <span className="sm:col-span-1 text-[11px] font-mono font-bold text-stone-400">#{index + 1}</span>
                     <input
                       placeholder="Nama Lengkap Paspor"
+                      required
                       className="sm:col-span-4 h-8 rounded-lg border border-stone-200 px-2.5 text-xs font-medium outline-none focus:border-brand-pink"
                       value={p.name}
                       onChange={(e) => handleUpdateParticipant(index, "name", e.target.value)}

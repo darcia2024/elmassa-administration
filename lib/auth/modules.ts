@@ -23,6 +23,7 @@ export const MODULES: ModuleDef[] = [
   { id: "jadwal", name: "Kalender Kegiatan", category: "Utama", description: "Agenda manasik, handling, batas pelunasan, & keberangkatan." },
   { id: "pelanggan", name: "CRM Data Pelanggan", category: "Operasional", description: "Database jamaah, riwayat booking, & kontak." },
   { id: "booking", name: "Manajemen Booking", category: "Operasional", description: "Input pendaftaran, status DP, & assignment kamar." },
+  { id: "jamaah", name: "Database & Dokumen Jamaah", category: "Operasional", description: "Profil master jamaah, paspor, kontak darurat, & upload dokumen." },
   { id: "manifest", name: "Manifest Peserta & Flight", category: "Operasional", description: "Paspor, E-Visa, rooming hotel, & bus handling." },
   { id: "umrahme", name: "Akun Digital UmrahMe", category: "Operasional", description: "Aktivasi & pantau akun digital jamaah pasca-booking." },
   { id: "pembayaran", name: "Kasir Pembayaran & Cicilan", category: "Keuangan", description: "Verifikasi DP, pencatatan cicilan, & cetak kuitansi." },
@@ -71,6 +72,7 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "dashboard", module: "dash" },
   { prefix: "installments", module: "pembayaran" },
   { prefix: "invoices", module: "dokumen" },
+  { prefix: "jamaah", module: "jamaah" },
   { prefix: "manifest", module: "manifest" },
   // Pusat notifikasi memotong banyak modul sekaligus, jadi tidak bisa dikunci
   // ke satu modul: mengunci ke "laporan" akan membuat kasir kehilangan
