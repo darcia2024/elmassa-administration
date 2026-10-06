@@ -4,6 +4,7 @@ import React, { useEffect, useState, use } from "react";
 import { ArrowLeft, CheckCircle2, Clock, CreditCard, Download, FileText, Hotel, MessageSquare, Plane, Printer, Receipt, ShieldAlert, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { formatRupiah } from "@/lib/format/rupiah";
 
 type Participant = {
   name: string;
@@ -100,10 +101,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
         departure: found.departure || "-",
         groupName: found.groupName || "-",
         status: found.status || "DP",
-        totalDisplay: found.totalDisplay || `Rp ${(found.totalAmount || 0).toLocaleString("id-ID")}`,
-        paidDisplay: found.paidDisplay || `Rp ${(found.paidAmount || 0).toLocaleString("id-ID")}`,
-        remainingDisplay: found.remainingDisplay || `Rp ${(found.remainingAmount || 0).toLocaleString("id-ID")}`,
-        remainingAmount: found.remainingAmount ?? 0,
+        totalDisplay: found.totalDisplay || formatRupiah(found.totalAmount),
+        paidDisplay: found.paidDisplay || formatRupiah(found.paidAmount),
+        remainingDisplay: found.remainingDisplay || formatRupiah(found.remainingAmount),
+        remainingAmount: Number(found.remainingAmount) || 0,
       });
       setLoadState("found");
     };
@@ -168,7 +169,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           rows.map((p) => ({
             receipt: p.receiptNumber ?? "-",
             date: p.date,
-            amountDisplay: `Rp ${Number(p.amount).toLocaleString("id-ID")}`,
+            amountDisplay: formatRupiah(p.amount),
             method: p.method,
             staff: p.receivedBy || "-",
           })),

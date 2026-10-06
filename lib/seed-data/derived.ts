@@ -3,9 +3,8 @@ import { listCustomerRows } from "@/lib/seed-data/customers";
 import { listPackageRows } from "@/lib/seed-data/packages";
 import { listAllScheduleRows } from "@/lib/seed-data/schedules";
 
-export function formatRupiah(value: number) {
-  return `Rp ${value.toLocaleString("id-ID")}`;
-}
+export { formatRupiah } from "@/lib/format/rupiah";
+import { formatRupiah } from "@/lib/format/rupiah";
 
 export function formatShortDate(value: string) {
   return new Intl.DateTimeFormat("id-ID", {

@@ -1,4 +1,10 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// Postgres mengirim NUMERIC sebagai teks ("34526744") agar presisinya terjaga, padahal kolom uang di
+// sini selalu rupiah utuh dan tipe di kodenya sudah `number`. Tanpa ini "34526744".toLocaleString("id-ID")
+// tidak memformat apa-apa (muncul "Rp 34526744"), dan pembandingan seperti `remainingAmount === 0`
+// tidak pernah benar.
+types.setTypeParser(types.builtins.NUMERIC, (value) => parseFloat(value));
 
 /**
  * Single source of truth for the database connection.
