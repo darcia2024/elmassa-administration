@@ -606,7 +606,7 @@ export function AppShell({ children }: AppShellProps) {
                         </Link>
 
                         {/* Submenu Group Aktif right below Dashboard */}
-                        {item.label === "Dashboard" && (
+                        {item.label === "Jadwal Keberangkatan" && (
                           <div className="ml-3 my-1.5 pl-3 border-l-2 border-pink-200/70 space-y-1">
                             <div className="flex items-center justify-between px-1 py-0.5">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1">
@@ -1085,6 +1085,14 @@ export function AppShell({ children }: AppShellProps) {
         })}
       </nav>
 
+      <ModalTambahGroup
+        isOpen={isCreateGroupModalOpen}
+        onClose={() => setIsCreateGroupModalOpen(false)}
+        onSuccess={(newGroup) => {
+          setActivePackages((prev) => [newGroup, ...prev]);
+          router.push('/jamaah?grup=' + encodeURIComponent(newGroup.name));
+        }}
+      />
     </main>
   );
 }

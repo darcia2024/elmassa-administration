@@ -31,6 +31,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { ModalTambahGroup } from "@/components/modal-tambah-group";
 import { ItineraryDayItem } from "@/lib/itinerary-generator";
 
 type PackageCardItem = {
@@ -88,6 +89,7 @@ export function PackageList() {
   const [selectedPkg, setSelectedPkg] = useState<PackageCardItem | null>(null);
   const [customPackages, setCustomPackages] = useState<PackageCardItem[]>([]);
   const [realBookings, setRealBookings] = useState<any[]>([]);
+  const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
 
   // Load custom published packages from HPP Calculator via localStorage & active user role
   const [userRole, setUserRole] = useState("Super Admin");
@@ -425,6 +427,15 @@ export function PackageList() {
                 <span>Daftar / Booking</span>
               </Link>
 
+              <button
+                type="button"
+                onClick={() => setIsCreateGroupModalOpen(true)}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-black text-white shadow-md shadow-pink-500/20 hover:bg-brand-pinkHover active:scale-95 transition-all shrink-0 cursor-pointer"
+              >
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                <span>+ Tambah Group Baru</span>
+              </button>
+
               <Link
                 href="/paket/kalkulator"
                 className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-brand-pink px-4 text-xs font-black text-white shadow-md shadow-pink-500/20 hover:shadow-lg hover:shadow-pink-500/30 hover:brightness-110 active:scale-95 transition-all shrink-0 border border-pink-400/30"
@@ -729,6 +740,15 @@ export function PackageList() {
                 )}
 
                 <Link
+                  href={`/jamaah?grup=${encodeURIComponent(pkg.name)}`}
+                  className="h-9 px-3 rounded-xl border border-brand-pink/30 bg-rose-50 text-xs font-bold text-brand-pink hover:bg-brand-pink hover:text-white transition flex items-center gap-1.5 shrink-0 shadow-2xs"
+                  title="Akses Database Jamaah Rombongan Ini"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Database Jamaah</span>
+                </Link>
+
+                <Link
                   href="/booking/form"
                   className="flex-1 h-9 rounded-xl bg-brand-pink text-xs font-semibold text-white shadow-2xs hover:bg-brand-pinkHover transition flex items-center justify-center gap-1 min-w-[120px]"
                 >
@@ -922,6 +942,15 @@ export function PackageList() {
                     <Trash2 className="h-2.5 w-2.5 text-rose-600" />
                   </button>
                 )}
+
+                <Link
+                  href={`/jamaah?grup=${encodeURIComponent(pkg.name)}`}
+                  className="h-7 px-2.5 rounded-lg border border-brand-pink/30 bg-rose-50 text-[10px] font-bold text-brand-pink active:bg-brand-pink active:text-white transition flex items-center gap-1 shrink-0"
+                  title="Akses Database Jamaah"
+                >
+                  <Users className="h-3 w-3" />
+                  <span>Jamaah</span>
+                </Link>
 
                 <Link
                   href="/booking/form"
@@ -1132,6 +1161,14 @@ export function PackageList() {
                   <span>Hapus Paket</span>
                 </button>
               )}
+
+              <Link
+                href={`/jamaah?grup=${encodeURIComponent(selectedPkg.name)}`}
+                className="h-9 rounded-xl border border-brand-pink/30 bg-rose-50 px-4 text-xs font-bold text-brand-pink hover:bg-brand-pink hover:text-white flex items-center gap-1.5 transition shadow-2xs"
+              >
+                <Users className="h-4 w-4" />
+                <span>Akses Database Jamaah Grup Ini</span>
+              </Link>
 
               <Link
                 href="/booking/form"
@@ -1377,6 +1414,14 @@ export function PackageList() {
         </div>
       )}
 
+      <ModalTambahGroup
+        isOpen={isCreateGroupModalOpen}
+        onClose={() => setIsCreateGroupModalOpen(false)}
+        onSuccess={(newGroup) => {
+          setCustomPackages((prev) => [newGroup as any, ...prev]);
+          window.location.href = `/jamaah?grup=${encodeURIComponent(newGroup.name)}`;
+        }}
+      />
     </div>
   );
 }
