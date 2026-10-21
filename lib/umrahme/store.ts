@@ -234,12 +234,26 @@ export async function issueAccounts(accounts: IssueInput[], actor = ""): Promise
     }
 
     const batchIds = new Map<string, string | null>();
+    const batchNames = new Map<string, string>();
 
     for (const acc of accounts) {
       const packageId = String(acc.packageId ?? "");
       if (!batchIds.has(packageId)) {
         batchIds.set(packageId, await ensureKeberangkatan(client, packageId));
+        if (packageId) {
+          const pRes = await client.query(`SELECT name FROM published_packages WHERE id = $1 LIMIT 1;`, [packageId]);
+          if (pRes.rows[0]?.name) {
+            batchNames.set(packageId, pRes.rows[0].name);
+          }
+        }
       }
+
+      const pkgName = batchNames.get(packageId) || "";
+      const rawRombongan = String(acc.rombongan ?? "").trim();
+      const finalRombongan =
+        rawRombongan && !rawRombongan.toLowerCase().startsWith("rombongan 01")
+          ? rawRombongan
+          : (pkgName || rawRombongan || "-");
 
       await client.query(
         `INSERT INTO jamaah_accounts
@@ -271,7 +285,7 @@ export async function issueAccounts(accounts: IssueInput[], actor = ""): Promise
           acc.kontakDarurat ?? "",
           acc.alamatLengkap ?? "",
           acc.batch ?? "",
-          acc.rombongan ?? "",
+          finalRombongan,
           acc.bus ?? "",
           acc.kamar ?? "",
           acc.flight ?? "",

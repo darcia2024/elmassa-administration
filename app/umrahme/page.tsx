@@ -160,7 +160,7 @@ export default function PenerbitanUmrahmePage() {
   const [showDetailFields, setShowDetailFields] = useState(false);
 
   const PLACEHOLDER_PAKET = "-- Belum Ada Paket Terbit (Silakan Buat di Kalkulator HPP) --";
-  const [paketList, setPaketList] = useState<Array<{ id: string; label: string }>>([]);
+  const [paketList, setPaketList] = useState<Array<{ id: string; label: string; name: string }>>([]);
   const [batchOptions, setBatchOptions] = useState<string[]>([PLACEHOLDER_PAKET]);
   const [inputBatch, setInputBatch] = useState<string>(PLACEHOLDER_PAKET);
 
@@ -175,11 +175,12 @@ export default function PenerbitanUmrahmePage() {
         const list = res.data.map((pkg: { id: string; name?: string; departureDate?: string }) => {
           const nama = String(pkg.name ?? "Paket Umrah").trim();
           const tgl = String(pkg.departureDate ?? "").trim();
-          return { id: String(pkg.id), label: tgl ? `${nama} (${tgl})` : nama };
+          return { id: String(pkg.id), label: tgl ? `${nama} (${tgl})` : nama, name: nama };
         });
         setPaketList(list);
         setBatchOptions(list.map((l: { label: string }) => l.label));
         setInputBatch(list[0].label);
+        setInputRombongan(list[0].name || list[0].label);
       })
       .catch((e) => console.error("Gagal memuat daftar paket:", e));
     return () => { batal = true; };
@@ -195,7 +196,7 @@ export default function PenerbitanUmrahmePage() {
   const [inputTelepon, setInputTelepon] = useState("");
   const [inputKontakDarurat, setInputKontakDarurat] = useState("");
   const [inputAlamat, setInputAlamat] = useState("");
-  const [inputRombongan, setInputRombongan] = useState("Rombongan 01 (Bangka Belitung)");
+  const [inputRombongan, setInputRombongan] = useState("");
   const [inputBus, setInputBus] = useState("Bus 01");
   const [inputKamar, setInputKamar] = useState("Kamar #408 (Quad)");
   const [inputFlight, setInputFlight] = useState("Garuda Indonesia GA-980 (CGK ➔ JED)");
@@ -308,6 +309,10 @@ export default function PenerbitanUmrahmePage() {
     setTimeout(() => {
       const generatedId = buatNomorJamaah(new Set(accounts.map((a) => a.nomorJamaah)));
 
+      const selectedPkg = paketList.find((p) => p.label === inputBatch);
+      const pkgName = selectedPkg?.name || inputBatch;
+      const finalRombongan = inputRombongan.trim() || pkgName || "-";
+
       const newAcc: DetailedIssuedAccount = {
         id: String(Date.now()),
         nama: inputNama.trim(),
@@ -320,7 +325,7 @@ export default function PenerbitanUmrahmePage() {
         kontakDarurat: inputKontakDarurat.trim() || "-",
         alamatLengkap: inputAlamat.trim() || "-",
         batch: inputBatch,
-        rombongan: inputRombongan.trim() || "-",
+        rombongan: finalRombongan,
         bus: inputBus.trim() || "-",
         kamar: inputKamar.trim() || "-",
         flight: inputFlight.trim() || "-",
@@ -410,6 +415,8 @@ export default function PenerbitanUmrahmePage() {
     }
 
     const nomorDipakai = new Set(accounts.map((a) => a.nomorJamaah));
+    const selectedPkg = paketList.find((p) => p.label === inputBatch);
+    const pkgName = selectedPkg?.name || inputBatch;
 
     const newBulkAccounts: DetailedIssuedAccount[] = excelPreviewRows.map((r, idx) => {
       const generatedId = buatNomorJamaah(nomorDipakai);
@@ -426,7 +433,7 @@ export default function PenerbitanUmrahmePage() {
         kontakDarurat: "-",
         alamatLengkap: "-",
         batch: inputBatch,
-        rombongan: r.rombongan || "-",
+        rombongan: r.rombongan || pkgName || "-",
         bus: r.bus || "-",
         kamar: r.kamar || "-",
         flight: "-",
@@ -689,7 +696,14 @@ export default function PenerbitanUmrahmePage() {
                   </label>
                   <select
                     value={inputBatch}
-                    onChange={(e) => setInputBatch(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setInputBatch(val);
+                      const selectedPkg = paketList.find((p) => p.label === val);
+                      if (selectedPkg) {
+                        setInputRombongan(selectedPkg.name || val);
+                      }
+                    }}
                     className="w-full h-11 px-3 rounded-xl border border-stone-200 bg-stone-50 text-xs font-bold text-stone-900 focus:outline-none focus:border-pink-500 focus:bg-white transition"
                   >
                     {batchOptions.map((opt) => (
@@ -743,6 +757,17 @@ export default function PenerbitanUmrahmePage() {
                         className="w-full h-10 px-3 rounded-lg border border-stone-200 bg-stone-50 text-xs"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-stone-500 uppercase">Rombongan (Paket Keberangkatan)</label>
+                    <input
+                      type="text"
+                      value={inputRombongan}
+                      onChange={(e) => setInputRombongan(e.target.value)}
+                      placeholder="cth. UMRAH REGULER 04 NOVEMBER 2026"
+                      className="w-full h-10 px-3 rounded-lg border border-stone-200 bg-stone-50 text-xs font-semibold text-pink-700"
+                    />
                   </div>
 
                   <div className="grid sm:grid-cols-3 gap-3">
