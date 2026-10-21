@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { COMPANION_RELATIONS, GENDERS, type Companion } from "@/lib/jamaah/rules";
+import { Plane, Plus, Trash2 } from "lucide-react";
+import { COMPANION_RELATIONS, GENDERS, digitsOnly, type Companion } from "@/lib/jamaah/rules";
 import {
   SISKOPATUH_EDUCATIONS,
   SISKOPATUH_MARITAL_STATUSES,
@@ -43,6 +43,18 @@ export type JamaahFormValues = {
   emergencyPhone: string;
   companions: Companion[];
   notes: string;
+  packageId?: string;
+  roomType?: string;
+};
+
+export type PackageOption = {
+  id: string;
+  name: string;
+  departureDate?: string;
+  price?: string;
+  airline?: string;
+  duration?: string;
+  targetPax?: number;
 };
 
 export const EMPTY_FORM: JamaahFormValues = {
@@ -71,6 +83,8 @@ export const EMPTY_FORM: JamaahFormValues = {
   emergencyPhone: "",
   companions: [],
   notes: "",
+  packageId: "",
+  roomType: "Quad (4 Orang)",
 };
 
 type TextKey = Exclude<keyof JamaahFormValues, "companions">;
@@ -86,6 +100,8 @@ type Props = {
    */
   storedHints?: Partial<Record<TextKey, string>>;
   showNotes?: boolean;
+  showPackageSelector?: boolean;
+  packages?: PackageOption[];
 };
 
 const inputClass =
@@ -103,8 +119,18 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
-export function JamaahFields({ values, onChange, errors = {}, storedHints = {}, showNotes = false }: Props) {
+export function JamaahFields({
+  values,
+  onChange,
+  errors = {},
+  storedHints = {},
+  showNotes = false,
+  showPackageSelector = false,
+  packages = [],
+}: Props) {
   const set = (key: TextKey, value: string) => onChange({ ...values, [key]: value });
+
+  const selectedPackage = packages.find((p) => p.id === values.packageId);
 
   const field = (
     key: TextKey,
@@ -114,9 +140,20 @@ export function JamaahFields({ values, onChange, errors = {}, storedHints = {}, 
     const hint = storedHints[key];
     return (
       <label className={`space-y-1 ${opts.wide ? "sm:col-span-2" : ""}`}>
-        <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">
-          {label}
-          {opts.required ? <span className="text-brand-pink"> *</span> : null}
+        <span className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wide text-stone-500">
+          <span>
+            {label}
+            {opts.required ? <span className="text-brand-pink"> *</span> : null}
+          </span>
+          {key === "nik" && values.nik ? (
+            <span
+              className={`font-mono text-[10px] lowercase tracking-normal ${
+                digitsOnly(values.nik).length === 16 ? "font-bold text-emerald-600" : "font-semibold text-amber-600"
+              }`}
+            >
+              {digitsOnly(values.nik).length}/16 digit
+            </span>
+          ) : null}
         </span>
         <input
           type={opts.type ?? "text"}
@@ -165,6 +202,76 @@ export function JamaahFields({ values, onChange, errors = {}, storedHints = {}, 
 
   return (
     <div className="space-y-4">
+      {showPackageSelector ? (
+        <fieldset aria-label="Program & Grup Keberangkatan" className="space-y-3 rounded-2xl border border-brand-pink/30 bg-brand-pink/[0.03] p-4 sm:p-5 shadow-2xs">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wide text-brand-cocoa">
+                <Plane className="h-4 w-4 text-brand-pink" />
+                Program & Grup Keberangkatan
+              </h3>
+              <p className="mt-0.5 text-[11px] text-stone-500">
+                Pilih paket umrah untuk mendaftarkan jamaah ini otomatis ke dalam grup manifest keberangkatan.
+              </p>
+            </div>
+            {values.packageId ? (
+              <span className="inline-flex w-fit items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                ✓ Otomatis Masuk Manifest
+              </span>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">
+                Pilih Program / Paket Keberangkatan
+              </span>
+              <select
+                value={values.packageId ?? ""}
+                onChange={(e) => onChange({ ...values, packageId: e.target.value })}
+                className={inputClass}
+              >
+                <option value="">— Belum Pilih Program (Hanya Simpan Biodata) —</option>
+                {packages.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name} {pkg.departureDate ? `(${pkg.departureDate})` : ""} {pkg.price ? `· ${pkg.price}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500">
+                Pilihan Tipe Kamar
+              </span>
+              <select
+                value={values.roomType || "Quad (4 Orang)"}
+                onChange={(e) => onChange({ ...values, roomType: e.target.value })}
+                className={inputClass}
+              >
+                <option value="Quad (4 Orang)">Quad (4 Orang) — Sekamar Berempat</option>
+                <option value="Triple (3 Orang)">Triple (3 Orang) — Sekamar Bertiga</option>
+                <option value="Double (2 Orang)">Double (2 Orang) — Sekamar Berdua</option>
+                <option value="Single (1 Orang)">Single (1 Orang) — Kamar Sendiri</option>
+              </select>
+            </label>
+          </div>
+
+          {selectedPackage ? (
+            <div className="rounded-xl border border-stone-200/80 bg-white p-3 text-xs space-y-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-stone-700">
+                <span className="font-bold text-brand-cocoa">{selectedPackage.name}</span>
+                <span className="font-semibold text-brand-pink">{selectedPackage.price}</span>
+              </div>
+              <p className="text-[11px] text-stone-500">
+                {selectedPackage.duration ? `Durasi: ${selectedPackage.duration} · ` : ""}
+                {selectedPackage.airline ? `Maskapai: ${selectedPackage.airline}` : ""}
+              </p>
+            </div>
+          ) : null}
+        </fieldset>
+      ) : null}
+
       <Section title="Biodata" hint="Nama sesuai KTP / kartu vaksin. Kolom bertanda * dibutuhkan manifest Siskopatuh & maskapai.">
         {field("fullName", "Nama Lengkap", { required: true, placeholder: "Siti Aminah binti Abdullah", wide: true })}
         {field("fatherName", "Nama Ayah", { required: true, placeholder: "Abdullah" })}

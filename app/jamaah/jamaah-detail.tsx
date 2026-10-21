@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Check, Copy, Link2, Loader2, MessageCircle, Plane, RefreshCw, Save, Trash2 } from "lucide-react";
 import { STATUS_STYLES, validateFields, type Companion, type Completeness } from "@/lib/jamaah/rules";
 import { DocumentPanel, type DocumentSummary } from "./document-panel";
-import { EMPTY_FORM, JamaahFields, type JamaahFormValues } from "./jamaah-fields";
+import { EMPTY_FORM, JamaahFields, type JamaahFormValues, type PackageOption } from "./jamaah-fields";
 
 type JamaahRecord = Omit<JamaahFormValues, "birthDate" | "passportIssueDate" | "passportExpiry"> & {
   id: string;
@@ -17,7 +17,14 @@ type JamaahRecord = Omit<JamaahFormValues, "birthDate" | "passportIssueDate" | "
   source: string;
   selfServiceToken: string;
   documents: Array<DocumentSummary & { fileName: string; uploadedVia: string }>;
-  departures: Array<{ participantId: string; bookingCode: string; packageId: string; packageName: string; departure: string }>;
+  departures: Array<{
+    participantId: string;
+    bookingCode: string;
+    packageId: string;
+    packageName: string;
+    departure: string;
+    roomType?: string;
+  }>;
   completeness: Completeness;
 };
 
@@ -29,6 +36,8 @@ function toForm(r: JamaahRecord): JamaahFormValues {
     passportIssueDate: r.passportIssueDate ?? "",
     passportExpiry: r.passportExpiry ?? "",
     companions: r.companions ?? [],
+    packageId: r.departures?.[0]?.packageId ?? "",
+    roomType: r.departures?.[0]?.roomType || "Quad (4 Orang)",
   };
 }
 
@@ -36,6 +45,7 @@ export function JamaahDetail({ jamaahId }: { jamaahId: string | null }) {
   const router = useRouter();
   const [record, setRecord] = useState<JamaahRecord | null>(null);
   const [form, setForm] = useState<JamaahFormValues>(EMPTY_FORM);
+  const [packages, setPackages] = useState<PackageOption[]>([]);
   const [storageConfigured, setStorageConfigured] = useState(true);
   const [isLoading, setIsLoading] = useState(Boolean(jamaahId));
   const [loadError, setLoadError] = useState("");
@@ -48,6 +58,17 @@ export function JamaahDetail({ jamaahId }: { jamaahId: string | null }) {
   const [origin, setOrigin] = useState("");
 
   useEffect(() => setOrigin(window.location.origin), []);
+
+  useEffect(() => {
+    fetch("/api/packages")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.ok && Array.isArray(json.data)) {
+          setPackages(json.data);
+        }
+      })
+      .catch((err) => console.error("Gagal memuat paket:", err));
+  }, []);
 
   const apply = useCallback((data: JamaahRecord) => {
     setRecord(data);
@@ -91,6 +112,8 @@ export function JamaahDetail({ jamaahId }: { jamaahId: string | null }) {
           passportIssueDate: form.passportIssueDate || null,
           passportExpiry: form.passportExpiry || null,
           companions: form.companions.filter((c) => c.name.trim()),
+          packageId: form.packageId || undefined,
+          roomType: form.roomType || "Quad (4 Orang)",
         }),
       });
       const json = await res.json();
@@ -194,7 +217,14 @@ export function JamaahDetail({ jamaahId }: { jamaahId: string | null }) {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
-          <JamaahFields values={form} onChange={setForm} errors={fieldErrors} showNotes />
+          <JamaahFields
+            values={form}
+            onChange={setForm}
+            errors={fieldErrors}
+            showNotes
+            showPackageSelector
+            packages={packages}
+          />
 
           <div className="sticky bottom-20 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white/95 p-3 shadow-soft backdrop-blur md:bottom-3">
             <button
@@ -314,7 +344,7 @@ export function JamaahDetail({ jamaahId }: { jamaahId: string | null }) {
               </h3>
               {record.departures.length === 0 ? (
                 <p className="text-[11px] text-stone-500">
-                  Belum tertaut ke grup mana pun. Tautkan dari tab Manifest di halaman grup keberangkatan.
+                  Belum tertaut ke grup mana pun. Pilih paket program di form sebelah kiri untuk mendaftarkan jamaah ke grup keberangkatan.
                 </p>
               ) : (
                 <ul className="space-y-1.5">

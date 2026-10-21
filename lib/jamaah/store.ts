@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getPool } from "@/lib/db/connection";
 import { ensureJamaahSchema } from "@/lib/jamaah/schema";
+import { upsertCustomerFromBooking } from "@/lib/customers/store";
 import {
   computeCompleteness,
   digitsOnly,
@@ -35,6 +36,7 @@ export type JamaahDeparture = {
   packageId: string;
   packageName: string;
   departure: string;
+  roomType?: string;
 };
 
 export type JamaahRecord = ProfileFields & {
@@ -210,7 +212,8 @@ async function hydrate(row: Record<string, any>): Promise<JamaahRecord> {
     pool.query(`SELECT ${DOC_COLUMNS} FROM jamaah_documents WHERE jamaah_id = $1 ORDER BY uploaded_at DESC;`, [row.id]),
     pool.query(
       `SELECT pa.id AS "participantId", pa.booking_code AS "bookingCode",
-              b.package_id AS "packageId", b.package_name AS "packageName", b.departure
+              b.package_id AS "packageId", b.package_name AS "packageName", b.departure,
+              COALESCE(pa.room_type, 'Quad (4 Orang)') AS "roomType"
          FROM participants pa JOIN real_bookings b ON b.code = pa.booking_code
         WHERE pa.jamaah_id = $1 ORDER BY pa.created_at DESC;`,
       [row.id],
@@ -265,7 +268,11 @@ export async function findDuplicate(input: { nik?: string; passportNumber?: stri
   return (res.rows[0] as { id: string; fullName: string } | undefined) ?? null;
 }
 
-export type ProfileInput = Partial<ProfileFields> & { notes?: string };
+export type ProfileInput = Partial<ProfileFields> & {
+  notes?: string;
+  packageId?: string;
+  roomType?: string;
+};
 
 /** Kolom yang boleh ditulis, dan cara menormalkan nilainya. */
 const WRITABLE: Array<[keyof ProfileInput, string, (v: unknown) => unknown]> = [
@@ -296,6 +303,138 @@ const WRITABLE: Array<[keyof ProfileInput, string, (v: unknown) => unknown]> = [
   ["notes", "notes", (v) => String(v ?? "").trim()],
 ];
 
+/**
+ * Mendaftarkan jamaah ke grup paket keberangkatan tertentu.
+ * Jika jamaah belum punya booking untuk paket ini, dibuatkan booking & participant baru.
+ * Jika sudah ada, paket dan data di booking & manifest disinkronkan.
+ */
+export async function enrollJamaahIntoPackage(
+  jamaahId: string,
+  packageId: string,
+  opts?: { roomType?: string },
+): Promise<void> {
+  if (!isUuid(jamaahId)) return;
+  const pool = await db();
+
+  const trimmedPkg = String(packageId ?? "").trim();
+  if (!trimmedPkg) return;
+
+  const pkgRes = await pool.query(
+    `SELECT id, name, departure_date AS "departureDate", numeric_price, price
+       FROM published_packages
+      WHERE id = $1 LIMIT 1;`,
+    [trimmedPkg],
+  );
+  if (pkgRes.rowCount === 0) return;
+  const pkg = pkgRes.rows[0];
+
+  const jamaah = await findJamaah(jamaahId);
+  if (!jamaah) return;
+
+  const roomType = String(opts?.roomType ?? "").trim() || "Quad (4 Orang)";
+  const pkgPrice = Number(pkg.numeric_price) || 34500000;
+  const departureDate = pkg.departureDate || "";
+
+  // Cek apakah jamaah sudah terdaftar di booking/participant yang tertaut
+  const existingRes = await pool.query(
+    `SELECT pa.id AS "participantId", pa.booking_code AS "bookingCode", b.package_id AS "packageId"
+       FROM participants pa
+       JOIN real_bookings b ON b.code = pa.booking_code
+      WHERE pa.jamaah_id = $1
+      ORDER BY pa.created_at DESC
+      LIMIT 1;`,
+    [jamaahId],
+  );
+
+  if (existingRes.rowCount && existingRes.rowCount > 0) {
+    const existing = existingRes.rows[0];
+    if (existing.packageId === trimmedPkg) {
+      await pool.query(
+        `UPDATE real_bookings
+            SET customer_name = $1, phone = $2, nik = $3, room_type = $4
+          WHERE code = $5;`,
+        [jamaah.fullName, jamaah.phone, jamaah.nik, roomType, existing.bookingCode],
+      );
+      await pool.query(
+        `UPDATE participants
+            SET name = $1, passport_number = $2, contact = $3, room_type = $4, updated_at = NOW()
+          WHERE id = $5;`,
+        [jamaah.fullName, jamaah.passportNumber, jamaah.phone, roomType, existing.participantId],
+      );
+    } else {
+      await pool.query(
+        `UPDATE real_bookings
+            SET package_id = $1, package_name = $2, departure = $3, room_type = $4,
+                total_amount = $5, remaining_amount = GREATEST(0, $5 - paid_amount),
+                customer_name = $6, phone = $7, nik = $8
+          WHERE code = $9;`,
+        [
+          pkg.id,
+          pkg.name,
+          departureDate,
+          roomType,
+          pkgPrice,
+          jamaah.fullName,
+          jamaah.phone,
+          jamaah.nik,
+          existing.bookingCode,
+        ],
+      );
+      await pool.query(
+        `UPDATE participants
+            SET name = $1, passport_number = $2, contact = $3, room_type = $4, updated_at = NOW()
+          WHERE id = $5;`,
+        [jamaah.fullName, jamaah.passportNumber, jamaah.phone, roomType, existing.participantId],
+      );
+    }
+  } else {
+    const bookingCode = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
+    await pool.query(
+      `INSERT INTO real_bookings (
+        code, customer_name, phone, nik, package_id, package_name, departure, room_type, participants, total_amount, paid_amount, remaining_amount, status, umrah_me_status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9, 0, $9, 'Belum Bayar', 'Aktif 🟢');`,
+      [
+        bookingCode,
+        jamaah.fullName,
+        jamaah.phone,
+        jamaah.nik,
+        pkg.id,
+        pkg.name,
+        departureDate,
+        roomType,
+        pkgPrice,
+      ],
+    );
+
+    await pool.query(
+      `INSERT INTO participants (
+        booking_code, name, passport_number, contact, document_status, room_type, jamaah_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+      [
+        bookingCode,
+        jamaah.fullName,
+        jamaah.passportNumber,
+        jamaah.phone,
+        "Belum Lengkap",
+        roomType,
+        jamaahId,
+      ],
+    );
+
+    try {
+      await upsertCustomerFromBooking({
+        customerName: jamaah.fullName,
+        phone: jamaah.phone,
+        city: jamaah.regency || jamaah.province || "",
+      });
+    } catch (e) {
+      console.error("upsertCustomerFromBooking error:", e);
+    }
+  }
+
+  await syncParticipantStatusSafe(jamaahId);
+}
+
 export async function createJamaah(input: ProfileInput, opts: { actor: string; source: "admin" | "umrahme" }) {
   const columns = ["source", "created_by", "updated_by", "self_service_token"];
   const values: unknown[] = [opts.source, opts.actor, opts.actor, newToken()];
@@ -311,7 +450,11 @@ export async function createJamaah(input: ProfileInput, opts: { actor: string; s
     `INSERT INTO jamaah_profiles (${columns.join(", ")}) VALUES (${placeholders}) RETURNING id;`,
     values,
   );
-  return (await findJamaah(res.rows[0].id))!;
+  const newId = res.rows[0].id;
+  if (input.packageId) {
+    await enrollJamaahIntoPackage(newId, input.packageId, { roomType: input.roomType });
+  }
+  return (await findJamaah(newId))!;
 }
 
 export async function updateJamaah(id: string, patch: ProfileInput, actor: string): Promise<JamaahRecord | null> {
@@ -324,17 +467,22 @@ export async function updateJamaah(id: string, patch: ProfileInput, actor: strin
     values.push(normalise(patch[key]));
     sets.push(`${column} = $${values.length}`);
   }
-  if (sets.length === 0) return findJamaah(id);
+  if (sets.length > 0) {
+    values.push(actor);
+    sets.push(`updated_by = $${values.length}`, "updated_at = NOW()");
+    values.push(id);
 
-  values.push(actor);
-  sets.push(`updated_by = $${values.length}`, "updated_at = NOW()");
-  values.push(id);
+    const res = await (await db()).query(
+      `UPDATE jamaah_profiles SET ${sets.join(", ")} WHERE id = $${values.length};`,
+      values,
+    );
+    if (res.rowCount === 0) return null;
+  }
 
-  const res = await (await db()).query(
-    `UPDATE jamaah_profiles SET ${sets.join(", ")} WHERE id = $${values.length};`,
-    values,
-  );
-  if (res.rowCount === 0) return null;
+  if (patch.packageId !== undefined) {
+    await enrollJamaahIntoPackage(id, patch.packageId, { roomType: patch.roomType });
+  }
+
   await syncParticipantStatusSafe(id);
   return findJamaah(id);
 }
