@@ -3,18 +3,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Armchair,
   ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  Compass,
   Contact,
+  FileCheck,
   Folder,
   FolderOpen,
+  Hotel,
   Layers,
   LayoutGrid,
   List,
+  Plane,
   Plus,
   Search,
+  Ticket,
+  UserCheck,
   Users,
 } from "lucide-react";
 import {
@@ -40,6 +49,20 @@ type JamaahRow = {
   companionCount: number;
   completeness: Completeness;
 };
+
+function formatDateRange(dep?: string | null, ret?: string | null, duration?: string | null) {
+  if (!dep) return "Jadwal Belum Ditentukan";
+  const d1 = new Date(dep);
+  const d1Str = !isNaN(d1.getTime())
+    ? d1.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+    : dep;
+  if (!ret) return `${d1Str} (${duration || "12 Hari"})`;
+  const d2 = new Date(ret);
+  const d2Str = !isNaN(d2.getTime())
+    ? d2.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+    : ret;
+  return `${d1Str} – ${d2Str} (${duration || "12 Hari"})`;
+}
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
@@ -196,15 +219,24 @@ export function JamaahList() {
     }
   };
 
+  const [packages, setPackages] = useState<any[]>([]);
+
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/jamaah", { cache: "no-store" });
-      const json = await res.json();
-      if (!res.ok) {
-        setLoadError(json?.error || "Gagal memuat database jamaah");
+      const [resJamaah, resPackages] = await Promise.all([
+        fetch("/api/jamaah", { cache: "no-store" }),
+        fetch("/api/packages", { cache: "no-store" }),
+      ]);
+      const jsonJamaah = await resJamaah.json();
+      const jsonPackages = await resPackages.json();
+      if (!resJamaah.ok) {
+        setLoadError(jsonJamaah?.error || "Gagal memuat database jamaah");
         return;
       }
-      setRows(json.data ?? []);
+      setRows(jsonJamaah.data ?? []);
+      if (resPackages.ok && Array.isArray(jsonPackages.data)) {
+        setPackages(jsonPackages.data);
+      }
       setLoadError("");
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Gagal memuat database jamaah");
@@ -259,6 +291,40 @@ export function JamaahList() {
     [currentScopedRows],
   );
 
+  // Active Package Info for selected group
+  const activePackage = useMemo(() => {
+    if (!selectedGroup) return null;
+    const s = selectedGroup.toLowerCase().trim();
+    return (
+      packages.find((p) => {
+        const pName = String(p.name || "").toLowerCase().trim();
+        return pName === s || s.includes(pName) || pName.includes(s);
+      }) ?? null
+    );
+  }, [selectedGroup, packages]);
+
+  // Capacity / Seat calculations (Lingkaran Merah)
+  const totalSeat = useMemo(() => {
+    if (activePackage) {
+      return Number(activePackage.targetPax) || 45;
+    }
+    if (selectedGroup) {
+      return 45;
+    }
+    if (packages.length > 0) {
+      return packages.reduce((sum, p) => sum + (Number(p.targetPax) || 45), 0);
+    }
+    return Math.max(rows.length, 45);
+  }, [activePackage, selectedGroup, packages, rows]);
+
+  const jamaahTerdaftar = currentScopedRows.length;
+  const sisaSeat = Math.max(0, totalSeat - jamaahTerdaftar);
+  const percentFilled = totalSeat > 0 ? Math.round((jamaahTerdaftar / totalSeat) * 100) : 0;
+  const siapManifestCount = currentScopedRows.filter((r) => r.completeness.status === "Siap Masuk Manifest").length;
+  const belumLengkapCount = currentScopedRows.filter(
+    (r) => r.completeness.status === "Data Belum Lengkap" || r.completeness.status === "Dokumen Belum Lengkap"
+  ).length;
+
   // Filtered Jamaah Rows
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -300,137 +366,330 @@ export function JamaahList() {
   return (
     <div className="space-y-4 font-sans">
       {/* ── Top Group Quick Selector & View Switcher ── */}
-      <section className="flex flex-col gap-2.5 rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mr-1 flex items-center gap-1">
-            <Layers className="h-3.5 w-3.5 text-brand-pink" />
-            Grup:
-          </span>
+      <section className="flex flex-col gap-2.5 rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mr-1 flex items-center gap-1">
+              <Layers className="h-3.5 w-3.5 text-brand-pink" />
+              Grup:
+            </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              handleSelectGroup(null);
-              if (viewMode === "flat") setViewMode("group");
-            }}
-            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-              selectedGroup === null && viewMode === "group"
-                ? "bg-brand-pink text-white shadow-2xs"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            📁 Semua Grup ({groupNames.length})
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleSelectGroup(null);
+                if (viewMode === "flat") setViewMode("group");
+              }}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                selectedGroup === null && viewMode === "group"
+                  ? "bg-brand-pink text-white shadow-2xs"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+              }`}
+            >
+              📁 Semua Grup ({groupNames.length})
+            </button>
 
-          {groupNames.map((name) => {
-            const isSelected = selectedGroup === name;
-            const count = groupMap.get(name)?.length ?? 0;
-            return (
-              <button
-                key={name}
-                type="button"
-                onClick={() => {
-                  handleSelectGroup(name);
-                  setViewMode("group");
-                }}
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
-                  isSelected
-                    ? "bg-brand-pink text-white shadow-2xs"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                }`}
-              >
-                <span>🕋 {name}</span>
-                <span
-                  className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                    isSelected ? "bg-white/25 text-white" : "bg-stone-200 text-stone-700"
+            {groupNames.map((name) => {
+              const isSelected = selectedGroup === name;
+              const count = groupMap.get(name)?.length ?? 0;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => {
+                    handleSelectGroup(name);
+                    setViewMode("group");
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
+                    isSelected
+                      ? "bg-brand-pink text-white shadow-2xs"
+                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+                  <span>🕋 {name}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] ${
+                      isSelected ? "bg-white/25 text-white" : "bg-stone-200 text-stone-700"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 border-t border-stone-100 pt-2 sm:border-t-0 sm:pt-0 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("group");
+                handleSelectGroup(null);
+              }}
+              title="Tampilan Folder Grup (Group First)"
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                viewMode === "group" && selectedGroup === null
+                  ? "bg-stone-800 text-white"
+                  : "text-stone-500 hover:bg-stone-100"
+              }`}
+            >
+              <LayoutGrid className="h-3 w-3" />
+              <span>Kartu Grup</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("accordion");
+                handleSelectGroup(null);
+              }}
+              title="Tampilan Akordion Semua Grup"
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                viewMode === "accordion"
+                  ? "bg-stone-800 text-white"
+                  : "text-stone-500 hover:bg-stone-100"
+              }`}
+            >
+              <Layers className="h-3 w-3" />
+              <span>Akordion</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("flat");
+                handleSelectGroup(null);
+              }}
+              title="Tampilan Tabel Lengkap Semua Jamaah"
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                viewMode === "flat"
+                  ? "bg-stone-800 text-white"
+                  : "text-stone-500 hover:bg-stone-100"
+              }`}
+            >
+              <List className="h-3 w-3" />
+              <span>Semua Data</span>
+            </button>
+          </div>
         </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 border-t border-stone-100 pt-2 sm:border-t-0 sm:pt-0">
-          <button
-            type="button"
-            onClick={() => {
-              setViewMode("group");
-              handleSelectGroup(null);
-            }}
-            title="Tampilan Folder Grup (Group First)"
-            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
-              viewMode === "group" && selectedGroup === null
-                ? "bg-stone-800 text-white"
-                : "text-stone-500 hover:bg-stone-100"
-            }`}
-          >
-            <LayoutGrid className="h-3 w-3" />
-            <span>Kartu Grup</span>
-          </button>
+        {/* ── Informasi Dasar Grup & Jadwal Keberangkatan (Lingkaran Hijau) ── */}
+        <div className="mt-1 rounded-xl border border-stone-200/80 bg-gradient-to-r from-stone-50 via-rose-50/25 to-stone-50 p-3.5">
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-cocoa flex items-center gap-1.5">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Informasi Dasar Grup & Jadwal Keberangkatan
+              {activePackage?.name ? (
+                <span className="text-brand-pink font-black truncate max-w-xs sm:max-w-md">
+                  · {activePackage.name}
+                </span>
+              ) : (
+                <span className="text-stone-400 font-bold">· Seluruh Rombongan Aktif</span>
+              )}
+            </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              setViewMode("accordion");
-              handleSelectGroup(null);
-            }}
-            title="Tampilan Akordion Semua Grup"
-            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
-              viewMode === "accordion"
-                ? "bg-stone-800 text-white"
-                : "text-stone-500 hover:bg-stone-100"
-            }`}
-          >
-            <Layers className="h-3 w-3" />
-            <span>Akordion</span>
-          </button>
+            {activePackage?.id ? (
+              <Link
+                href={`/paket/${activePackage.id}`}
+                className="text-[11px] font-bold text-brand-pink hover:text-brand-pinkHover hover:underline shrink-0"
+              >
+                Rincian Paket & Itinerary ↗
+              </Link>
+            ) : null}
+          </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setViewMode("flat");
-              handleSelectGroup(null);
-            }}
-            title="Tampilan Tabel Lengkap Semua Jamaah"
-            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
-              viewMode === "flat"
-                ? "bg-stone-800 text-white"
-                : "text-stone-500 hover:bg-stone-100"
-            }`}
-          >
-            <List className="h-3 w-3" />
-            <span>Semua Data</span>
-          </button>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 1. Jadwal Keberangkatan */}
+            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
+              <div className="rounded-lg bg-pink-100 p-2 text-pink-700 shrink-0">
+                <CalendarDays className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Jadwal Keberangkatan</p>
+                <p className="text-xs font-black text-brand-cocoa leading-tight truncate">
+                  {activePackage
+                    ? formatDateRange(activePackage.departureDate, activePackage.returnDate, activePackage.duration)
+                    : "Jadwal 3 Grup Aktif (Okt – Nov 2026)"}
+                </p>
+                <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                  {activePackage?.duration || "12 Hari"} · {activePackage?.startPoint || "Start PGK / CGK"}
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Tiket Domestik */}
+            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
+              <div className="rounded-lg bg-blue-100 p-2 text-blue-700 shrink-0">
+                <Plane className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Domestik</p>
+                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.domesticAirline || "Garuda Indonesia (Feeder PGK ⇄ CGK)"}>
+                  {activePackage?.domesticAirline || "Garuda Indonesia (Feeder PGK ⇄ CGK)"}
+                </p>
+                <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                  {activePackage?.flightRoute ? activePackage.flightRoute.split("➔")[0]?.trim() + " ➔ CGK (PP)" : "Feeder Domestik PP"}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Tiket Internasional */}
+            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
+              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 shrink-0">
+                <Compass className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Internasional</p>
+                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.internationalAirline || activePackage?.airline || "Saudia Airlines (SV-815)"}>
+                  {activePackage?.internationalAirline || activePackage?.airline || "Saudia Airlines (SV-815)"}
+                </p>
+                <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                  {activePackage?.flightRoute || "CGK ➔ JED / MED (Direct)"}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Roomlist & Hotel */}
+            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
+              <div className="rounded-lg bg-amber-100 p-2 text-amber-700 shrink-0">
+                <Hotel className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Roomlist & Hotel</p>
+                  <Link
+                    href={activePackage?.id ? `/paket/${activePackage.id}` : "/manifest"}
+                    className="text-[9px] font-bold text-pink-600 hover:underline"
+                  >
+                    Roomlist ↗
+                  </Link>
+                </div>
+                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.makkahHotel ? `Makkah: ${activePackage.makkahHotel}` : "Grand Al Massa"}>
+                  🕋 {activePackage?.makkahHotel || "Grand Al Massa"}
+                </p>
+                <p className="text-[10px] text-stone-500 truncate mt-0.5" title={activePackage?.madinahHotel ? `Madinah: ${activePackage.madinahHotel}` : "Daar El Naeem"}>
+                  🕌 {activePackage?.madinahHotel || "Daar El Naeem"}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── Status Counts Bar ── */}
+      {/* ── Status Counts Bar (Lingkaran Merah: Seat & Kapasitas) ── */}
       <section className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+        {/* Card 1: Total Seat Keseluruhan */}
+        <div className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs transition hover:border-pink-300">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">Total Seat Keseluruhan</p>
+            <div className="rounded-lg bg-pink-50 p-1 text-pink-600">
+              <Armchair className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="mt-1 text-base font-black leading-tight text-brand-cocoa">
+            {totalSeat} <span className="text-xs font-semibold text-stone-500">Seat</span>
+          </p>
+          <p className="mt-1 text-[10px] font-medium text-stone-400">
+            Kapasitas kuota {selectedGroup ? "grup ini" : "seluruh grup"}
+          </p>
+        </div>
+
+        {/* Card 2: Jamaah Terdaftar */}
+        <div className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs transition hover:border-blue-300">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">Jamaah Terdaftar</p>
+            <div className="rounded-lg bg-blue-50 p-1 text-blue-600">
+              <UserCheck className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="mt-1 text-base font-black leading-tight text-blue-900">
+            {jamaahTerdaftar} <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+          </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[9px] font-black text-blue-700">
+              {percentFilled}% Terisi
+            </span>
+            <span className="text-[10px] text-stone-400">masuk database</span>
+          </div>
+        </div>
+
+        {/* Card 3: Sisa Seat Tersedia */}
+        <div className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs transition hover:border-emerald-300">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">Sisa Seat Tersedia</p>
+            <div className="rounded-lg bg-emerald-50 p-1 text-emerald-600">
+              <Ticket className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="mt-1 text-base font-black leading-tight text-emerald-800">
+            {sisaSeat} <span className="text-xs font-semibold text-stone-500">Seat</span>
+          </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[9px] font-black ${
+                sisaSeat > 0 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+              }`}
+            >
+              {sisaSeat > 0 ? "Open Booking" : "Seat Penuh"}
+            </span>
+            <span className="text-[10px] text-stone-400">tersedia dipesan</span>
+          </div>
+        </div>
+
+        {/* Card 4: Kesiapan Dokumen & Manifest */}
+        <div className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs transition hover:border-amber-300">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">Siap Masuk Manifest</p>
+            <div className="rounded-lg bg-amber-50 p-1 text-amber-600">
+              <FileCheck className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="mt-1 text-base font-black leading-tight text-brand-cocoa">
+            {siapManifestCount} <span className="text-xs font-semibold text-stone-500">/ {jamaahTerdaftar} Jamaah</span>
+          </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="rounded-full bg-amber-100 px-1.5 py-0.2 text-[9px] font-black text-amber-800">
+              {belumLengkapCount} Belum Lengkap
+            </span>
+            <Link href="/manifest" className="text-[10px] font-bold text-pink-600 hover:underline">
+              Cek Manifest ↗
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Status Dokumen Filter Bar ── */}
+      <div className="flex flex-wrap items-center gap-1.5 px-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mr-1">
+          Filter Dokumen:
+        </span>
+        <button
+          type="button"
+          onClick={() => setStatusFilter("")}
+          className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${
+            !statusFilter ? "bg-stone-800 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+          }`}
+        >
+          Semua ({currentScopedRows.length})
+        </button>
         {COMPLETENESS_STATUSES.map((status) => {
           const active = statusFilter === status;
+          const count = counts[status] ?? 0;
           return (
             <button
               key={status}
               type="button"
               onClick={() => setStatusFilter(active ? "" : status)}
-              aria-pressed={active}
-              className={`rounded-2xl border bg-white p-3.5 text-left shadow-2xs transition ${
-                active
-                  ? "border-brand-pink ring-2 ring-brand-pink/20"
-                  : "border-stone-200/70 hover:border-stone-300"
+              className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${
+                active ? "bg-brand-pink text-white shadow-2xs" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
               }`}
             >
-              <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">{status}</p>
-              <p className="mt-1 text-sm font-black leading-tight text-brand-cocoa">
-                {counts[status] ?? 0} Jamaah
-              </p>
+              {status} ({count})
             </button>
           );
         })}
-      </section>
+      </div>
 
       {/* ── Level 1: Default Group-First Directory (Cards View) ── */}
       {viewMode === "group" && selectedGroup === null && (
