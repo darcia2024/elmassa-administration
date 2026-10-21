@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Armchair,
   ArrowLeft,
@@ -330,27 +331,21 @@ export function JamaahList() {
   const [viewMode, setViewMode] = useState<"group" | "accordion" | "flat">("group");
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const g = p.get("grup");
-      if (g) {
-        setSelectedGroup(decodeURIComponent(g));
-        setViewMode("group");
-      }
-    }
-  }, []);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const grupParam = searchParams ? searchParams.get("grup") : null;
 
   const handleSelectGroup = (name: string | null) => {
     setSelectedGroup(name);
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
+      const params = new URLSearchParams(window.location.search);
       if (name) {
-        url.searchParams.set("grup", name);
+        params.set("grup", name);
       } else {
-        url.searchParams.delete("grup");
+        params.delete("grup");
       }
-      window.history.pushState({}, "", url.toString());
+      const qs = params.toString();
+      router.push(qs ? `/jamaah?${qs}` : "/jamaah");
     }
   };
 
@@ -416,6 +411,25 @@ export function JamaahList() {
       return a.localeCompare(b);
     });
   }, [groupMap]);
+
+  // React to URL ?grup= parameter changes (e.g. clicking sidebar Group links)
+  useEffect(() => {
+    if (grupParam) {
+      const decoded = decodeURIComponent(grupParam).trim().toLowerCase();
+      // Match exact or fuzzy against available group names
+      const matched =
+        groupNames.find((gn) => {
+          const l = gn.toLowerCase().trim();
+          return l === decoded || l.includes(decoded) || decoded.includes(l);
+        }) || decodeURIComponent(grupParam);
+
+      setSelectedGroup(matched);
+      setViewMode("group");
+    } else {
+      // If no ?grup in URL, reset to show all groups
+      setSelectedGroup(null);
+    }
+  }, [grupParam, groupNames]);
 
   // Dokumen & Paspor Process Status Map per Jamaah
   const [docProcessStatusMap, setDocProcessStatusMap] = useState<Record<string, string>>({});
