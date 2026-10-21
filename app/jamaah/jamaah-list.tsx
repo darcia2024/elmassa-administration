@@ -12,6 +12,7 @@ import {
   ChevronUp,
   Compass,
   Contact,
+  Edit3,
   FileCheck,
   Folder,
   FolderOpen,
@@ -19,6 +20,7 @@ import {
   Layers,
   LayoutGrid,
   List,
+  MessageSquare,
   Plane,
   Plus,
   Search,
@@ -85,9 +87,13 @@ function StatusBadge({ status }: { status: CompletenessStatus }) {
 function JamaahTable({
   items,
   showGroupColumn = true,
+  processStatusMap = {},
+  onProcessStatusChange,
 }: {
   items: JamaahRow[];
   showGroupColumn?: boolean;
+  processStatusMap?: Record<string, string>;
+  onProcessStatusChange?: (id: string, status: string) => void;
 }) {
   if (items.length === 0) {
     return (
@@ -123,6 +129,39 @@ function JamaahTable({
             <p className="text-[10px] text-stone-500">
               Dokumen {row.documentCount}/7 · Paspor s/d {formatDate(row.passportExpiry)}
             </p>
+            {(() => {
+              const currentStatus =
+                processStatusMap[row.id] ||
+                (row.completeness?.status === "Siap Masuk Manifest" || row.documentCount >= 7
+                  ? "Dokumen lengkap"
+                  : row.passportNumber && row.passportNumber.trim().length >= 5
+                  ? "Jamaah sudah memiliki paspor"
+                  : "Melengkapi dokumen");
+              return (
+                <div className="flex items-center justify-between pt-1.5 border-t border-stone-100">
+                  <span className="text-[10px] text-stone-400 font-semibold">Proses Dokumen:</span>
+                  <select
+                    value={currentStatus}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => onProcessStatusChange?.(row.id, e.target.value)}
+                    className={`rounded-md border px-2 py-0.5 text-[10px] font-bold outline-none ${
+                      currentStatus === "Dokumen lengkap"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        : currentStatus === "Jamaah sudah memiliki paspor"
+                        ? "border-blue-200 bg-blue-50 text-blue-800"
+                        : currentStatus === "Proses pembuatan paspor"
+                        ? "border-purple-200 bg-purple-50 text-purple-800"
+                        : "border-amber-200 bg-amber-50 text-amber-800"
+                    }`}
+                  >
+                    <option value="Melengkapi dokumen">⏳ Melengkapi dokumen</option>
+                    <option value="Proses pembuatan paspor">🛂 Proses pembuatan paspor</option>
+                    <option value="Jamaah sudah memiliki paspor">📘 Jamaah sudah memiliki paspor</option>
+                    <option value="Dokumen lengkap">✅ Dokumen lengkap</option>
+                  </select>
+                </div>
+              );
+            })()}
           </Link>
         ))}
       </div>
@@ -135,6 +174,7 @@ function JamaahTable({
               <th className="py-2.5 pl-3 pr-2">Jamaah</th>
               <th className="py-2.5 pr-2">Paspor</th>
               <th className="py-2.5 pr-2">Berlaku s/d</th>
+              <th className="py-2.5 pr-2">Proses Kelengkapan Dokumen & Paspor</th>
               {showGroupColumn && <th className="py-2.5 pr-2">Grup</th>}
               <th className="py-2.5 pr-2 text-center">Dokumen</th>
               <th className="py-2.5 pr-2">Status</th>
@@ -156,6 +196,37 @@ function JamaahTable({
                 </td>
                 <td className="py-2.5 pr-2 font-mono text-stone-700">{row.passportNumber || "—"}</td>
                 <td className="whitespace-nowrap py-2.5 pr-2 text-stone-600">{formatDate(row.passportExpiry)}</td>
+                <td className="py-2.5 pr-2">
+                  {(() => {
+                    const currentStatus =
+                      processStatusMap[row.id] ||
+                      (row.completeness?.status === "Siap Masuk Manifest" || row.documentCount >= 7
+                        ? "Dokumen lengkap"
+                        : row.passportNumber && row.passportNumber.trim().length >= 5
+                        ? "Jamaah sudah memiliki paspor"
+                        : "Melengkapi dokumen");
+                    return (
+                      <select
+                        value={currentStatus}
+                        onChange={(e) => onProcessStatusChange?.(row.id, e.target.value)}
+                        className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold outline-none transition cursor-pointer shadow-2xs ${
+                          currentStatus === "Dokumen lengkap"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                            : currentStatus === "Jamaah sudah memiliki paspor"
+                            ? "border-blue-200 bg-blue-50 text-blue-800"
+                            : currentStatus === "Proses pembuatan paspor"
+                            ? "border-purple-200 bg-purple-50 text-purple-800"
+                            : "border-amber-200 bg-amber-50 text-amber-800"
+                        }`}
+                      >
+                        <option value="Melengkapi dokumen">⏳ Melengkapi dokumen</option>
+                        <option value="Proses pembuatan paspor">🛂 Proses pembuatan paspor</option>
+                        <option value="Jamaah sudah memiliki paspor">📘 Jamaah sudah memiliki paspor</option>
+                        <option value="Dokumen lengkap">✅ Dokumen lengkap</option>
+                      </select>
+                    );
+                  })()}
+                </td>
                 {showGroupColumn && (
                   <td className="max-w-[200px] truncate py-2.5 pr-2 text-stone-600" title={row.departureNames.join(", ")}>
                     {row.departureNames.join(", ") || "—"}
@@ -271,6 +342,36 @@ export function JamaahList() {
     });
   }, [groupMap]);
 
+  // Dokumen & Paspor Process Status Map per Jamaah
+  const [docProcessStatusMap, setDocProcessStatusMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("elmassa_doc_process_status");
+      if (saved) setDocProcessStatusMap(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleDocProcessChange = (jamaahId: string, status: string) => {
+    setDocProcessStatusMap((prev) => {
+      const updated = { ...prev, [jamaahId]: status };
+      try {
+        localStorage.setItem("elmassa_doc_process_status", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Tour Leader & Muthawwif State per Group
+  const [leadersUpdateKey, setLeadersUpdateKey] = useState(0);
+  const [isEditLeadersOpen, setIsEditLeadersOpen] = useState(false);
+  const [leaderForm, setLeaderForm] = useState({
+    tlName: "",
+    tlPhone: "",
+    muthawwifName: "",
+    muthawwifPhone: "",
+  });
+
   // Scoped Jamaah Rows based on selection or view
   const currentScopedRows = useMemo(() => {
     if (selectedGroup) {
@@ -302,6 +403,21 @@ export function JamaahList() {
       }) ?? null
     );
   }, [selectedGroup, packages]);
+
+  // Tour Leader & Muthawwif Info for selected group
+  const currentLeaders = useMemo(() => {
+    if (!selectedGroup) return { tlName: "Ahmad Hidayat", tlPhone: "0812-7199-1002", muthawwifName: "Ust. Abdullah Mansur", muthawwifPhone: "0812-7199-1001" };
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(`elmassa_group_leaders_${selectedGroup}`) : null;
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      tlName: activePackage?.tourLeaderName || "Ahmad Hidayat",
+      tlPhone: activePackage?.tourLeaderWhatsapp || "0812-7199-1002",
+      muthawwifName: activePackage?.guideName || "Ust. Abdullah Mansur",
+      muthawwifPhone: activePackage?.guideWhatsapp || "0812-7199-1001",
+    };
+  }, [selectedGroup, activePackage, leadersUpdateKey]);
 
   // Capacity / Seat calculations (Lingkaran Merah)
   const totalSeat = useMemo(() => {
@@ -353,6 +469,25 @@ export function JamaahList() {
 
   const collapseAllAccordions = () => {
     setOpenAccordions({});
+  };
+
+  const openEditLeaders = () => {
+    setLeaderForm({
+      tlName: currentLeaders.tlName,
+      tlPhone: currentLeaders.tlPhone,
+      muthawwifName: currentLeaders.muthawwifName,
+      muthawwifPhone: currentLeaders.muthawwifPhone,
+    });
+    setIsEditLeadersOpen(true);
+  };
+
+  const handleSaveLeaders = () => {
+    if (!selectedGroup) return;
+    try {
+      localStorage.setItem(`elmassa_group_leaders_${selectedGroup}`, JSON.stringify(leaderForm));
+      setLeadersUpdateKey((k) => k + 1);
+    } catch {}
+    setIsEditLeadersOpen(false);
   };
 
   if (isLoading) {
@@ -833,6 +968,64 @@ export function JamaahList() {
               <p className="text-[11px] text-stone-500">
                 Menampilkan data seluruh jamaah yang terdaftar dalam rombongan keberangkatan ini.
               </p>
+
+              {/* Petugas Pendamping Rombongan: Tour Leader & Muthawwif */}
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
+                {/* Tour Leader Badge */}
+                <div className="flex items-center gap-2 rounded-xl border border-stone-200/80 bg-stone-50/90 px-3 py-1.5 shadow-2xs">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-pink-100 text-pink-700 font-bold shrink-0">
+                    <UserCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400 leading-tight">Tour Leader</p>
+                    <p className="text-xs font-black text-brand-cocoa leading-tight truncate">
+                      {currentLeaders.tlName}
+                    </p>
+                    <a
+                      href={`https://wa.me/${currentLeaders.tlPhone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-1 mt-0.5"
+                    >
+                      <MessageSquare className="h-2.5 w-2.5" />
+                      <span>{currentLeaders.tlPhone}</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Muthawwif Badge */}
+                <div className="flex items-center gap-2 rounded-xl border border-stone-200/80 bg-stone-50/90 px-3 py-1.5 shadow-2xs">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 font-bold shrink-0">
+                    <Users className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400 leading-tight">Muthawwif</p>
+                    <p className="text-xs font-black text-brand-cocoa leading-tight truncate">
+                      {currentLeaders.muthawwifName}
+                    </p>
+                    <a
+                      href={`https://wa.me/${currentLeaders.muthawwifPhone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-1 mt-0.5"
+                    >
+                      <MessageSquare className="h-2.5 w-2.5" />
+                      <span>{currentLeaders.muthawwifPhone}</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Tombol Ubah Petugas */}
+                <button
+                  type="button"
+                  onClick={openEditLeaders}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-2.5 text-[10px] font-bold text-stone-600 hover:bg-stone-50 hover:text-brand-pink transition shrink-0 cursor-pointer"
+                  title="Atur Nama & Kontak Tour Leader dan Muthawwif"
+                >
+                  <Edit3 className="h-3 w-3" />
+                  <span>Ubah Petugas</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -877,7 +1070,7 @@ export function JamaahList() {
           ) : null}
 
           {/* Table without redundant group column since group is in header */}
-          <JamaahTable items={filtered} showGroupColumn={false} />
+          <JamaahTable items={filtered} showGroupColumn={false} processStatusMap={docProcessStatusMap} onProcessStatusChange={handleDocProcessChange} />
         </section>
       )}
 
@@ -1007,8 +1200,103 @@ export function JamaahList() {
             </div>
           </header>
 
-          <JamaahTable items={filtered} showGroupColumn={true} />
+          <JamaahTable items={filtered} showGroupColumn={true} processStatusMap={docProcessStatusMap} onProcessStatusChange={handleDocProcessChange} />
         </section>
+      )}
+      {/* Modal Edit Petugas Tour Leader & Muthawwif */}
+      {isEditLeadersOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
+                <span>🕋 Atur Petugas Rombongan</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditLeadersOpen(false)}
+                className="h-8 w-8 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 flex items-center justify-center font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-stone-500">
+              Atur nama dan nomor kontak resmi Tour Leader serta Muthawwif untuk grup{" "}
+              <strong className="text-stone-800">{selectedGroup}</strong>.
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                  Nama Tour Leader
+                </label>
+                <input
+                  type="text"
+                  value={leaderForm.tlName}
+                  onChange={(e) => setLeaderForm({ ...leaderForm, tlName: e.target.value })}
+                  placeholder="Contoh: Ahmad Hidayat"
+                  className="w-full h-9 rounded-xl border border-stone-200 px-3 font-semibold text-stone-800 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                  No. WhatsApp Tour Leader
+                </label>
+                <input
+                  type="text"
+                  value={leaderForm.tlPhone}
+                  onChange={(e) => setLeaderForm({ ...leaderForm, tlPhone: e.target.value })}
+                  placeholder="Contoh: 0812-7199-1002"
+                  className="w-full h-9 rounded-xl border border-stone-200 px-3 font-semibold text-stone-800 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="border-t border-stone-100 pt-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                  Nama Muthawwif
+                </label>
+                <input
+                  type="text"
+                  value={leaderForm.muthawwifName}
+                  onChange={(e) => setLeaderForm({ ...leaderForm, muthawwifName: e.target.value })}
+                  placeholder="Contoh: Ust. Abdullah Mansur"
+                  className="w-full h-9 rounded-xl border border-stone-200 px-3 font-semibold text-stone-800 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                  No. WhatsApp Muthawwif
+                </label>
+                <input
+                  type="text"
+                  value={leaderForm.muthawwifPhone}
+                  onChange={(e) => setLeaderForm({ ...leaderForm, muthawwifPhone: e.target.value })}
+                  placeholder="Contoh: 0812-7199-1001"
+                  className="w-full h-9 rounded-xl border border-stone-200 px-3 font-semibold text-stone-800 outline-none focus:border-brand-pink"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setIsEditLeadersOpen(false)}
+                className="h-9 px-4 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveLeaders}
+                className="h-9 px-5 rounded-xl bg-brand-pink text-xs font-bold text-white hover:bg-brand-pinkHover shadow-2xs"
+              >
+                Simpan Petugas
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
