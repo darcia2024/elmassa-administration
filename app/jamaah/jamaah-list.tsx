@@ -10,8 +10,10 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  CircleDollarSign,
   Compass,
   Contact,
+  CreditCard,
   Edit3,
   FileCheck,
   Folder,
@@ -23,10 +25,12 @@ import {
   MessageSquare,
   Plane,
   Plus,
+  Receipt,
   Search,
   Ticket,
   UserCheck,
   Users,
+  Wallet,
 } from "lucide-react";
 import {
   COMPLETENESS_STATUSES,
@@ -34,6 +38,7 @@ import {
   type Completeness,
   type CompletenessStatus,
 } from "@/lib/jamaah/rules";
+import type { PaymentSummaryResponse, JamaahPaymentStatus, PaymentSummaryStats } from "@/lib/payments/summary";
 
 type JamaahRow = {
   id: string;
@@ -74,6 +79,44 @@ function formatDate(iso: string | null) {
     : d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function formatIDR(value: number) {
+  return `Rp ${Math.round(Number(value) || 0).toLocaleString("id-ID")}`;
+}
+
+function PaymentBadge({ status }: { status?: string }) {
+  const current = status || "Belum Bayar";
+  if (current === "Lunas") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800 shadow-2xs">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Lunas 100%
+      </span>
+    );
+  }
+  if (current === "Sudah 50%") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 text-[10px] font-extrabold text-indigo-800 shadow-2xs">
+        <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+        Sudah 50%
+      </span>
+    );
+  }
+  if (current === "DP") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/80 px-2 py-0.5 text-[10px] font-extrabold text-amber-800 shadow-2xs">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        DP
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 border border-stone-200/80 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+      <span className="h-1.5 w-1.5 rounded-full bg-stone-400" />
+      Belum Bayar
+    </span>
+  );
+}
+
 function StatusBadge({ status }: { status: CompletenessStatus }) {
   return (
     <span
@@ -88,11 +131,13 @@ function JamaahTable({
   items,
   showGroupColumn = true,
   processStatusMap = {},
+  paymentStatusMap = {},
   onProcessStatusChange,
 }: {
   items: JamaahRow[];
   showGroupColumn?: boolean;
   processStatusMap?: Record<string, string>;
+  paymentStatusMap?: Record<string, JamaahPaymentStatus>;
   onProcessStatusChange?: (id: string, status: string) => void;
 }) {
   if (items.length === 0) {
@@ -124,7 +169,10 @@ function JamaahTable({
                   {showGroupColumn && row.departureNames[0] ? ` · ${row.departureNames[0]}` : ""}
                 </p>
               </div>
-              <StatusBadge status={row.completeness.status} />
+              <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                <PaymentBadge status={paymentStatusMap[row.id]?.status} />
+                <StatusBadge status={row.completeness.status} />
+              </div>
             </div>
             <p className="text-[10px] text-stone-500">
               Dokumen {row.documentCount}/7 · Paspor s/d {formatDate(row.passportExpiry)}
@@ -178,6 +226,7 @@ function JamaahTable({
               {showGroupColumn && <th className="py-2.5 pr-2">Grup</th>}
               <th className="py-2.5 pr-2 text-center">Dokumen</th>
               <th className="py-2.5 pr-2">Status</th>
+              <th className="py-2.5 pr-2">Pembayaran</th>
               <th className="py-2.5 pr-3 text-right">Aksi</th>
             </tr>
           </thead>
@@ -236,6 +285,9 @@ function JamaahTable({
                 <td className="py-2.5 pr-2">
                   <StatusBadge status={row.completeness.status} />
                 </td>
+                <td className="py-2.5 pr-2 whitespace-nowrap">
+                  <PaymentBadge status={paymentStatusMap[row.id]?.status} />
+                </td>
                 <td className="py-2.5 pr-3 text-right">
                   <Link
                     href={`/jamaah/${row.id}`}
@@ -291,12 +343,14 @@ export function JamaahList() {
   };
 
   const [packages, setPackages] = useState<any[]>([]);
+  const [paymentSummaryData, setPaymentSummaryData] = useState<PaymentSummaryResponse | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const [resJamaah, resPackages] = await Promise.all([
+      const [resJamaah, resPackages, resPayments] = await Promise.all([
         fetch("/api/jamaah", { cache: "no-store" }),
         fetch("/api/packages", { cache: "no-store" }),
+        fetch("/api/jamaah/payments-summary", { cache: "no-store" }).catch(() => null),
       ]);
       const jsonJamaah = await resJamaah.json();
       const jsonPackages = await resPackages.json();
@@ -307,6 +361,10 @@ export function JamaahList() {
       setRows(jsonJamaah.data ?? []);
       if (resPackages.ok && Array.isArray(jsonPackages.data)) {
         setPackages(jsonPackages.data);
+      }
+      if (resPayments && resPayments.ok) {
+        const jsonPayments = await resPayments.json();
+        setPaymentSummaryData(jsonPayments);
       }
       setLoadError("");
     } catch (err) {
@@ -403,6 +461,38 @@ export function JamaahList() {
       }) ?? null
     );
   }, [selectedGroup, packages]);
+
+  // Scoped Payment Summary Stats per Selected Group or Global
+  const scopedPaymentStats = useMemo<PaymentSummaryStats>(() => {
+    if (!paymentSummaryData) {
+      return {
+        totalBookings: 0,
+        totalPax: 0,
+        totalBilled: 0,
+        totalPaid: 0,
+        totalOutstanding: 0,
+        countLunas: 0,
+        count50: 0,
+        countDp: 0,
+        countBelumBayar: 0,
+        jamaahLunas: 0,
+        jamaah50: 0,
+        jamaahDp: 0,
+        jamaahBelumBayar: 0,
+      };
+    }
+    if (!selectedGroup) return paymentSummaryData.global;
+    const s = selectedGroup.toLowerCase().trim();
+    const byName = paymentSummaryData.byPackageName;
+    const foundKey = Object.keys(byName).find(
+      (k) => k.toLowerCase() === s || s.includes(k.toLowerCase()) || k.toLowerCase().includes(s),
+    );
+    if (foundKey && byName[foundKey]) return byName[foundKey];
+    if (activePackage?.id && paymentSummaryData.byPackageId[activePackage.id]) {
+      return paymentSummaryData.byPackageId[activePackage.id];
+    }
+    return paymentSummaryData.global;
+  }, [paymentSummaryData, selectedGroup, activePackage]);
 
   // Tour Leader & Muthawwif Info for selected group
   const currentLeaders = useMemo(() => {
@@ -794,6 +884,111 @@ export function JamaahList() {
         </div>
       </section>
 
+      {/* ── Informasi Umum Pembayaran (Permintaan Owner) ── */}
+      <section className="rounded-2xl border border-stone-200/80 bg-white p-3.5 sm:p-4 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-pink-100 p-1.5 text-brand-pink">
+              <Wallet className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-brand-cocoa flex items-center gap-1.5">
+                Informasi Umum Pembayaran Rombongan
+                {selectedGroup ? (
+                  <span className="text-brand-pink font-extrabold">· {selectedGroup}</span>
+                ) : (
+                  <span className="text-stone-400 font-bold">· Seluruh Rombongan</span>
+                )}
+              </h3>
+              <p className="text-[10px] text-stone-500">
+                Terkoneksi langsung ke manajemen keuangan kasir & aplikasi UmrahMe jamaah
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/pembayaran/rekap-grup"
+              className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-bold text-stone-700 hover:bg-stone-100 transition shadow-2xs"
+            >
+              <Layers className="h-3.5 w-3.5 text-stone-500" />
+              <span>Rekap Keuangan Grup ↗</span>
+            </Link>
+            <Link
+              href="/pembayaran"
+              className="inline-flex items-center gap-1 rounded-xl bg-brand-pink px-3 py-1.5 text-[11px] font-bold text-white hover:bg-brand-pinkHover transition shadow-2xs"
+            >
+              <CreditCard className="h-3.5 w-3.5" />
+              <span>Kasir & Pembayaran ↗</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          {/* Card 1: Total Jamaah DP */}
+          <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white p-3 shadow-2xs transition hover:border-amber-300">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Total Jamaah DP</p>
+              <div className="rounded-lg bg-amber-100 p-1 text-amber-800">
+                <CreditCard className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-amber-900">
+              {scopedPaymentStats.jamaahDp || scopedPaymentStats.countDp}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-amber-700/80 font-medium">Uang muka terverifikasi kasir</p>
+          </div>
+
+          {/* Card 2: Jamaah Sudah 50% */}
+          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-3 shadow-2xs transition hover:border-indigo-300">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Sudah Membayar 50%</p>
+              <div className="rounded-lg bg-indigo-100 p-1 text-indigo-800">
+                <CircleDollarSign className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-indigo-900">
+              {scopedPaymentStats.jamaah50 || scopedPaymentStats.count50}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-indigo-700/80 font-medium">Cicilan masuk &ge; 50% biaya</p>
+          </div>
+
+          {/* Card 3: Jamaah Yang Lunas */}
+          <div className="rounded-xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-3 shadow-2xs transition hover:border-emerald-300">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Jamaah Yang Lunas</p>
+              <div className="rounded-lg bg-emerald-100 p-1 text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-emerald-900">
+              {scopedPaymentStats.jamaahLunas || scopedPaymentStats.countLunas}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-emerald-700/80 font-medium">Pelunasan penuh (100%)</p>
+          </div>
+
+          {/* Card 4: Total Terhimpun & Sisa Tagihan */}
+          <div className="rounded-xl border border-pink-200/80 bg-gradient-to-br from-rose-50/40 to-white p-3 shadow-2xs transition hover:border-pink-300">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-cocoa">Total Dana Terhimpun</p>
+              <div className="rounded-lg bg-pink-100 p-1 text-brand-pink">
+                <Wallet className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-sm sm:text-base font-black leading-tight text-brand-pink truncate" title={formatIDR(scopedPaymentStats.totalPaid)}>
+              {formatIDR(scopedPaymentStats.totalPaid)}
+            </p>
+            <p className="mt-1 text-[10px] text-stone-500 truncate" title={`Sisa: ${formatIDR(scopedPaymentStats.totalOutstanding)}`}>
+              Sisa Tagihan: <span className="font-bold text-stone-700">{formatIDR(scopedPaymentStats.totalOutstanding)}</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── Status Dokumen Filter Bar ── */}
       <div className="flex flex-wrap items-center gap-1.5 px-1">
         <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mr-1">
@@ -1070,7 +1265,13 @@ export function JamaahList() {
           ) : null}
 
           {/* Table without redundant group column since group is in header */}
-          <JamaahTable items={filtered} showGroupColumn={false} processStatusMap={docProcessStatusMap} onProcessStatusChange={handleDocProcessChange} />
+          <JamaahTable
+            items={filtered}
+            showGroupColumn={false}
+            processStatusMap={docProcessStatusMap}
+            paymentStatusMap={paymentSummaryData?.byJamaahId}
+            onProcessStatusChange={handleDocProcessChange}
+          />
         </section>
       )}
 
@@ -1155,7 +1356,13 @@ export function JamaahList() {
 
                   {isOpen && (
                     <div className="p-4 border-t border-stone-100">
-                      <JamaahTable items={filteredMembers} showGroupColumn={false} />
+                      <JamaahTable
+                        items={filteredMembers}
+                        showGroupColumn={false}
+                        processStatusMap={docProcessStatusMap}
+                        paymentStatusMap={paymentSummaryData?.byJamaahId}
+                        onProcessStatusChange={handleDocProcessChange}
+                      />
                     </div>
                   )}
                 </div>
@@ -1200,7 +1407,13 @@ export function JamaahList() {
             </div>
           </header>
 
-          <JamaahTable items={filtered} showGroupColumn={true} processStatusMap={docProcessStatusMap} onProcessStatusChange={handleDocProcessChange} />
+          <JamaahTable
+            items={filtered}
+            showGroupColumn={true}
+            processStatusMap={docProcessStatusMap}
+            paymentStatusMap={paymentSummaryData?.byJamaahId}
+            onProcessStatusChange={handleDocProcessChange}
+          />
         </section>
       )}
       {/* Modal Edit Petugas Tour Leader & Muthawwif */}

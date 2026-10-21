@@ -20,6 +20,14 @@ type GroupTotals = {
   totalOutstanding: number;
   settled: number;
   unsettled: number;
+  countLunas?: number;
+  count50?: number;
+  countDp?: number;
+  countBelumBayar?: number;
+  jamaahLunas?: number;
+  jamaah50?: number;
+  jamaahDp?: number;
+  jamaahBelumBayar?: number;
 };
 
 type Row = Departure & { totals: GroupTotals | null };
@@ -87,8 +95,11 @@ export function RekapGrup() {
           paid: acc.paid + (r.totals?.totalPaid ?? 0),
           outstanding: acc.outstanding + (r.totals?.totalOutstanding ?? 0),
           jamaah: acc.jamaah + (r.totals?.jamaah ?? 0),
+          lunas: acc.lunas + (r.totals?.jamaahLunas ?? r.totals?.countLunas ?? r.totals?.settled ?? 0),
+          halfPaid: acc.halfPaid + (r.totals?.jamaah50 ?? r.totals?.count50 ?? 0),
+          dp: acc.dp + (r.totals?.jamaahDp ?? r.totals?.countDp ?? 0),
         }),
-        { billed: 0, paid: 0, outstanding: 0, jamaah: 0 },
+        { billed: 0, paid: 0, outstanding: 0, jamaah: 0, lunas: 0, halfPaid: 0, dp: 0 },
       ),
     [rows],
   );
@@ -114,14 +125,15 @@ export function RekapGrup() {
 
       <section className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         {[
-          { label: "Total Grup", value: `${rows.length}` },
-          { label: "Total Jamaah", value: `${grand.jamaah} Pax` },
-          { label: "Total Dibayar", value: formatIDR(grand.paid), tone: "text-emerald-700" },
-          { label: "Total Sisa", value: formatIDR(grand.outstanding), tone: "text-brand-pink" },
+          { label: "Total Terhimpun", value: formatIDR(grand.paid), tone: "text-emerald-700", sub: `Dari tagihan ${formatIDR(grand.billed)}` },
+          { label: "Sisa Tagihan", value: formatIDR(grand.outstanding), tone: "text-brand-pink", sub: "Belum tertagih / piutang" },
+          { label: "Jamaah Lunas (100%)", value: `${grand.lunas} Jamaah`, tone: "text-emerald-800", sub: "Pelunasan penuh selesai" },
+          { label: "Jamaah DP & Cicilan 50%", value: `${grand.dp + grand.halfPaid} Jamaah`, tone: "text-amber-800", sub: `${grand.halfPaid} sudah 50% · ${grand.dp} DP` },
         ].map((card) => (
           <article key={card.label} className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs">
             <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">{card.label}</p>
             <p className={`mt-1 text-sm font-black leading-tight ${card.tone ?? "text-brand-cocoa"}`}>{card.value}</p>
+            {card.sub && <p className="mt-1 text-[10px] text-stone-400 font-medium">{card.sub}</p>}
           </article>
         ))}
       </section>
@@ -189,7 +201,11 @@ export function RekapGrup() {
                       <Users className="h-3 w-3 text-stone-400" />
                       {t?.jamaah ?? 0} / {row.targetPax} pax
                     </span>
-                    <span>Lunas {t ? `${t.settled}/${t.bookings}` : "—"}</span>
+                    <span className="font-bold text-emerald-700">
+                      {t?.jamaahLunas ?? t?.countLunas ?? t?.settled ?? 0} Lunas
+                      {(t?.jamaah50 ?? t?.count50 ?? 0) > 0 ? ` · ${t?.jamaah50 ?? t?.count50} 50%` : ""}
+                      {(t?.jamaahDp ?? t?.countDp ?? 0) > 0 ? ` · ${t?.jamaahDp ?? t?.countDp} DP` : ""}
+                    </span>
                   </div>
 
                   <p className="text-[11px] text-stone-500">Berangkat {formatDateID(row.departureDate)}</p>
@@ -208,7 +224,7 @@ export function RekapGrup() {
                   <th className="py-2.5 pr-2 text-right">Tagihan</th>
                   <th className="py-2.5 pr-2 text-right">Dibayar</th>
                   <th className="py-2.5 pr-2 text-right">Sisa</th>
-                  <th className="py-2.5 pr-2">Lunas</th>
+                  <th className="py-2.5 pr-2">Status Pembayaran</th>
                   <th className="py-2.5 pr-3 text-right">Rincian</th>
                 </tr>
               </thead>
@@ -243,7 +259,25 @@ export function RekapGrup() {
                         {formatIDR(t?.totalOutstanding ?? 0)}
                       </td>
                       <td className="py-2.5 pr-2 whitespace-nowrap text-stone-700">
-                        {t ? `${t.settled} / ${t.bookings}` : "—"}
+                        {t ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800" title="Jamaah Lunas">
+                              {t.jamaahLunas ?? t.countLunas ?? t.settled} Lunas
+                            </span>
+                            {(t.jamaah50 ?? t.count50 ?? 0) > 0 && (
+                              <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-[10px] font-bold text-indigo-800" title="Jamaah Sudah 50%">
+                                {t.jamaah50 ?? t.count50} 50%
+                              </span>
+                            )}
+                            {(t.jamaahDp ?? t.countDp ?? 0) > 0 && (
+                              <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800" title="Jamaah DP">
+                                {t.jamaahDp ?? t.countDp} DP
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
                       </td>
                       <td className="py-2.5 pr-3 text-right">
                         <Link

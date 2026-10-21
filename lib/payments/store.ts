@@ -54,9 +54,10 @@ function generateReceiptNumber() {
   return `KW-${Math.floor(100000 + Math.random() * 900000)}`;
 }
 
-function resolveBookingStatus(totalAmount: number, paidAmount: number) {
+export function resolveBookingStatus(totalAmount: number, paidAmount: number) {
   const remaining = Math.max(totalAmount - paidAmount, 0);
   if (remaining <= 0) return "Lunas";
+  if (paidAmount >= totalAmount * 0.5) return "Sudah 50%";
   if (paidAmount > 0) return "DP";
   return "Belum Bayar";
 }

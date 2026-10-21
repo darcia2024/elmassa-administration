@@ -23,7 +23,26 @@ export async function GET(_: Request, { params }: RouteProps) {
 
   const totalBilled = rows.reduce((sum, r) => sum + r.totalAmount, 0);
   const totalPaid = rows.reduce((sum, r) => sum + r.paidAmount, 0);
-  const settled = rows.filter((r) => r.isSettled).length;
+  const totalOutstanding = Math.max(totalBilled - totalPaid, 0);
+  const settled = rows.filter((r) => r.isSettled || (r.totalAmount > 0 && r.paidAmount >= r.totalAmount)).length;
+
+  const countLunas = rows.filter((r) => (r.totalAmount > 0 && r.paidAmount >= r.totalAmount) || (r.paidAmount > 0 && r.remainingAmount <= 0)).length;
+  const count50 = rows.filter((r) => r.totalAmount > 0 && r.paidAmount >= r.totalAmount * 0.5 && r.paidAmount < r.totalAmount && r.remainingAmount > 0).length;
+  const countDp = rows.filter((r) => r.paidAmount > 0 && r.paidAmount < r.totalAmount * 0.5).length;
+  const countBelumBayar = rows.filter((r) => r.paidAmount === 0).length;
+
+  const jamaahLunas = rows
+    .filter((r) => (r.totalAmount > 0 && r.paidAmount >= r.totalAmount) || (r.paidAmount > 0 && r.remainingAmount <= 0))
+    .reduce((sum, r) => sum + r.participants, 0);
+  const jamaah50 = rows
+    .filter((r) => r.totalAmount > 0 && r.paidAmount >= r.totalAmount * 0.5 && r.paidAmount < r.totalAmount && r.remainingAmount > 0)
+    .reduce((sum, r) => sum + r.participants, 0);
+  const jamaahDp = rows
+    .filter((r) => r.paidAmount > 0 && r.paidAmount < r.totalAmount * 0.5)
+    .reduce((sum, r) => sum + r.participants, 0);
+  const jamaahBelumBayar = rows
+    .filter((r) => r.paidAmount === 0)
+    .reduce((sum, r) => sum + r.participants, 0);
 
   return NextResponse.json(
     {
@@ -33,9 +52,17 @@ export async function GET(_: Request, { params }: RouteProps) {
         jamaah: rows.reduce((sum, r) => sum + r.participants, 0),
         totalBilled,
         totalPaid,
-        totalOutstanding: Math.max(totalBilled - totalPaid, 0),
+        totalOutstanding,
         settled,
         unsettled: rows.length - settled,
+        countLunas,
+        count50,
+        countDp,
+        countBelumBayar,
+        jamaahLunas,
+        jamaah50,
+        jamaahDp,
+        jamaahBelumBayar,
       },
     },
     { headers: { "Cache-Control": "no-store" } },
