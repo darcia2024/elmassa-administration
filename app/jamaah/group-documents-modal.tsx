@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Building2,
   Calendar,
@@ -153,10 +154,24 @@ export function ModalDetailTiket({
   groupName?: string;
   onOpenUpload?: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"passengers" | "pdf">("passengers");
   const [search, setSearch] = useState("");
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const isDomestic = type === "domestic";
   const title = isDomestic ? "Tiket Domestik Feeder" : "Tiket Internasional";
@@ -172,9 +187,17 @@ export function ModalDetailTiket({
     );
   });
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-xs font-sans">
-      <div className="flex h-full max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-stone-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-xs font-sans"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex h-full max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/80 px-5 py-3.5 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -369,7 +392,8 @@ export function ModalDetailTiket({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -390,10 +414,24 @@ export function ModalDetailRoomlist({
   groupName?: string;
   onOpenUpload?: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [cityTab, setCityTab] = useState<"jakarta" | "madinah" | "mekkah">("madinah");
   const [search, setSearch] = useState("");
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const madinahRows = roomlistData.madinah || [];
   const mekkahRows = roomlistData.mekkah || [];
@@ -425,9 +463,17 @@ export function ModalDetailRoomlist({
     return r.nama.toLowerCase().includes(q) || (r.tipeKamar && r.tipeKamar.toLowerCase().includes(q));
   });
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-xs font-sans">
-      <div className="flex h-full max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-stone-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-xs font-sans"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex h-full max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/80 px-5 py-3.5 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -616,7 +662,8 @@ export function ModalDetailRoomlist({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -636,11 +683,25 @@ export function ModalUploadDokumen({
   groupName?: string;
   onSuccess: (info: { fileName: string; fileUrl: string; type: string }) => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const docLabels = {
     domestic: "Tiket Domestik Feeder (PDF)",
@@ -687,9 +748,17 @@ export function ModalUploadDokumen({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans">
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4 border border-stone-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4 border border-stone-200 animate-in fade-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <h3 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
             <Upload className="h-4 w-4 text-brand-pink" />
@@ -748,6 +817,7 @@ export function ModalUploadDokumen({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Armchair,
@@ -385,6 +386,11 @@ export function JamaahList() {
     }
   }, []);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     load();
   }, [load]);
@@ -600,19 +606,12 @@ export function JamaahList() {
   const currentDocs = useMemo(() => {
     const groupKey = selectedGroup || activePackage?.name || "default";
     const custom = groupDocsState[groupKey];
-    const isNov2026 =
-      !selectedGroup ||
-      selectedGroup.toLowerCase().includes("nov") ||
-      (activePackage?.name && activePackage.name.toLowerCase().includes("nov"));
 
-    const domestic: TicketDocument =
-      custom?.domestic || (isNov2026 ? DEFAULT_DOMESTIC_04NOV : { ...DEFAULT_DOMESTIC_04NOV, hasTicket: false });
-
-    const international: TicketDocument =
-      custom?.international || (isNov2026 ? DEFAULT_INTERNATIONAL_04NOV : { ...DEFAULT_INTERNATIONAL_04NOV, hasTicket: false });
-
-    const roomlist: RoomlistDocument =
-      custom?.roomlist || (isNov2026 ? DEFAULT_ROOMLIST_04NOV : { ...DEFAULT_ROOMLIST_04NOV, hasRoomlist: false });
+    // Dokumen aktif: gunakan dokumen kustom jika pernah diunggah/diperbarui,
+    // atau gunakan dokumen resmi 04 November (Tiket Garuda 36 Pax, Saudia PNR 7QO8KT, Roomlist 40 Pax)
+    const domestic: TicketDocument = custom?.domestic || DEFAULT_DOMESTIC_04NOV;
+    const international: TicketDocument = custom?.international || DEFAULT_INTERNATIONAL_04NOV;
+    const roomlist: RoomlistDocument = custom?.roomlist || DEFAULT_ROOMLIST_04NOV;
 
     return { domestic, international, roomlist };
   }, [selectedGroup, activePackage, groupDocsState]);
@@ -1662,9 +1661,17 @@ export function JamaahList() {
         </section>
       )}
       {/* Modal Edit Petugas Tour Leader & Muthawwif */}
-      {isEditLeadersOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4">
+      {isEditLeadersOpen && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs font-sans"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsEditLeadersOpen(false);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
                 <span>🕋 Atur Petugas Rombongan</span>
@@ -1754,7 +1761,8 @@ export function JamaahList() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Document Modals: Detail Tiket, Detail Roomlist, Upload Dokumen ── */}
