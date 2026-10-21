@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { broadcastJamaahUpdateFromAdmin } from "@/lib/syncBridge";
+import { toTitleCase } from "@/lib/format/name";
 import { bacaBerkasImpor, petakanBarisImpor, type BarisImpor } from "@/lib/umrahme/impor";
 
 export type DetailedIssuedAccount = {
@@ -126,23 +127,41 @@ export default function PenerbitanUmrahmePage() {
   const [voucherMessage, setVoucherMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
+    const normalizeAccounts = (list: any[]) =>
+      list.map((a) => {
+        const isGeneric = !a.rombongan || a.rombongan.toLowerCase().startsWith("rombongan 01") || a.rombongan === "-";
+        return {
+          ...a,
+          nama: toTitleCase(a.nama),
+          rombongan: isGeneric ? (a.batch || "UMRAH REGULER 04 NOVEMBER 2026") : a.rombongan,
+        };
+      });
+
     // 1. Fetch from Supabase PostgreSQL API
     fetch("/api/umrahme/accounts")
       .then((res) => res.json())
       .then((res) => {
         if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-          setAccounts(res.data);
+          const cleaned = normalizeAccounts(res.data);
+          setAccounts(cleaned);
           try {
-            localStorage.setItem("el_massa_issued_accounts", JSON.stringify(res.data));
+            localStorage.setItem("el_massa_issued_accounts", JSON.stringify(cleaned));
           } catch (e) {}
         } else {
           const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
-          if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
+          if (savedAccounts) {
+            const cleaned = normalizeAccounts(JSON.parse(savedAccounts));
+            setAccounts(cleaned);
+            try { localStorage.setItem("el_massa_issued_accounts", JSON.stringify(cleaned)); } catch (e) {}
+          }
         }
       })
       .catch(() => {
         const savedAccounts = localStorage.getItem("el_massa_issued_accounts");
-        if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
+        if (savedAccounts) {
+          const cleaned = normalizeAccounts(JSON.parse(savedAccounts));
+          setAccounts(cleaned);
+        }
       });
 
     try {
@@ -310,12 +329,13 @@ export default function PenerbitanUmrahmePage() {
       const generatedId = buatNomorJamaah(new Set(accounts.map((a) => a.nomorJamaah)));
 
       const selectedPkg = paketList.find((p) => p.label === inputBatch);
-      const pkgName = selectedPkg?.name || inputBatch;
-      const finalRombongan = inputRombongan.trim() || pkgName || "-";
+      const pkgName = selectedPkg?.name || (inputBatch !== PLACEHOLDER_PAKET ? inputBatch : "");
+      const isGeneric = !inputRombongan.trim() || inputRombongan.trim().toLowerCase().startsWith("rombongan 01");
+      const finalRombongan = !isGeneric ? inputRombongan.trim() : (pkgName || "UMRAH REGULER 04 NOVEMBER 2026");
 
       const newAcc: DetailedIssuedAccount = {
         id: String(Date.now()),
-        nama: inputNama.trim(),
+        nama: toTitleCase(inputNama),
         nomorJamaah: generatedId,
         nik: inputNik.trim() || "-",
         paspor: inputPaspor.trim() || "-",
@@ -423,7 +443,7 @@ export default function PenerbitanUmrahmePage() {
       // Yang tidak ada di berkas dibiarkan kosong ("-"), bukan diisi data karangan.
       return {
         id: String(Date.now() + idx),
-        nama: r.nama || "",
+        nama: toTitleCase(r.nama || ""),
         nomorJamaah: generatedId,
         nik: r.nik || "-",
         paspor: r.paspor || "-",
@@ -433,7 +453,9 @@ export default function PenerbitanUmrahmePage() {
         kontakDarurat: "-",
         alamatLengkap: "-",
         batch: inputBatch,
-        rombongan: r.rombongan || pkgName || "-",
+        rombongan: (r.rombongan && !r.rombongan.toLowerCase().startsWith("rombongan 01"))
+          ? r.rombongan
+          : (pkgName || "UMRAH REGULER 04 NOVEMBER 2026"),
         bus: r.bus || "-",
         kamar: r.kamar || "-",
         flight: "-",

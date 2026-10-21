@@ -1,5 +1,6 @@
 import { getPool } from "@/lib/db/connection";
 import { parseIndonesianDate } from "@/lib/format/date";
+import { toTitleCase } from "@/lib/format/name";
 
 /**
  * Penerbitan akun digital UmrahMe, dan kuota lisensi yang membiayainya.
@@ -250,10 +251,10 @@ export async function issueAccounts(accounts: IssueInput[], actor = ""): Promise
 
       const pkgName = batchNames.get(packageId) || "";
       const rawRombongan = String(acc.rombongan ?? "").trim();
-      const finalRombongan =
-        rawRombongan && !rawRombongan.toLowerCase().startsWith("rombongan 01")
-          ? rawRombongan
-          : (pkgName || rawRombongan || "-");
+      const isGeneric = !rawRombongan || rawRombongan.toLowerCase().startsWith("rombongan 01") || rawRombongan === "-";
+      const finalRombongan = !isGeneric
+        ? rawRombongan
+        : (pkgName || "UMRAH REGULER 04 NOVEMBER 2026");
 
       await client.query(
         `INSERT INTO jamaah_accounts
@@ -275,7 +276,7 @@ export async function issueAccounts(accounts: IssueInput[], actor = ""): Promise
            keberangkatan_id = COALESCE(EXCLUDED.keberangkatan_id, jamaah_accounts.keberangkatan_id);`,
         [
           String(acc.id ?? Date.now()),
-          acc.nama ?? "",
+          toTitleCase(String(acc.nama ?? "")),
           acc.nomorJamaah ?? "",
           acc.nik ?? "",
           acc.paspor ?? "",
