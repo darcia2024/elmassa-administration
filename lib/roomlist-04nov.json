@@ -1,0 +1,646 @@
+{
+  "madinah": [
+    {
+      "no": 1,
+      "nama": "SUSILAWATI",
+      "gender": "F",
+      "tipeKamar": "QUINT WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 2,
+      "nama": "WARSUMI",
+      "gender": "F",
+      "tipeKamar": "QUINT WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 3,
+      "nama": "ETI SARASWATI",
+      "gender": "F",
+      "tipeKamar": "QUINT WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 4,
+      "nama": "ASPALISTINA",
+      "gender": "F",
+      "tipeKamar": "QUINT WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 5,
+      "nama": "ELMI",
+      "gender": "F",
+      "tipeKamar": "QUINT WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 6,
+      "nama": "FITRIYANTI",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 7,
+      "nama": "OKTA LUSIANTI",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 8,
+      "nama": "SITTI  AISYA MAKKIAH",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 9,
+      "nama": "KEIZA ORYZA SATIVA",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 10,
+      "nama": "ERITA MAI SARI",
+      "gender": "F",
+      "tipeKamar": "QUAD 2  WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 11,
+      "nama": "MAIDAH",
+      "gender": "F",
+      "tipeKamar": "QUAD 2  WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 12,
+      "nama": "SHAFEYA",
+      "gender": "F",
+      "tipeKamar": "QUAD 2  WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 13,
+      "nama": "BUNDA ALIYAH TL",
+      "gender": "F",
+      "tipeKamar": "QUAD 2  WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 14,
+      "nama": "NENENG SAGITA",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 15,
+      "nama": "RUSDIYANTI",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 16,
+      "nama": "HATIJAH",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 17,
+      "nama": "SUMARI",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 18,
+      "nama": "RUAINI",
+      "gender": "F",
+      "tipeKamar": "QUAD 4 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 19,
+      "nama": "SITI HARTINA",
+      "gender": "F",
+      "tipeKamar": "QUAD 4 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 20,
+      "nama": "FATMAWATI",
+      "gender": "F",
+      "tipeKamar": "QUAD 4 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 21,
+      "nama": "RUBIANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 4 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 22,
+      "nama": "NAZIRIN",
+      "gender": "M",
+      "tipeKamar": "QUAD 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 23,
+      "nama": "JULIAN",
+      "gender": "M",
+      "tipeKamar": "QUAD 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 24,
+      "nama": "VERY",
+      "gender": "M",
+      "tipeKamar": "QUAD 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 25,
+      "nama": "SECH ERWAN",
+      "gender": "M",
+      "tipeKamar": "QUAD 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 26,
+      "nama": "ELIS OKTAPIANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 6 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 27,
+      "nama": "WIHASTUTI",
+      "gender": "F",
+      "tipeKamar": "QUAD 6 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 28,
+      "nama": "DEVI ROPANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 6 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 29,
+      "nama": "MUSTIKA SARI",
+      "gender": "F",
+      "tipeKamar": "QUAD 6 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 30,
+      "nama": "WIWIT",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 31,
+      "nama": "ERWIN",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 32,
+      "nama": "MUTHAWIF",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 32,
+      "nama": "TALIP",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 FAMILY",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 33,
+      "nama": "SUKIMAN",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 FAMILY",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 34,
+      "nama": "ZAINURI",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 FAMILY",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 36,
+      "nama": "DOUBLE",
+      "gender": "",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 37,
+      "nama": "TRRIPLE",
+      "gender": "2",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 38,
+      "nama": "QUINT",
+      "gender": "1",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 39,
+      "nama": "QUAD",
+      "gender": "6",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 40,
+      "nama": "TOTAL",
+      "gender": "9",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    }
+  ],
+  "mekkah": [
+    {
+      "no": 1,
+      "nama": "SUSILAWATI",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 2,
+      "nama": "WARSUMI",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 3,
+      "nama": "ETI SARASWATI",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 4,
+      "nama": "ASPALISTINA",
+      "gender": "F",
+      "tipeKamar": "QUAD WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 5,
+      "nama": "FITRIYANTI",
+      "gender": "F",
+      "tipeKamar": "QUAD 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 6,
+      "nama": "OKTA LUSIANTI",
+      "gender": "F",
+      "tipeKamar": "QUAD 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 7,
+      "nama": "SITTI MAKKIAH",
+      "gender": "F",
+      "tipeKamar": "QUAD 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 8,
+      "nama": "KEIZA ORYZA SATIVA",
+      "gender": "F",
+      "tipeKamar": "QUAD 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 9,
+      "nama": "ERITA MAI SARI",
+      "gender": "F",
+      "tipeKamar": "QUAD 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 10,
+      "nama": "MAIDAH",
+      "gender": "F",
+      "tipeKamar": "QUAD 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 11,
+      "nama": "SHAFEYA",
+      "gender": "F",
+      "tipeKamar": "QUAD 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 12,
+      "nama": "BUNDA ALIYAH TL",
+      "gender": "F",
+      "tipeKamar": "QUAD 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 13,
+      "nama": "NENENG SAGITA",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 14,
+      "nama": "RUSDIYANTI",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 15,
+      "nama": "HATIJAH",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 1 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 16,
+      "nama": "RUAINI",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 17,
+      "nama": "SITI HARTINA",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 18,
+      "nama": "FATMAWATI",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 19,
+      "nama": "RUBIANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 3 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 20,
+      "nama": "NAZIRIN",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 21,
+      "nama": "JULIAN",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 22,
+      "nama": "VERY",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 1 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 23,
+      "nama": "ELIS OKTAPIANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 5 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 24,
+      "nama": "DEVI ROPANI",
+      "gender": "F",
+      "tipeKamar": "QUAD 5 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 25,
+      "nama": "ELMI",
+      "gender": "F",
+      "tipeKamar": "QUAD 5 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 26,
+      "nama": "ZAINURI",
+      "gender": "F",
+      "tipeKamar": "QUAD 5 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 27,
+      "nama": "WIHASTUTI",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 28,
+      "nama": "SUMARI",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 29,
+      "nama": "MUSTIKA SARI",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 2 WANITA",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 30,
+      "nama": "TALIP",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 2 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 31,
+      "nama": "SUKIMAN",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 2 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 32,
+      "nama": "WIWIT",
+      "gender": "M",
+      "tipeKamar": "TRIPLE 2 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 33,
+      "nama": "SECH ERWAN",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 3 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 34,
+      "nama": "ERWIN",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 3 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 35,
+      "nama": "MUTHAWIF",
+      "gender": "F",
+      "tipeKamar": "TRIPLE 3 LAKI LAKI",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 36,
+      "nama": "DOUBLE",
+      "gender": "",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 37,
+      "nama": "TRRIPLE",
+      "gender": "5",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 38,
+      "nama": "QUAD",
+      "gender": "5",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 39,
+      "nama": "QUINT",
+      "gender": "",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    },
+    {
+      "no": 40,
+      "nama": "TOTAL",
+      "gender": "10",
+      "tipeKamar": "QUAD",
+      "nomorKamar": "-",
+      "keterangan": "-"
+    }
+  ]
+}

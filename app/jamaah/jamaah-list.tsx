@@ -15,6 +15,7 @@ import {
   Contact,
   CreditCard,
   Edit3,
+  ExternalLink,
   FileCheck,
   Folder,
   FolderOpen,
@@ -39,6 +40,16 @@ import {
   type CompletenessStatus,
 } from "@/lib/jamaah/rules";
 import type { PaymentSummaryResponse, JamaahPaymentStatus, PaymentSummaryStats } from "@/lib/payments/summary";
+import {
+  ModalDetailTiket,
+  ModalDetailRoomlist,
+  ModalUploadDokumen,
+  DEFAULT_DOMESTIC_04NOV,
+  DEFAULT_INTERNATIONAL_04NOV,
+  DEFAULT_ROOMLIST_04NOV,
+  type TicketDocument,
+  type RoomlistDocument,
+} from "./group-documents-modal";
 
 type JamaahRow = {
   id: string;
@@ -509,6 +520,103 @@ export function JamaahList() {
     };
   }, [selectedGroup, activePackage, leadersUpdateKey]);
 
+  // Document Modals State & Storage (Tiket Domestik, Tiket Saudia, Roomlist 3 Kota)
+  const [ticketModal, setTicketModal] = useState<{
+    isOpen: boolean;
+    type: "domestic" | "international";
+  }>({ isOpen: false, type: "domestic" });
+
+  const [roomlistModalOpen, setRoomlistModalOpen] = useState(false);
+
+  const [uploadModal, setUploadModal] = useState<{
+    isOpen: boolean;
+    type: "domestic" | "international" | "roomlist";
+  }>({ isOpen: false, type: "domestic" });
+
+  const [groupDocsState, setGroupDocsState] = useState<
+    Record<
+      string,
+      {
+        domestic?: TicketDocument;
+        international?: TicketDocument;
+        roomlist?: RoomlistDocument;
+      }
+    >
+  >({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("elmassa_group_documents");
+      if (saved) setGroupDocsState(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleDocumentUploaded = ({
+    fileName,
+    fileUrl,
+    type,
+  }: {
+    fileName: string;
+    fileUrl: string;
+    type: string;
+  }) => {
+    const groupKey = selectedGroup || activePackage?.name || "default";
+    setGroupDocsState((prev) => {
+      const existing = prev[groupKey] || {};
+      const updatedGroup = { ...existing };
+      if (type === "domestic") {
+        updatedGroup.domestic = {
+          ...(existing.domestic || DEFAULT_DOMESTIC_04NOV),
+          hasTicket: true,
+          fileName,
+          fileUrl,
+          uploadedAt: "Baru saja diunggah",
+        };
+      } else if (type === "international") {
+        updatedGroup.international = {
+          ...(existing.international || DEFAULT_INTERNATIONAL_04NOV),
+          hasTicket: true,
+          fileName,
+          fileUrl,
+          uploadedAt: "Baru saja diunggah",
+        };
+      } else if (type === "roomlist") {
+        updatedGroup.roomlist = {
+          ...(existing.roomlist || DEFAULT_ROOMLIST_04NOV),
+          hasRoomlist: true,
+          fileName,
+          fileUrl,
+          uploadedAt: "Baru saja diunggah",
+        };
+      }
+      const updatedAll = { ...prev, [groupKey]: updatedGroup };
+      try {
+        localStorage.setItem("elmassa_group_documents", JSON.stringify(updatedAll));
+      } catch {}
+      return updatedAll;
+    });
+  };
+
+  const currentDocs = useMemo(() => {
+    const groupKey = selectedGroup || activePackage?.name || "default";
+    const custom = groupDocsState[groupKey];
+    const isNov2026 =
+      !selectedGroup ||
+      selectedGroup.toLowerCase().includes("nov") ||
+      (activePackage?.name && activePackage.name.toLowerCase().includes("nov"));
+
+    const domestic: TicketDocument =
+      custom?.domestic || (isNov2026 ? DEFAULT_DOMESTIC_04NOV : { ...DEFAULT_DOMESTIC_04NOV, hasTicket: false });
+
+    const international: TicketDocument =
+      custom?.international || (isNov2026 ? DEFAULT_INTERNATIONAL_04NOV : { ...DEFAULT_INTERNATIONAL_04NOV, hasTicket: false });
+
+    const roomlist: RoomlistDocument =
+      custom?.roomlist || (isNov2026 ? DEFAULT_ROOMLIST_04NOV : { ...DEFAULT_ROOMLIST_04NOV, hasRoomlist: false });
+
+    return { domestic, international, roomlist };
+  }, [selectedGroup, activePackage, groupDocsState]);
+
   // Capacity / Seat calculations (Lingkaran Merah)
   const totalSeat = useMemo(() => {
     if (activePackage) {
@@ -748,13 +856,45 @@ export function JamaahList() {
               <div className="rounded-lg bg-blue-100 p-2 text-blue-700 shrink-0">
                 <Plane className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Domestik</p>
-                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.domesticAirline || "Garuda Indonesia (Feeder PGK ⇄ CGK)"}>
-                  {activePackage?.domesticAirline || "Garuda Indonesia (Feeder PGK ⇄ CGK)"}
-                </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Domestik</p>
+                  {currentDocs.domestic.hasTicket ? (
+                    <button
+                      type="button"
+                      onClick={() => setTicketModal({ isOpen: true, type: "domestic" })}
+                      className="inline-flex items-center gap-1 text-[10px] font-black text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      <span>Cek Detail Tiket</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setUploadModal({ isOpen: true, type: "domestic" })}
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200/60 cursor-pointer"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      <span>Tambahkan Tiket</span>
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs.domestic.airline}>
+                    {currentDocs.domestic.airline}
+                  </p>
+                  {currentDocs.domestic.hasTicket ? (
+                    <span className="shrink-0 rounded-sm bg-blue-50 px-1 py-0.2 text-[9px] font-black text-blue-700 border border-blue-200/50">
+                      ✓ {currentDocs.domestic.paxCount} Pax
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-sm bg-stone-100 px-1 py-0.2 text-[9px] font-medium text-stone-500">
+                      Belum Ada
+                    </span>
+                  )}
+                </div>
                 <p className="text-[10px] text-stone-500 truncate mt-0.5">
-                  {activePackage?.flightRoute ? activePackage.flightRoute.split("➔")[0]?.trim() + " ➔ CGK (PP)" : "Feeder Domestik PP"}
+                  {currentDocs.domestic.hasTicket ? "PGK ⇄ CGK (PP) · E-Ticket Terbit" : "Feeder Domestik PP"}
                 </p>
               </div>
             </div>
@@ -764,13 +904,45 @@ export function JamaahList() {
               <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 shrink-0">
                 <Compass className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Internasional</p>
-                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.internationalAirline || activePackage?.airline || "Saudia Airlines (SV-815)"}>
-                  {activePackage?.internationalAirline || activePackage?.airline || "Saudia Airlines (SV-815)"}
-                </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Internasional</p>
+                  {currentDocs.international.hasTicket ? (
+                    <button
+                      type="button"
+                      onClick={() => setTicketModal({ isOpen: true, type: "international" })}
+                      className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 hover:text-emerald-800 hover:underline cursor-pointer"
+                    >
+                      <span>Cek Detail Tiket</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setUploadModal({ isOpen: true, type: "international" })}
+                      className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 hover:bg-emerald-100 transition border border-emerald-200/60 cursor-pointer"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      <span>Tambahkan Tiket</span>
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs.international.airline}>
+                    {currentDocs.international.airline.split("(")[0]?.trim() || "Saudia Airlines"}
+                  </p>
+                  {currentDocs.international.hasTicket ? (
+                    <span className="shrink-0 rounded-sm bg-emerald-50 px-1 py-0.2 text-[9px] font-black text-emerald-700 border border-emerald-200/50">
+                      ✓ PNR: {currentDocs.international.pnr || "Confirmed"}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-sm bg-stone-100 px-1 py-0.2 text-[9px] font-medium text-stone-500">
+                      Belum Ada
+                    </span>
+                  )}
+                </div>
                 <p className="text-[10px] text-stone-500 truncate mt-0.5">
-                  {activePackage?.flightRoute || "CGK ➔ JED / MED (Direct)"}
+                  {currentDocs.international.hasTicket ? "SV 817/826 · CGK ⇄ JED Direct (36 Pax)" : "CGK ➔ JED / MED (Direct)"}
                 </p>
               </div>
             </div>
@@ -781,20 +953,44 @@ export function JamaahList() {
                 <Hotel className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Roomlist & Hotel</p>
-                  <Link
-                    href={activePackage?.id ? `/paket/${activePackage.id}` : "/manifest"}
-                    className="text-[9px] font-bold text-pink-600 hover:underline"
-                  >
-                    Roomlist ↗
-                  </Link>
+                  {currentDocs.roomlist.hasRoomlist ? (
+                    <button
+                      type="button"
+                      onClick={() => setRoomlistModalOpen(true)}
+                      className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 hover:text-amber-900 hover:underline cursor-pointer"
+                    >
+                      <span>Cek Detail Roomlist</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setUploadModal({ isOpen: true, type: "roomlist" })}
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 hover:bg-amber-100 transition border border-amber-200/60 cursor-pointer"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      <span>Tambahkan Roomlist</span>
+                    </button>
+                  )}
                 </div>
-                <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.makkahHotel ? `Makkah: ${activePackage.makkahHotel}` : "Grand Al Massa"}>
-                  🕋 {activePackage?.makkahHotel || "Grand Al Massa"}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={activePackage?.makkahHotel ? `Makkah: ${activePackage.makkahHotel}` : "Grand Al Massa"}>
+                    🕋 {activePackage?.makkahHotel || "Grand Al Massa"}
+                  </p>
+                  {currentDocs.roomlist.hasRoomlist ? (
+                    <span className="shrink-0 rounded-sm bg-amber-50 px-1 py-0.2 text-[9px] font-black text-amber-800 border border-amber-200/50">
+                      ✓ 3 Kota ({currentDocs.roomlist.paxCount} Pax)
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-sm bg-stone-100 px-1 py-0.2 text-[9px] font-medium text-stone-500">
+                      Belum Ada
+                    </span>
+                  )}
+                </div>
                 <p className="text-[10px] text-stone-500 truncate mt-0.5" title={activePackage?.madinahHotel ? `Madinah: ${activePackage.madinahHotel}` : "Daar El Naeem"}>
-                  🕌 {activePackage?.madinahHotel || "Daar El Naeem"}
+                  🕌 {activePackage?.madinahHotel || "Daar El Naeem"} · 🏨 JKT Transit
                 </p>
               </div>
             </div>
@@ -1220,6 +1416,55 @@ export function JamaahList() {
                   <Edit3 className="h-3 w-3" />
                   <span>Ubah Petugas</span>
                 </button>
+
+                {/* Dokumen Rombongan (Tiket & Roomlist) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentDocs.domestic.hasTicket) {
+                      setTicketModal({ isOpen: true, type: "domestic" });
+                    } else {
+                      setUploadModal({ isOpen: true, type: "domestic" });
+                    }
+                  }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/80 px-2.5 text-[10px] font-bold text-blue-700 hover:bg-blue-100 transition shrink-0 cursor-pointer"
+                  title="Tiket Domestik Feeder PGK - CGK"
+                >
+                  <Plane className="h-3 w-3" />
+                  <span>{currentDocs.domestic.hasTicket ? `Tiket Domestik (${currentDocs.domestic.paxCount} Pax) ↗` : "+ Tambah Tiket Domestik"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentDocs.international.hasTicket) {
+                      setTicketModal({ isOpen: true, type: "international" });
+                    } else {
+                      setUploadModal({ isOpen: true, type: "international" });
+                    }
+                  }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/80 px-2.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition shrink-0 cursor-pointer"
+                  title="Tiket Internasional Saudia CGK - JED"
+                >
+                  <Compass className="h-3 w-3" />
+                  <span>{currentDocs.international.hasTicket ? `Tiket Saudia (${currentDocs.international.pnr || "Confirmed"}) ↗` : "+ Tambah Tiket Saudia"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentDocs.roomlist.hasRoomlist) {
+                      setRoomlistModalOpen(true);
+                    } else {
+                      setUploadModal({ isOpen: true, type: "roomlist" });
+                    }
+                  }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/80 px-2.5 text-[10px] font-bold text-amber-800 hover:bg-amber-100 transition shrink-0 cursor-pointer"
+                  title="Roomlist 3 Kota: Jakarta, Madinah, Mekkah"
+                >
+                  <Hotel className="h-3 w-3" />
+                  <span>{currentDocs.roomlist.hasRoomlist ? `Roomlist 3 Kota (${currentDocs.roomlist.paxCount} Pax) ↗` : "+ Tambah Roomlist"}</span>
+                </button>
               </div>
             </div>
 
@@ -1511,6 +1756,32 @@ export function JamaahList() {
           </div>
         </div>
       )}
+
+      {/* ── Document Modals: Detail Tiket, Detail Roomlist, Upload Dokumen ── */}
+      <ModalDetailTiket
+        isOpen={ticketModal.isOpen}
+        onClose={() => setTicketModal((prev) => ({ ...prev, isOpen: false }))}
+        type={ticketModal.type}
+        data={ticketModal.type === "domestic" ? currentDocs.domestic : currentDocs.international}
+        groupName={selectedGroup || activePackage?.name || "UMRAH REGULER 04 NOVEMBER 2026"}
+        onOpenUpload={() => setUploadModal({ isOpen: true, type: ticketModal.type })}
+      />
+
+      <ModalDetailRoomlist
+        isOpen={roomlistModalOpen}
+        onClose={() => setRoomlistModalOpen(false)}
+        data={currentDocs.roomlist}
+        groupName={selectedGroup || activePackage?.name || "UMRAH REGULER 04 NOVEMBER 2026"}
+        onOpenUpload={() => setUploadModal({ isOpen: true, type: "roomlist" })}
+      />
+
+      <ModalUploadDokumen
+        isOpen={uploadModal.isOpen}
+        onClose={() => setUploadModal((prev) => ({ ...prev, isOpen: false }))}
+        type={uploadModal.type}
+        groupName={selectedGroup || activePackage?.name || "UMRAH REGULER 04 NOVEMBER 2026"}
+        onSuccess={handleDocumentUploaded}
+      />
     </div>
   );
 }

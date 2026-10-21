@@ -70,6 +70,7 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "company-identity", module: "pengaturan" },
   { prefix: "customers", module: "pelanggan" },
   { prefix: "dashboard", module: "dash" },
+  { prefix: "documents", module: "jamaah" },
   { prefix: "installments", module: "pembayaran" },
   { prefix: "invoices", module: "dokumen" },
   { prefix: "jamaah", module: "jamaah" },
