@@ -172,6 +172,30 @@ export function JamaahList() {
   const [viewMode, setViewMode] = useState<"group" | "accordion" | "flat">("group");
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      const g = p.get("grup");
+      if (g) {
+        setSelectedGroup(decodeURIComponent(g));
+        setViewMode("group");
+      }
+    }
+  }, []);
+
+  const handleSelectGroup = (name: string | null) => {
+    setSelectedGroup(name);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (name) {
+        url.searchParams.set("grup", name);
+      } else {
+        url.searchParams.delete("grup");
+      }
+      window.history.pushState({}, "", url.toString());
+    }
+  };
+
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/jamaah", { cache: "no-store" });
@@ -286,7 +310,7 @@ export function JamaahList() {
           <button
             type="button"
             onClick={() => {
-              setSelectedGroup(null);
+              handleSelectGroup(null);
               if (viewMode === "flat") setViewMode("group");
             }}
             className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
@@ -306,7 +330,7 @@ export function JamaahList() {
                 key={name}
                 type="button"
                 onClick={() => {
-                  setSelectedGroup(name);
+                  handleSelectGroup(name);
                   setViewMode("group");
                 }}
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
@@ -334,7 +358,7 @@ export function JamaahList() {
             type="button"
             onClick={() => {
               setViewMode("group");
-              setSelectedGroup(null);
+              handleSelectGroup(null);
             }}
             title="Tampilan Folder Grup (Group First)"
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
@@ -351,7 +375,7 @@ export function JamaahList() {
             type="button"
             onClick={() => {
               setViewMode("accordion");
-              setSelectedGroup(null);
+              handleSelectGroup(null);
             }}
             title="Tampilan Akordion Semua Grup"
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
@@ -368,7 +392,7 @@ export function JamaahList() {
             type="button"
             onClick={() => {
               setViewMode("flat");
-              setSelectedGroup(null);
+              handleSelectGroup(null);
             }}
             title="Tampilan Tabel Lengkap Semua Jamaah"
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
@@ -463,7 +487,7 @@ export function JamaahList() {
               return (
                 <div
                   key={gName}
-                  onClick={() => setSelectedGroup(gName)}
+                  onClick={() => handleSelectGroup(gName)}
                   className="group relative flex flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-5 shadow-2xs transition hover:-translate-y-0.5 hover:border-brand-pink hover:shadow-md cursor-pointer"
                 >
                   <div className="space-y-3">
@@ -532,7 +556,7 @@ export function JamaahList() {
             <div className="space-y-1">
               <button
                 type="button"
-                onClick={() => setSelectedGroup(null)}
+                onClick={() => handleSelectGroup(null)}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-pink hover:text-brand-pinkHover transition"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
@@ -556,7 +580,7 @@ export function JamaahList() {
               {/* Quick switch to another group */}
               <select
                 value={selectedGroup}
-                onChange={(e) => setSelectedGroup(e.target.value)}
+                onChange={(e) => handleSelectGroup(e.target.value)}
                 className="h-9 rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs font-bold text-stone-800 outline-none focus:border-brand-pink"
               >
                 {groupNames.map((g) => (

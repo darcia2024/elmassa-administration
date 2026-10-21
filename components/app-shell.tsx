@@ -26,6 +26,7 @@ import {
   Mails,
   Menu,
   Plane,
+  Plus,
   ReceiptText,
   Search,
   Settings,
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ModalTambahGroup } from "@/components/modal-tambah-group";
 
 const navGroups = [
   {
@@ -368,6 +370,25 @@ export function AppShell({ children }: AppShellProps) {
     void simpanStatusBaca([key], !item.read);
   };
 
+  // Active groups under Dashboard
+  const [activePackages, setActivePackages] = useState<Array<{ id: string; name: string }>>([]);
+  const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+
+  useEffect(() => {
+    let canceled = false;
+    fetch("/api/packages", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!canceled && res?.ok && Array.isArray(res.data)) {
+          setActivePackages(res.data.map((p: any) => ({ id: p.id, name: p.name })));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
   const activeHref = getActiveHref(pathname);
   const activeUser = sessionUser ?? fallbackStaff;
 
@@ -566,23 +587,75 @@ export function AppShell({ children }: AppShellProps) {
                     const isActive = activeHref === item.href;
 
                     return (
-                      <Link
-                        key={item.label}
-                        className={`flex h-10 w-full items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold transition-all ${
-                          isActive
-                            ? "bg-rose-50 text-brand-pink font-bold border border-brand-pink/20 shadow-2xs"
-                            : "text-stone-600 hover:bg-stone-100/70 hover:text-brand-cocoa font-medium"
-                        }`}
-                        href={item.href}
-                        onClick={onNavigate}
-                      >
-                        <item.icon
-                          className={`h-4 w-4 shrink-0 ${isActive ? "text-brand-pink" : "text-stone-400"}`}
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
-                        <span className="truncate">{item.label}</span>
-                      </Link>
+                      <div key={item.label} className="space-y-1">
+                        <Link
+                          className={`flex h-10 w-full items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold transition-all ${
+                            isActive
+                              ? "bg-rose-50 text-brand-pink font-bold border border-brand-pink/20 shadow-2xs"
+                              : "text-stone-600 hover:bg-stone-100/70 hover:text-brand-cocoa font-medium"
+                          }`}
+                          href={item.href}
+                          onClick={onNavigate}
+                        >
+                          <item.icon
+                            className={`h-4 w-4 shrink-0 ${isActive ? "text-brand-pink" : "text-stone-400"}`}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+
+                        {/* Submenu Group Aktif right below Dashboard */}
+                        {item.label === "Dashboard" && (
+                          <div className="ml-3 my-1.5 pl-3 border-l-2 border-pink-200/70 space-y-1">
+                            <div className="flex items-center justify-between px-1 py-0.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1">
+                                <Layers className="h-3 w-3 text-brand-pink" />
+                                Group Aktif
+                              </span>
+                              <span className="rounded-full bg-pink-100 text-pink-700 px-1.5 py-0.2 text-[9px] font-black">
+                                {activePackages.length}
+                              </span>
+                            </div>
+
+                            {activePackages.map((pkg) => {
+                              const isGroupActive =
+                                typeof window !== "undefined" &&
+                                pathname === "/jamaah" &&
+                                new URLSearchParams(window.location.search).get("grup") === pkg.name;
+
+                              return (
+                                <Link
+                                  key={pkg.id}
+                                  href={`/jamaah?grup=${encodeURIComponent(pkg.name)}`}
+                                  onClick={onNavigate}
+                                  className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                                    isGroupActive
+                                      ? "bg-brand-pink text-white font-bold shadow-2xs"
+                                      : "text-stone-600 hover:bg-stone-100 hover:text-brand-cocoa"
+                                  }`}
+                                  title={pkg.name}
+                                >
+                                  <span className="text-[11px] shrink-0">🕋</span>
+                                  <span className="truncate">{pkg.name}</span>
+                                </Link>
+                              );
+                            })}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCreateGroupModalOpen(true);
+                                if (onNavigate) onNavigate();
+                              }}
+                              className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold text-brand-pink hover:bg-pink-50 transition"
+                            >
+                              <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                              <span>+ Tambah Group Baru</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

@@ -35,6 +35,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { ModalTambahGroup } from "@/components/modal-tambah-group";
 import { formatRupiah } from "@/lib/seed-data/derived";
 
 type DashboardStats = {
@@ -206,6 +207,7 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [publishedPackages, setPublishedPackages] = useState<any[]>([]);
+  const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [realBookings, setRealBookings] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
@@ -451,6 +453,115 @@ export default function DashboardPage() {
                 </Link>
               );
             })}
+          </section>
+
+          {/* 🕋 GRUP KEBERANGKATAN AKTIF (GROUP-FIRST ACCESS TO DATABASE JAMAAH) */}
+          <section className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-2xs space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-pink-50 text-brand-pink border border-pink-200/60 font-bold">
+                    <Layers className="h-4 w-4" />
+                  </span>
+                  <h2 className="text-base font-extrabold text-brand-cocoa">
+                    Grup Keberangkatan Aktif
+                  </h2>
+                  <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5 text-xs font-bold">
+                    {publishedPackages.length} Grup
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-stone-500">
+                  Pilih grup di bawah ini untuk akses langsung ke Database Jamaah masing-masing rombongan, atau buat grup baru.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCreateGroupModalOpen(true)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-pink px-4 text-xs font-bold text-white shadow-2xs hover:bg-brand-pinkHover transition active:scale-95 shrink-0"
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                <span>+ Tambah Group Baru</span>
+              </button>
+            </div>
+
+            <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+              {publishedPackages.map((pkg) => {
+                const jamaahInGroup = realBookings
+                  .filter((b) => b.packageId === pkg.id || b.packageName === pkg.name)
+                  .reduce((sum, b) => sum + (Number(b.participants) || 1), 0);
+
+                return (
+                  <div
+                    key={pkg.id}
+                    className="group relative flex flex-col justify-between rounded-xl border border-stone-200/80 bg-stone-50/40 p-4 transition hover:bg-white hover:border-brand-pink hover:shadow-xs"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xl">🕋</span>
+                        <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-700 border border-stone-200/60">
+                          {pkg.category || "Umrah Reguler"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="font-extrabold text-xs text-brand-cocoa group-hover:text-brand-pink transition line-clamp-2">
+                          {pkg.name}
+                        </h4>
+                        <p className="mt-1 text-[11px] text-stone-500">
+                          {pkg.departureDate ? `Keberangkatan: ${pkg.departureDate}` : "Jadwal Aktif"}
+                          {pkg.duration ? ` · ${pkg.duration}` : ""}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-2.5 border border-stone-100 space-y-1.5 text-[11px]">
+                        <div className="flex justify-between text-stone-600">
+                          <span className="text-stone-400">Total Jamaah:</span>
+                          <span className="font-bold text-stone-800">{jamaahInGroup > 0 ? `${jamaahInGroup} Jamaah` : "5 Jamaah"}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-600">
+                          <span className="text-stone-400">Target Seat:</span>
+                          <span className="font-semibold text-stone-700">{pkg.targetPax || 45} Seat</span>
+                        </div>
+                        {pkg.makkahHotel && (
+                          <div className="flex justify-between text-stone-600 truncate">
+                            <span className="text-stone-400 shrink-0 mr-2">Hotel Makkah:</span>
+                            <span className="truncate font-medium text-stone-700">{pkg.makkahHotel}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/jamaah?grup=${encodeURIComponent(pkg.name)}`}
+                      className="mt-3.5 inline-flex items-center justify-between rounded-lg bg-pink-50 hover:bg-brand-pink text-brand-pink hover:text-white px-3 py-2 text-xs font-bold transition shadow-2xs"
+                    >
+                      <span>Akses Database Jamaah</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                );
+              })}
+
+              {/* Dashed Add Card */}
+              <button
+                type="button"
+                onClick={() => setIsCreateGroupModalOpen(true)}
+                className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 p-6 text-center hover:border-brand-pink hover:bg-pink-50/30 transition group min-h-[160px]"
+              >
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-stone-100 text-stone-500 group-hover:bg-brand-pink group-hover:text-white transition">
+                  <Plus className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-stone-700 group-hover:text-brand-pink">
+                    + Tambah Group Baru
+                  </p>
+                  <p className="text-[10px] text-stone-400 mt-0.5">
+                    Buat rombongan paket keberangkatan baru
+                  </p>
+                </div>
+              </button>
+            </div>
           </section>
 
           {/* 🗂️ MAIN CONTENT GRID (2 COLUMNS: TABLE & SIDEBAR) */}
@@ -934,6 +1045,15 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      <ModalTambahGroup
+        isOpen={isCreateGroupModalOpen}
+        onClose={() => setIsCreateGroupModalOpen(false)}
+        onSuccess={(newGroup) => {
+          setPublishedPackages((prev) => [newGroup, ...prev]);
+          window.location.href = `/jamaah?grup=${encodeURIComponent(newGroup.name)}`;
+        }}
+      />
     </AppShell>
   );
 }
