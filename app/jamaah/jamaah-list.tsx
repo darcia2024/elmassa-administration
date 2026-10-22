@@ -969,15 +969,15 @@ export function JamaahList() {
 
             {/* 2. Tiket Domestik */}
             <div
-              onClick={() => {
-                if (currentDocs.domestic.hasTicket) {
-                  setTicketModal({ isOpen: true, type: "domestic" });
-                } else {
-                  setUploadModal({ isOpen: true, type: "domestic" });
-                }
-              }}
+              onClick={() => setTicketModal({ isOpen: true, type: "domestic" })}
               role="button"
               tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setTicketModal({ isOpen: true, type: "domestic" });
+                }
+              }}
               className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-blue-400 hover:bg-blue-50/20 active:scale-[0.99] transition cursor-pointer group"
               title="Klik untuk membuka Detail Tiket Domestik Feeder"
             >
@@ -988,15 +988,29 @@ export function JamaahList() {
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Domestik</p>
                   {currentDocs.domestic.hasTicket ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-blue-100/80 px-2 py-0.5 text-[10px] font-black text-blue-800 border border-blue-200 shadow-2xs group-hover:bg-blue-200 transition">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTicketModal({ isOpen: true, type: "domestic" });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-100/80 px-2 py-0.5 text-[10px] font-black text-blue-800 border border-blue-200 shadow-2xs hover:bg-blue-200 transition cursor-pointer"
+                    >
                       <span>Cek Detail Tiket</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </span>
+                    </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 border border-blue-200/60">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUploadModal({ isOpen: true, type: "domestic" });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 border border-blue-200/60 hover:bg-blue-100 transition cursor-pointer"
+                    >
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Tiket</span>
-                    </span>
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1021,15 +1035,15 @@ export function JamaahList() {
 
             {/* 3. Tiket Internasional */}
             <div
-              onClick={() => {
-                if (currentDocs.international.hasTicket) {
-                  setTicketModal({ isOpen: true, type: "international" });
-                } else {
-                  setUploadModal({ isOpen: true, type: "international" });
-                }
-              }}
+              onClick={() => setTicketModal({ isOpen: true, type: "international" })}
               role="button"
               tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setTicketModal({ isOpen: true, type: "international" });
+                }
+              }}
               className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-emerald-400 hover:bg-emerald-50/20 active:scale-[0.99] transition cursor-pointer group"
               title="Klik untuk membuka Detail Tiket Internasional Saudia"
             >
@@ -1040,15 +1054,29 @@ export function JamaahList() {
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Internasional</p>
                   {currentDocs.international.hasTicket ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100/80 px-2 py-0.5 text-[10px] font-black text-emerald-800 border border-emerald-200 shadow-2xs group-hover:bg-emerald-200 transition">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTicketModal({ isOpen: true, type: "international" });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-emerald-100/80 px-2 py-0.5 text-[10px] font-black text-emerald-800 border border-emerald-200 shadow-2xs hover:bg-emerald-200 transition cursor-pointer"
+                    >
                       <span>Cek Detail Tiket</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </span>
+                    </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200/60">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUploadModal({ isOpen: true, type: "international" });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200/60 hover:bg-emerald-100 transition cursor-pointer"
+                    >
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Tiket</span>
-                    </span>
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1073,15 +1101,15 @@ export function JamaahList() {
 
             {/* 4. Roomlist & Hotel */}
             <div
-              onClick={() => {
-                if (currentDocs.roomlist.hasRoomlist) {
-                  setRoomlistModalOpen(true);
-                } else {
-                  setUploadModal({ isOpen: true, type: "roomlist" });
-                }
-              }}
+              onClick={() => setRoomlistModalOpen(true)}
               role="button"
               tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setRoomlistModalOpen(true);
+                }
+              }}
               className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-amber-400 hover:bg-amber-50/20 active:scale-[0.99] transition cursor-pointer group"
               title="Klik untuk membuka Roomlist & Distribusi Kamar Hotel 3 Kota"
             >
@@ -1092,15 +1120,29 @@ export function JamaahList() {
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Roomlist & Hotel</p>
                   {currentDocs.roomlist.hasRoomlist ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-100/80 px-2 py-0.5 text-[10px] font-black text-amber-800 border border-amber-200 shadow-2xs group-hover:bg-amber-200 transition">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRoomlistModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-100/80 px-2 py-0.5 text-[10px] font-black text-amber-800 border border-amber-200 shadow-2xs hover:bg-amber-200 transition cursor-pointer"
+                    >
                       <span>Cek Detail Roomlist</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </span>
+                    </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-200/60">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRoomlistModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-200/60 hover:bg-amber-100 transition cursor-pointer"
+                    >
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Roomlist</span>
-                    </span>
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">

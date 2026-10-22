@@ -418,6 +418,21 @@ export function ModalDetailRoomlist({
   const [cityTab, setCityTab] = useState<"jakarta" | "madinah" | "mekkah">("madinah");
   const [search, setSearch] = useState("");
 
+  const madinahRows = roomlistData?.madinah || [];
+  const mekkahRows = roomlistData?.mekkah || [];
+
+  // Generate Jakarta Transit list (40 pax at airport transit hotel)
+  const jakartaRows = useMemo(() => {
+    return (madinahRows || []).map((m: any, idx: number) => ({
+      no: m.no || idx + 1,
+      nama: m.nama || `Jamaah ${idx + 1}`,
+      gender: m.gender || "M",
+      tipeKamar: idx < 10 ? "QUINT TRANSIT" : idx < 26 ? "QUAD TRANSIT" : "TRIPLE TRANSIT",
+      nomorKamar: `CGK-${Math.floor(100 + idx / 4)}`,
+      keterangan: "Transit CGK H-1 Sebelum Flight SV 817",
+    }));
+  }, [madinahRows]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -432,21 +447,6 @@ export function ModalDetailRoomlist({
   }, [isOpen, onClose]);
 
   if (!isOpen || !mounted) return null;
-
-  const madinahRows = roomlistData.madinah || [];
-  const mekkahRows = roomlistData.mekkah || [];
-
-  // Generate Jakarta Transit list (40 pax at airport transit hotel)
-  const jakartaRows = useMemo(() => {
-    return madinahRows.map((m, idx) => ({
-      no: m.no || idx + 1,
-      nama: m.nama,
-      gender: m.gender,
-      tipeKamar: idx < 10 ? "QUINT TRANSIT" : idx < 26 ? "QUAD TRANSIT" : "TRIPLE TRANSIT",
-      nomorKamar: `CGK-${Math.floor(100 + (idx / 4))}`,
-      keterangan: "Transit CGK H-1 Sebelum Flight SV 817",
-    }));
-  }, [madinahRows]);
 
   const currentRows = cityTab === "madinah" ? madinahRows : cityTab === "mekkah" ? mekkahRows : jakartaRows;
 
