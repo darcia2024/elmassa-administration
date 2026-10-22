@@ -206,16 +206,16 @@ export function ModalDetailTiket({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-black text-brand-cocoa truncate">{title}: {data.airline}</h3>
+                <h3 className="text-sm font-black text-brand-cocoa truncate">{title}: {data?.airline || "Maskapai Penerbangan"}</h3>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black text-emerald-800">
-                  {data.pnr ? `PNR: ${data.pnr}` : "Confirmed"}
+                  {data?.pnr ? `PNR: ${data.pnr}` : "Confirmed"}
                 </span>
                 <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">
-                  {data.paxCount} Pax
+                  {data?.paxCount ?? 36} Pax
                 </span>
               </div>
               <p className="text-xs text-stone-500 truncate mt-0.5">
-                {groupName || "UMRAH REGULER 04 NOVEMBER 2026"} · {data.route}
+                {groupName || "UMRAH REGULER 04 NOVEMBER 2026"} · {data?.route || "Rute Perjalanan"}
               </p>
             </div>
           </div>
@@ -233,19 +233,19 @@ export function ModalDetailTiket({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-stone-100 bg-white p-3.5 text-xs shrink-0">
           <div className="rounded-lg bg-stone-50 p-2 border border-stone-100">
             <span className="text-[10px] uppercase font-bold text-stone-400 block">Penerbangan</span>
-            <span className="font-extrabold text-stone-800 truncate block mt-0.5">{data.flightNo}</span>
+            <span className="font-extrabold text-stone-800 truncate block mt-0.5">{data?.flightNo || "Penerbangan PP"}</span>
           </div>
           <div className="rounded-lg bg-stone-50 p-2 border border-stone-100">
             <span className="text-[10px] uppercase font-bold text-stone-400 block">Jadwal Keberangkatan</span>
-            <span className="font-extrabold text-brand-pink truncate block mt-0.5">{data.departureDate}</span>
+            <span className="font-extrabold text-brand-pink truncate block mt-0.5">{data?.departureDate || "04 November 2026"}</span>
           </div>
           <div className="rounded-lg bg-stone-50 p-2 border border-stone-100">
             <span className="text-[10px] uppercase font-bold text-stone-400 block">Rute Penerbangan</span>
-            <span className="font-extrabold text-stone-800 truncate block mt-0.5" title={data.route}>{data.route}</span>
+            <span className="font-extrabold text-stone-800 truncate block mt-0.5" title={data?.route}>{data?.route || "Rute Perjalanan"}</span>
           </div>
           <div className="rounded-lg bg-stone-50 p-2 border border-stone-100">
             <span className="text-[10px] uppercase font-bold text-stone-400 block">Total Jamaah / Seat</span>
-            <span className="font-extrabold text-emerald-700 truncate block mt-0.5">{data.paxCount} Seat Terbit</span>
+            <span className="font-extrabold text-emerald-700 truncate block mt-0.5">{data?.paxCount ?? 36} Seat Terbit</span>
           </div>
         </div>
 
@@ -452,15 +452,17 @@ export function ModalDetailRoomlist({
 
   const currentHotel =
     cityTab === "madinah"
-      ? data.hotelMadinah
+      ? data?.hotelMadinah || DEFAULT_ROOMLIST_04NOV.hotelMadinah
       : cityTab === "mekkah"
-      ? data.hotelMakkah
-      : data.hotelJakarta;
+      ? data?.hotelMakkah || DEFAULT_ROOMLIST_04NOV.hotelMakkah
+      : data?.hotelJakarta || DEFAULT_ROOMLIST_04NOV.hotelJakarta;
 
   const filtered = currentRows.filter((r) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    return r.nama.toLowerCase().includes(q) || (r.tipeKamar && r.tipeKamar.toLowerCase().includes(q));
+    const name = String(r?.nama || "").toLowerCase();
+    const tipe = String(r?.tipeKamar || "").toLowerCase();
+    return name.includes(q) || tipe.includes(q);
   });
 
   return createPortal(
@@ -486,11 +488,11 @@ export function ModalDetailRoomlist({
                   Roomlist & Distribusi Kamar Jamaah (3 Kota)
                 </h3>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black text-emerald-800">
-                  {data.paxCount} Jamaah
+                  {data?.paxCount ?? 40} Jamaah
                 </span>
               </div>
               <p className="text-xs text-stone-500 truncate mt-0.5">
-                {groupName || "UMRAH REGULER 04 NOVEMBER 2026"} · Berkas: {data.fileName}
+                {groupName || "UMRAH REGULER 04 NOVEMBER 2026"} · Berkas: {data?.fileName || "ROOMLIST 4 NOVEMBER REVISI.xlsx"}
               </p>
             </div>
           </div>
@@ -558,8 +560,8 @@ export function ModalDetailRoomlist({
 
           <div className="flex items-center gap-2 pb-2 self-end sm:self-auto">
             <a
-              href={data.fileUrl}
-              download={data.fileName}
+              href={data?.fileUrl || "/uploads/documents/roomlist-04nov2026-revisi.xlsx"}
+              download={data?.fileName || "ROOMLIST 4 NOVEMBER REVISI.xlsx"}
               className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-800 transition shadow-2xs"
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />

@@ -19,6 +19,7 @@ import {
   Edit3,
   ExternalLink,
   FileCheck,
+  FileText,
   Folder,
   FolderOpen,
   Hotel,
@@ -325,6 +326,7 @@ export function JamaahList() {
   const [loadError, setLoadError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<CompletenessStatus | "">("");
+  const [processFilter, setProcessFilter] = useState<string>("");
 
   // Group-First State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -485,6 +487,37 @@ export function JamaahList() {
       ),
     [currentScopedRows],
   );
+
+  // Rekapan Status Dokumen & Paspor per Rombongan / Global
+  const docProcessCounts = useMemo(() => {
+    let melengkapi = 0;
+    let prosesPaspor = 0;
+    let punyaPaspor = 0;
+    let dokumenLengkap = 0;
+
+    for (const r of currentScopedRows) {
+      const status =
+        docProcessStatusMap[r.id] ||
+        (r.completeness?.status === "Siap Masuk Manifest" || r.documentCount >= 7
+          ? "Dokumen lengkap"
+          : r.passportNumber && r.passportNumber.trim().length >= 5
+          ? "Jamaah sudah memiliki paspor"
+          : "Melengkapi dokumen");
+
+      if (status === "Dokumen lengkap") dokumenLengkap++;
+      else if (status === "Jamaah sudah memiliki paspor") punyaPaspor++;
+      else if (status === "Proses pembuatan paspor") prosesPaspor++;
+      else melengkapi++;
+    }
+
+    return {
+      melengkapi,
+      prosesPaspor,
+      punyaPaspor,
+      dokumenLengkap,
+      total: currentScopedRows.length,
+    };
+  }, [currentScopedRows, docProcessStatusMap]);
 
   // Active Package Info for selected group
   const activePackage = useMemo(() => {
@@ -691,6 +724,16 @@ export function JamaahList() {
     const q = query.trim().toLowerCase();
     return currentScopedRows.filter((r) => {
       if (statusFilter && r.completeness.status !== statusFilter) return false;
+      if (processFilter) {
+        const pStatus =
+          docProcessStatusMap[r.id] ||
+          (r.completeness?.status === "Siap Masuk Manifest" || r.documentCount >= 7
+            ? "Dokumen lengkap"
+            : r.passportNumber && r.passportNumber.trim().length >= 5
+            ? "Jamaah sudah memiliki paspor"
+            : "Melengkapi dokumen");
+        if (pStatus !== processFilter) return false;
+      }
       if (!q) return true;
       return (
         r.fullName.toLowerCase().includes(q) ||
@@ -700,7 +743,7 @@ export function JamaahList() {
         r.departureNames.some((n) => n.toLowerCase().includes(q))
       );
     });
-  }, [currentScopedRows, query, statusFilter]);
+  }, [currentScopedRows, query, statusFilter, processFilter, docProcessStatusMap]);
 
   const toggleAccordion = (name: string) => {
     setOpenAccordions((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -899,31 +942,35 @@ export function JamaahList() {
             </div>
 
             {/* 2. Tiket Domestik */}
-            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
-              <div className="rounded-lg bg-blue-100 p-2 text-blue-700 shrink-0">
+            <div
+              onClick={() => {
+                if (currentDocs.domestic.hasTicket) {
+                  setTicketModal({ isOpen: true, type: "domestic" });
+                } else {
+                  setUploadModal({ isOpen: true, type: "domestic" });
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-blue-400 hover:bg-blue-50/20 active:scale-[0.99] transition cursor-pointer group"
+              title="Klik untuk membuka Detail Tiket Domestik Feeder"
+            >
+              <div className="rounded-lg bg-blue-100 p-2 text-blue-700 shrink-0 group-hover:scale-105 transition">
                 <Plane className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Domestik</p>
                   {currentDocs.domestic.hasTicket ? (
-                    <button
-                      type="button"
-                      onClick={() => setTicketModal({ isOpen: true, type: "domestic" })}
-                      className="inline-flex items-center gap-1 text-[10px] font-black text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-blue-100/80 px-2 py-0.5 text-[10px] font-black text-blue-800 border border-blue-200 shadow-2xs group-hover:bg-blue-200 transition">
                       <span>Cek Detail Tiket</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </button>
+                    </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => setUploadModal({ isOpen: true, type: "domestic" })}
-                      className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 hover:bg-blue-100 transition border border-blue-200/60 cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 border border-blue-200/60">
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Tiket</span>
-                    </button>
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -947,31 +994,35 @@ export function JamaahList() {
             </div>
 
             {/* 3. Tiket Internasional */}
-            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
-              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 shrink-0">
+            <div
+              onClick={() => {
+                if (currentDocs.international.hasTicket) {
+                  setTicketModal({ isOpen: true, type: "international" });
+                } else {
+                  setUploadModal({ isOpen: true, type: "international" });
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-emerald-400 hover:bg-emerald-50/20 active:scale-[0.99] transition cursor-pointer group"
+              title="Klik untuk membuka Detail Tiket Internasional Saudia"
+            >
+              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 shrink-0 group-hover:scale-105 transition">
                 <Compass className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Tiket Internasional</p>
                   {currentDocs.international.hasTicket ? (
-                    <button
-                      type="button"
-                      onClick={() => setTicketModal({ isOpen: true, type: "international" })}
-                      className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 hover:text-emerald-800 hover:underline cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100/80 px-2 py-0.5 text-[10px] font-black text-emerald-800 border border-emerald-200 shadow-2xs group-hover:bg-emerald-200 transition">
                       <span>Cek Detail Tiket</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </button>
+                    </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => setUploadModal({ isOpen: true, type: "international" })}
-                      className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 hover:bg-emerald-100 transition border border-emerald-200/60 cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200/60">
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Tiket</span>
-                    </button>
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -995,31 +1046,35 @@ export function JamaahList() {
             </div>
 
             {/* 4. Roomlist & Hotel */}
-            <div className="flex items-start gap-2.5 rounded-lg border border-stone-200/60 bg-white p-2.5 shadow-2xs">
-              <div className="rounded-lg bg-amber-100 p-2 text-amber-700 shrink-0">
+            <div
+              onClick={() => {
+                if (currentDocs.roomlist.hasRoomlist) {
+                  setRoomlistModalOpen(true);
+                } else {
+                  setUploadModal({ isOpen: true, type: "roomlist" });
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              className="flex items-start gap-2.5 rounded-xl border border-stone-200/80 bg-white p-2.5 shadow-2xs hover:border-amber-400 hover:bg-amber-50/20 active:scale-[0.99] transition cursor-pointer group"
+              title="Klik untuk membuka Roomlist & Distribusi Kamar Hotel 3 Kota"
+            >
+              <div className="rounded-lg bg-amber-100 p-2 text-amber-700 shrink-0 group-hover:scale-105 transition">
                 <Hotel className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Roomlist & Hotel</p>
                   {currentDocs.roomlist.hasRoomlist ? (
-                    <button
-                      type="button"
-                      onClick={() => setRoomlistModalOpen(true)}
-                      className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 hover:text-amber-900 hover:underline cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-100/80 px-2 py-0.5 text-[10px] font-black text-amber-800 border border-amber-200 shadow-2xs group-hover:bg-amber-200 transition">
                       <span>Cek Detail Roomlist</span>
                       <ExternalLink className="h-2.5 w-2.5" />
-                    </button>
+                    </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => setUploadModal({ isOpen: true, type: "roomlist" })}
-                      className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 hover:bg-amber-100 transition border border-amber-200/60 cursor-pointer"
-                    >
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-200/60">
                       <Plus className="h-2.5 w-2.5" />
                       <span>Tambahkan Roomlist</span>
-                    </button>
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1228,6 +1283,151 @@ export function JamaahList() {
             <p className="mt-1 text-[10px] text-stone-500 truncate" title={`Sisa: ${formatIDR(scopedPaymentStats.totalOutstanding)}`}>
               Sisa Tagihan: <span className="font-bold text-stone-700">{formatIDR(scopedPaymentStats.totalOutstanding)}</span>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Scoped Dokumen & Paspor Summary Stats Bar (Rekapan Kelengkapan Dokumen & Paspor) ── */}
+      <section className="space-y-3 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold shrink-0">
+              <FileCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
+                <span>Rekapan Kelengkapan Dokumen & Paspor</span>
+                {selectedGroup ? (
+                  <span className="text-brand-pink font-extrabold">· {selectedGroup}</span>
+                ) : (
+                  <span className="text-stone-400 font-bold">· Seluruh Rombongan</span>
+                )}
+              </h3>
+              <p className="text-[10px] text-stone-500">
+                Monitoring progres paspor, berkas administrasi & kesiapan manifest (klik kartu untuk filter data)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {processFilter ? (
+              <button
+                type="button"
+                onClick={() => setProcessFilter("")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition shadow-2xs cursor-pointer"
+                title="Klik untuk menghapus filter dan menampilkan semua jamaah"
+              >
+                <span>Filter: {processFilter}</span>
+                <span className="rounded-full bg-rose-200 px-1.5 py-0.2 text-[9px] font-black">✕ Reset</span>
+              </button>
+            ) : (
+              <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-bold text-stone-700">
+                Total {docProcessCounts.total} Jamaah Terdata
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          {/* Card 1: Melengkapi Dokumen */}
+          <div
+            onClick={() => setProcessFilter((prev) => prev === "Melengkapi dokumen" ? "" : "Melengkapi dokumen")}
+            role="button"
+            tabIndex={0}
+            className={`rounded-xl border p-3 shadow-2xs transition cursor-pointer group ${
+              processFilter === "Melengkapi dokumen"
+                ? "border-amber-400 bg-amber-50 ring-2 ring-amber-300"
+                : "border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white hover:border-amber-300"
+            }`}
+            title="Klik untuk memfilter jamaah yang masih melengkapi dokumen"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">1. Melengkapi Dokumen</p>
+              <div className="rounded-lg bg-amber-100 p-1 text-amber-800 group-hover:scale-105 transition">
+                <FileText className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-amber-900">
+              {docProcessCounts.melengkapi}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-amber-700/80 font-medium">KTP, KK, Buku Nikah, Pas Foto</p>
+          </div>
+
+          {/* Card 2: Proses Pembuatan Paspor */}
+          <div
+            onClick={() => setProcessFilter((prev) => prev === "Proses pembuatan paspor" ? "" : "Proses pembuatan paspor")}
+            role="button"
+            tabIndex={0}
+            className={`rounded-xl border p-3 shadow-2xs transition cursor-pointer group ${
+              processFilter === "Proses pembuatan paspor"
+                ? "border-purple-400 bg-purple-50 ring-2 ring-purple-300"
+                : "border-purple-200/80 bg-gradient-to-br from-purple-50/50 to-white hover:border-purple-300"
+            }`}
+            title="Klik untuk memfilter jamaah dalam proses paspor"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-purple-700">2. Proses Paspor</p>
+              <div className="rounded-lg bg-purple-100 p-1 text-purple-800 group-hover:scale-105 transition">
+                <Compass className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-purple-900">
+              {docProcessCounts.prosesPaspor}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-purple-700/80 font-medium">Rekom Kemenag & proses imigrasi</p>
+          </div>
+
+          {/* Card 3: Sudah Punya Paspor */}
+          <div
+            onClick={() => setProcessFilter((prev) => prev === "Jamaah sudah memiliki paspor" ? "" : "Jamaah sudah memiliki paspor")}
+            role="button"
+            tabIndex={0}
+            className={`rounded-xl border p-3 shadow-2xs transition cursor-pointer group ${
+              processFilter === "Jamaah sudah memiliki paspor"
+                ? "border-blue-400 bg-blue-50 ring-2 ring-blue-300"
+                : "border-blue-200/80 bg-gradient-to-br from-blue-50/50 to-white hover:border-blue-300"
+            }`}
+            title="Klik untuk memfilter jamaah yang sudah punya paspor"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">3. Sudah Punya Paspor</p>
+              <div className="rounded-lg bg-blue-100 p-1 text-blue-800 group-hover:scale-105 transition">
+                <Contact className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-blue-900">
+              {docProcessCounts.punyaPaspor}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-blue-700/80 font-medium">Nomor paspor aktif & terverifikasi</p>
+          </div>
+
+          {/* Card 4: Dokumen Lengkap */}
+          <div
+            onClick={() => setProcessFilter((prev) => prev === "Dokumen lengkap" ? "" : "Dokumen lengkap")}
+            role="button"
+            tabIndex={0}
+            className={`rounded-xl border p-3 shadow-2xs transition cursor-pointer group ${
+              processFilter === "Dokumen lengkap"
+                ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-300"
+                : "border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white hover:border-emerald-300"
+            }`}
+            title="Klik untuk memfilter jamaah yang berkasnya 100% lengkap"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">4. Dokumen Lengkap</p>
+              <div className="rounded-lg bg-emerald-100 p-1 text-emerald-800 group-hover:scale-105 transition">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="mt-1 text-lg font-black leading-tight text-emerald-900">
+              {docProcessCounts.dokumenLengkap}{" "}
+              <span className="text-xs font-semibold text-stone-500">Jamaah</span>
+            </p>
+            <p className="mt-1 text-[10px] text-emerald-700/80 font-medium">100% berkas lengkap & siap manifest</p>
           </div>
         </div>
       </section>
