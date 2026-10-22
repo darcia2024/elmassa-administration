@@ -415,13 +415,18 @@ export function JamaahList() {
   // React to URL ?grup= parameter changes (e.g. clicking sidebar Group links)
   useEffect(() => {
     if (grupParam) {
-      const decoded = decodeURIComponent(grupParam).trim().toLowerCase();
+      let raw = String(grupParam).replace(/\+/g, " ");
+      try {
+        raw = decodeURIComponent(raw);
+      } catch {}
+      const decoded = raw.trim().toLowerCase();
+
       // Match exact or fuzzy against available group names
       const matched =
         groupNames.find((gn) => {
           const l = gn.toLowerCase().trim();
           return l === decoded || l.includes(decoded) || decoded.includes(l);
-        }) || decodeURIComponent(grupParam);
+        }) || raw;
 
       setSelectedGroup(matched);
       setViewMode("group");
@@ -527,17 +532,29 @@ export function JamaahList() {
 
   // Tour Leader & Muthawwif Info for selected group
   const currentLeaders = useMemo(() => {
-    if (!selectedGroup) return { tlName: "Ahmad Hidayat", tlPhone: "0812-7199-1002", muthawwifName: "Ust. Abdullah Mansur", muthawwifPhone: "0812-7199-1001" };
-    try {
-      const saved = typeof window !== "undefined" ? localStorage.getItem(`elmassa_group_leaders_${selectedGroup}`) : null;
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {
+    const defaults = {
       tlName: activePackage?.tourLeaderName || "Ahmad Hidayat",
       tlPhone: activePackage?.tourLeaderWhatsapp || "0812-7199-1002",
       muthawwifName: activePackage?.guideName || "Ust. Abdullah Mansur",
       muthawwifPhone: activePackage?.guideWhatsapp || "0812-7199-1001",
     };
+
+    if (!selectedGroup) return defaults;
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(`elmassa_group_leaders_${selectedGroup}`) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          return {
+            tlName: parsed.tlName || defaults.tlName,
+            tlPhone: parsed.tlPhone || defaults.tlPhone,
+            muthawwifName: parsed.muthawwifName || defaults.muthawwifName,
+            muthawwifPhone: parsed.muthawwifPhone || defaults.muthawwifPhone,
+          };
+        }
+      }
+    } catch {}
+    return defaults;
   }, [selectedGroup, activePackage, leadersUpdateKey]);
 
   // Document Modals State & Storage (Tiket Domestik, Tiket Saudia, Roomlist 3 Kota)
@@ -623,9 +640,26 @@ export function JamaahList() {
 
     // Dokumen aktif: gunakan dokumen kustom jika pernah diunggah/diperbarui,
     // atau gunakan dokumen resmi 04 November (Tiket Garuda 36 Pax, Saudia PNR 7QO8KT, Roomlist 40 Pax)
-    const domestic: TicketDocument = custom?.domestic || DEFAULT_DOMESTIC_04NOV;
-    const international: TicketDocument = custom?.international || DEFAULT_INTERNATIONAL_04NOV;
-    const roomlist: RoomlistDocument = custom?.roomlist || DEFAULT_ROOMLIST_04NOV;
+    const domestic: TicketDocument = {
+      ...DEFAULT_DOMESTIC_04NOV,
+      ...(custom?.domestic || {}),
+      airline: custom?.domestic?.airline || DEFAULT_DOMESTIC_04NOV.airline,
+      flightNo: custom?.domestic?.flightNo || DEFAULT_DOMESTIC_04NOV.flightNo,
+      route: custom?.domestic?.route || DEFAULT_DOMESTIC_04NOV.route,
+      passengers: custom?.domestic?.passengers || DEFAULT_DOMESTIC_04NOV.passengers,
+    };
+    const international: TicketDocument = {
+      ...DEFAULT_INTERNATIONAL_04NOV,
+      ...(custom?.international || {}),
+      airline: custom?.international?.airline || DEFAULT_INTERNATIONAL_04NOV.airline,
+      flightNo: custom?.international?.flightNo || DEFAULT_INTERNATIONAL_04NOV.flightNo,
+      route: custom?.international?.route || DEFAULT_INTERNATIONAL_04NOV.route,
+      passengers: custom?.international?.passengers || DEFAULT_INTERNATIONAL_04NOV.passengers,
+    };
+    const roomlist: RoomlistDocument = {
+      ...DEFAULT_ROOMLIST_04NOV,
+      ...(custom?.roomlist || {}),
+    };
 
     return { domestic, international, roomlist };
   }, [selectedGroup, activePackage, groupDocsState]);
@@ -684,10 +718,10 @@ export function JamaahList() {
 
   const openEditLeaders = () => {
     setLeaderForm({
-      tlName: currentLeaders.tlName,
-      tlPhone: currentLeaders.tlPhone,
-      muthawwifName: currentLeaders.muthawwifName,
-      muthawwifPhone: currentLeaders.muthawwifPhone,
+      tlName: currentLeaders?.tlName || "",
+      tlPhone: currentLeaders?.tlPhone || "",
+      muthawwifName: currentLeaders?.muthawwifName || "",
+      muthawwifPhone: currentLeaders?.muthawwifPhone || "",
     });
     setIsEditLeadersOpen(true);
   };
@@ -893,8 +927,8 @@ export function JamaahList() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs.domestic.airline}>
-                    {currentDocs.domestic.airline}
+                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs?.domestic?.airline || "Garuda Indonesia"}>
+                    {currentDocs?.domestic?.airline || "Garuda Indonesia"}
                   </p>
                   {currentDocs.domestic.hasTicket ? (
                     <span className="shrink-0 rounded-sm bg-blue-50 px-1 py-0.2 text-[9px] font-black text-blue-700 border border-blue-200/50">
@@ -941,8 +975,8 @@ export function JamaahList() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs.international.airline}>
-                    {currentDocs.international.airline.split("(")[0]?.trim() || "Saudia Airlines"}
+                  <p className="text-xs font-black text-brand-cocoa leading-tight truncate" title={currentDocs?.international?.airline || "Saudia Airlines"}>
+                    {String(currentDocs?.international?.airline || "Saudia Airlines").split("(")[0]?.trim() || "Saudia Airlines"}
                   </p>
                   {currentDocs.international.hasTicket ? (
                     <span className="shrink-0 rounded-sm bg-emerald-50 px-1 py-0.2 text-[9px] font-black text-emerald-700 border border-emerald-200/50">
@@ -1316,7 +1350,7 @@ export function JamaahList() {
                             key={m.id}
                             className="inline-block rounded-md bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-700 border border-stone-100"
                           >
-                            {m.fullName.split(" ").slice(0, 2).join(" ")}
+                            {(m.fullName || "Jamaah").split(" ").slice(0, 2).join(" ")}
                           </span>
                         ))}
                         {members.length > 3 && (
@@ -1383,16 +1417,16 @@ export function JamaahList() {
                   <div className="text-left min-w-0">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400 leading-tight">Tour Leader</p>
                     <p className="text-xs font-black text-brand-cocoa leading-tight truncate">
-                      {currentLeaders.tlName}
+                      {currentLeaders?.tlName || "Ahmad Hidayat"}
                     </p>
                     <a
-                      href={`https://wa.me/${currentLeaders.tlPhone.replace(/\D/g, "")}`}
+                      href={`https://wa.me/${String(currentLeaders?.tlPhone || "081271991002").replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-1 mt-0.5"
                     >
                       <MessageSquare className="h-2.5 w-2.5" />
-                      <span>{currentLeaders.tlPhone}</span>
+                      <span>{currentLeaders?.tlPhone || "0812-7199-1002"}</span>
                     </a>
                   </div>
                 </div>
@@ -1405,16 +1439,16 @@ export function JamaahList() {
                   <div className="text-left min-w-0">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400 leading-tight">Muthawwif</p>
                     <p className="text-xs font-black text-brand-cocoa leading-tight truncate">
-                      {currentLeaders.muthawwifName}
+                      {currentLeaders?.muthawwifName || "Ust. Abdullah Mansur"}
                     </p>
                     <a
-                      href={`https://wa.me/${currentLeaders.muthawwifPhone.replace(/\D/g, "")}`}
+                      href={`https://wa.me/${String(currentLeaders?.muthawwifPhone || "081271991001").replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-1 mt-0.5"
                     >
                       <MessageSquare className="h-2.5 w-2.5" />
-                      <span>{currentLeaders.muthawwifPhone}</span>
+                      <span>{currentLeaders?.muthawwifPhone || "0812-7199-1001"}</span>
                     </a>
                   </div>
                 </div>
