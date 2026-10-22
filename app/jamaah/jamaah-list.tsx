@@ -53,6 +53,7 @@ import {
   type TicketDocument,
   type RoomlistDocument,
 } from "./group-documents-modal";
+import { ModalDetailJamaahPembayaran } from "./payment-detail-modal";
 
 type JamaahRow = {
   id: string;
@@ -327,6 +328,11 @@ export function JamaahList() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<CompletenessStatus | "">("");
   const [processFilter, setProcessFilter] = useState<string>("");
+  const [paymentFilter, setPaymentFilter] = useState<string>("");
+  const [paymentDetailModal, setPaymentDetailModal] = useState<{
+    isOpen: boolean;
+    status: "Lunas" | "Sudah 50%" | "DP" | "Belum Bayar" | null;
+  }>({ isOpen: false, status: null });
 
   // Group-First State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -734,6 +740,10 @@ export function JamaahList() {
             : "Melengkapi dokumen");
         if (pStatus !== processFilter) return false;
       }
+      if (paymentFilter) {
+        const payStatus = paymentSummaryData?.byJamaahId[r.id]?.status || "Belum Bayar";
+        if (payStatus !== paymentFilter) return false;
+      }
       if (!q) return true;
       return (
         r.fullName.toLowerCase().includes(q) ||
@@ -743,7 +753,7 @@ export function JamaahList() {
         r.departureNames.some((n) => n.toLowerCase().includes(q))
       );
     });
-  }, [currentScopedRows, query, statusFilter, processFilter, docProcessStatusMap]);
+  }, [currentScopedRows, query, statusFilter, processFilter, paymentFilter, docProcessStatusMap, paymentSummaryData]);
 
   const toggleAccordion = (name: string) => {
     setOpenAccordions((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -1205,6 +1215,17 @@ export function JamaahList() {
           </div>
 
           <div className="flex items-center gap-2">
+            {paymentFilter && (
+              <button
+                type="button"
+                onClick={() => setPaymentFilter("")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition shadow-2xs cursor-pointer"
+                title="Hapus filter pembayaran tabel"
+              >
+                <span>Filter Bayar: {paymentFilter}</span>
+                <span className="rounded-full bg-rose-200 px-1.5 py-0.2 text-[9px] font-black">✕ Reset</span>
+              </button>
+            )}
             <Link
               href="/pembayaran/rekap-grup"
               className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-bold text-stone-700 hover:bg-stone-100 transition shadow-2xs"
@@ -1225,10 +1246,16 @@ export function JamaahList() {
         {/* 4 Cards Grid */}
         <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           {/* Card 1: Total Jamaah DP */}
-          <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white p-3 shadow-2xs transition hover:border-amber-300">
+          <div
+            onClick={() => setPaymentDetailModal({ isOpen: true, status: "DP" })}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white p-3 shadow-2xs hover:border-amber-400 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer group"
+            title="Klik untuk melihat daftar nama jamaah yang baru membayar DP"
+          >
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Total Jamaah DP</p>
-              <div className="rounded-lg bg-amber-100 p-1 text-amber-800">
+              <div className="rounded-lg bg-amber-100 p-1 text-amber-800 group-hover:scale-105 transition">
                 <CreditCard className="h-3.5 w-3.5" />
               </div>
             </div>
@@ -1237,13 +1264,28 @@ export function JamaahList() {
               <span className="text-xs font-semibold text-stone-500">Jamaah</span>
             </p>
             <p className="mt-1 text-[10px] text-amber-700/80 font-medium">Uang muka terverifikasi kasir</p>
+            <div className="mt-2 pt-1.5 border-t border-amber-100/80 flex items-center justify-between text-amber-800">
+              <span className="text-[10px] font-bold group-hover:underline flex items-center gap-1">
+                <span>Lihat daftar nama</span>
+                <ExternalLink className="h-2.5 w-2.5" />
+              </span>
+              <span className="text-[9px] font-bold bg-amber-100 text-amber-800 rounded px-1.5 py-0.2">
+                Buka ↗
+              </span>
+            </div>
           </div>
 
           {/* Card 2: Jamaah Sudah 50% */}
-          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-3 shadow-2xs transition hover:border-indigo-300">
+          <div
+            onClick={() => setPaymentDetailModal({ isOpen: true, status: "Sudah 50%" })}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-3 shadow-2xs hover:border-indigo-400 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer group"
+            title="Klik untuk melihat daftar nama jamaah yang sudah membayar 50%"
+          >
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Sudah Membayar 50%</p>
-              <div className="rounded-lg bg-indigo-100 p-1 text-indigo-800">
+              <div className="rounded-lg bg-indigo-100 p-1 text-indigo-800 group-hover:scale-105 transition">
                 <CircleDollarSign className="h-3.5 w-3.5" />
               </div>
             </div>
@@ -1252,13 +1294,28 @@ export function JamaahList() {
               <span className="text-xs font-semibold text-stone-500">Jamaah</span>
             </p>
             <p className="mt-1 text-[10px] text-indigo-700/80 font-medium">Cicilan masuk &ge; 50% biaya</p>
+            <div className="mt-2 pt-1.5 border-t border-indigo-100/80 flex items-center justify-between text-indigo-800">
+              <span className="text-[10px] font-bold group-hover:underline flex items-center gap-1">
+                <span>Lihat daftar nama</span>
+                <ExternalLink className="h-2.5 w-2.5" />
+              </span>
+              <span className="text-[9px] font-bold bg-indigo-100 text-indigo-800 rounded px-1.5 py-0.2">
+                Buka ↗
+              </span>
+            </div>
           </div>
 
           {/* Card 3: Jamaah Yang Lunas */}
-          <div className="rounded-xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-3 shadow-2xs transition hover:border-emerald-300">
+          <div
+            onClick={() => setPaymentDetailModal({ isOpen: true, status: "Lunas" })}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-3 shadow-2xs hover:border-emerald-400 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer group"
+            title="Klik untuk melihat daftar nama jamaah yang sudah lunas (100%)"
+          >
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Jamaah Yang Lunas</p>
-              <div className="rounded-lg bg-emerald-100 p-1 text-emerald-800">
+              <div className="rounded-lg bg-emerald-100 p-1 text-emerald-800 group-hover:scale-105 transition">
                 <CheckCircle2 className="h-3.5 w-3.5" />
               </div>
             </div>
@@ -1267,6 +1324,15 @@ export function JamaahList() {
               <span className="text-xs font-semibold text-stone-500">Jamaah</span>
             </p>
             <p className="mt-1 text-[10px] text-emerald-700/80 font-medium">Pelunasan penuh (100%)</p>
+            <div className="mt-2 pt-1.5 border-t border-emerald-100/80 flex items-center justify-between text-emerald-800">
+              <span className="text-[10px] font-bold group-hover:underline flex items-center gap-1">
+                <span>Lihat daftar nama</span>
+                <ExternalLink className="h-2.5 w-2.5" />
+              </span>
+              <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 rounded px-1.5 py-0.2">
+                Buka ↗
+              </span>
+            </div>
           </div>
 
           {/* Card 4: Total Terhimpun & Sisa Tagihan */}
@@ -2037,6 +2103,17 @@ export function JamaahList() {
         type={uploadModal.type}
         groupName={selectedGroup || activePackage?.name || "UMRAH REGULER 04 NOVEMBER 2026"}
         onSuccess={handleDocumentUploaded}
+      />
+
+      {/* ── Payment Detail Modal (Daftar Nama Jamaah Lunas, 50%, DP) ── */}
+      <ModalDetailJamaahPembayaran
+        isOpen={paymentDetailModal.isOpen}
+        onClose={() => setPaymentDetailModal((prev) => ({ ...prev, isOpen: false }))}
+        status={paymentDetailModal.status}
+        groupName={selectedGroup}
+        items={currentScopedRows}
+        paymentSummaryData={paymentSummaryData}
+        onFilterTable={(st) => setPaymentFilter(st)}
       />
     </div>
   );
