@@ -26,38 +26,44 @@ const text = (value: string): Cell => (value ? { kind: "text", value } : null);
 const date = (value: string): Cell => (value ? { kind: "date", value } : null);
 
 function withPrefix(value: string, prefixes: string[], prefix: string) {
-  const v = value.trim();
+  const v = value.trim().toUpperCase();
   if (!v) return "";
-  return prefixes.some((p) => v.toUpperCase().startsWith(p)) ? v : `${prefix}${v}`;
+  return prefixes.some((p) => v.startsWith(p)) ? v : `${prefix}${v}`;
 }
 
-/** Urutan persis 32 kolom header template (A..AF). */
+/** Urutan persis 32 kolom header template resmi Siskopatuh (A..AF). */
 function rowCells(p: Passenger): Cell[] {
+  const title = (p.title || (p.gender === "P" ? "MRS" : "MR")).replace(/\s*\(infant\)/i, "").trim().toUpperCase();
+  const cleanPassport = (p.passportNumber || "").toUpperCase().replace(/\s+/g, "");
+  const cleanNik = (p.nik || "").replace(/\D/g, "");
+  const fullName = (p.fullName || p.name || "").trim().toUpperCase();
+  const passportName = (p.name || p.fullName || "").trim().toUpperCase();
+
   return [
-    text(p.title.replace(/\s*\(infant\)/i, "")), // A Title
-    text(p.fullName), // B Nama (sesuai kartu vaksin)
-    text(p.fatherName), // C Nama Ayah
+    text(title || "MR"), // A Title
+    text(fullName), // B Nama (sesuai kartu vaksin)
+    text(p.fatherName ? p.fatherName.trim().toUpperCase() : ""), // C Nama Ayah
     text("NIK"), // D Jenis Identitas
-    text(p.nik), // E No Identitas -- teks, angka 16 digit rusak kalau jadi number
-    text(p.name), // F Nama Paspor
-    text(p.passportNumber), // G No Paspor
+    text(cleanNik), // E No Identitas -- teks, angka 16 digit rusak kalau jadi number
+    text(passportName), // F Nama Paspor
+    text(cleanPassport), // G No Paspor
     date(p.passportIssueDate), // H Tanggal Dikeluarkan Paspor
-    text(p.passportIssuePlace), // I Kota Paspor
-    text(p.birthPlace), // J Tempat Lahir
+    text(p.passportIssuePlace ? p.passportIssuePlace.trim().toUpperCase() : ""), // I Kota Paspor
+    text(p.birthPlace ? p.birthPlace.trim().toUpperCase() : ""), // J Tempat Lahir
     date(p.birthDate), // K Tanggal Lahir
-    text(p.address), // L Alamat
-    text(p.province), // M Provinsi
-    text(p.regency), // N Kabupaten
-    text(withPrefix(p.district, ["KEC"], "KEC. ")), // O Kecamatan -- contoh kantor selalu "KEC. ..."
-    text(withPrefix(p.village, ["KEL", "DESA", "DS."], "KEL. ")), // P Kelurahan
+    text(p.address ? p.address.trim().toUpperCase() : ""), // L Alamat
+    text(p.province ? p.province.trim().toUpperCase() : ""), // M Provinsi
+    text(p.regency ? p.regency.trim().toUpperCase() : ""), // N Kabupaten
+    text(withPrefix(p.district || "", ["KEC"], "KEC. ")), // O Kecamatan -- contoh kantor selalu "KEC. ..."
+    text(withPrefix(p.village || "", ["KEL", "DESA", "DS."], "KEL. ")), // P Kelurahan
     null, // Q No. Telepon (rumah)
-    text(p.phone), // R No Hp
+    text(p.phone ? p.phone.trim() : ""), // R No Hp
     text("WNI"), // S Kewarganegaraan
-    text(p.maritalStatus), // T Status Pernikahan
-    text(p.education), // U Pendidikan
-    text(p.occupation), // V Pekerjaan
+    text(p.maritalStatus ? p.maritalStatus.trim().toUpperCase() : "MENIKAH"), // T Status Pernikahan
+    text(p.education ? p.education.trim().toUpperCase() : "SMA/MA"), // U Pendidikan
+    text(p.occupation ? p.occupation.trim().toUpperCase() : "LAINNYA"), // V Pekerjaan
     null, // W Provider Visa
-    text(p.visaNumber), // X No Visa
+    text(p.visaNumber ? p.visaNumber.trim() : ""), // X No Visa
     null, // Y Tanggal Berlaku Visa -- belum dicatat sistem
     date(p.visaExpiry), // Z Tanggal Akhir Visa
     null, null, null, null, null, // AA..AE Asuransi & polis

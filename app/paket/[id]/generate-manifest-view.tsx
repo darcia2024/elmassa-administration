@@ -60,7 +60,7 @@ function escapeHtml(value: string) {
 export function GenerateManifestView({ pkg, participants }: { pkg: PackageDetail; participants: GroupParticipant[] }) {
   const linked = useMemo(() => participants.filter((p) => p.jamaahId), [participants]);
   const unlinkedCount = participants.length - linked.length;
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(linked.map((p) => p.id)));
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(participants.map((p) => p.id)));
   const [preview, setPreview] = useState<Preview | null>(null);
   const [labels, setLabels] = useState<Record<string, string>>({});
   const [pnr, setPnr] = useState("");
@@ -258,10 +258,10 @@ export function GenerateManifestView({ pkg, participants }: { pkg: PackageDetail
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="text-xs font-extrabold text-brand-cocoa">
-            1. Pilih jamaah <span className="font-semibold text-stone-500">({selected.size} dari {linked.length} dipilih)</span>
+            1. Pilih jamaah <span className="font-semibold text-stone-500">({selected.size} dari {participants.length} dipilih)</span>
           </h4>
           <div className="flex gap-1.5">
-            <button type="button" onClick={() => changeSelection(new Set(linked.map((p) => p.id)))} className="h-8 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-600 hover:bg-stone-50">
+            <button type="button" onClick={() => changeSelection(new Set(participants.map((p) => p.id)))} className="h-8 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-600 hover:bg-stone-50">
               Pilih semua
             </button>
             <button type="button" onClick={() => changeSelection(new Set())} className="h-8 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-600 hover:bg-stone-50">
@@ -271,7 +271,7 @@ export function GenerateManifestView({ pkg, participants }: { pkg: PackageDetail
         </div>
         {unlinkedCount > 0 ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
-            {unlinkedCount} peserta belum ditautkan ke Database Jamaah, jadi datanya belum bisa masuk manifest. Tautkan dulu di tab <b>Profil Jamaah</b>.
+            {unlinkedCount} peserta belum ditautkan ke profil master. Data dasar (nama, paspor, kontak) tetap akan diekspor ke manifest. Untuk melengkapi seluruh kolom Siskopatuh, tautkan di tab <b>Profil Jamaah</b>.
           </p>
         ) : null}
         <ul className="grid max-h-64 gap-1 overflow-y-auto rounded-xl border border-stone-200/60 p-1.5 sm:grid-cols-2">
@@ -279,10 +279,10 @@ export function GenerateManifestView({ pkg, participants }: { pkg: PackageDetail
             const disabled = !p.jamaahId;
             return (
               <li key={p.id}>
-                <label className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px] ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-stone-50"}`}>
-                  <input type="checkbox" checked={selected.has(p.id)} disabled={disabled} onChange={() => toggle(p.id)} className="h-4 w-4 accent-brand-pink" />
+                <label className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px] cursor-pointer hover:bg-stone-50">
+                  <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} className="h-4 w-4 accent-brand-pink" />
                   <span className="min-w-0 flex-1 truncate font-bold text-brand-cocoa">{p.name}</span>
-                  <span className="shrink-0 font-mono text-[10px] text-stone-400">{disabled ? "belum tertaut" : p.bookingCode}</span>
+                  <span className="shrink-0 font-mono text-[10px] text-stone-400">{disabled ? "data dasar" : p.bookingCode}</span>
                 </label>
               </li>
             );

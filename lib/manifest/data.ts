@@ -79,9 +79,9 @@ export function ageOn(birthDate: string, onDate: string) {
  */
 export function airlineTitle(gender: string, birthDate: string, departureDate: string) {
   const male = gender === "L";
-  if (!birthDate) return male ? "MR" : gender === "P" ? "MRS" : "";
+  if (!birthDate) return male ? "MR" : gender === "P" ? "MRS" : "MR";
   const age = ageOn(birthDate, departureDate);
-  if (age < 2) return male ? "MSTR (infant)" : "MISS (infant)";
+  if (age < 2) return "INF";
   if (age < 12) return male ? "MSTR" : "MISS";
   return male ? "MR" : "MRS";
 }
@@ -150,6 +150,7 @@ export async function loadManifestData(packageId: string, participantIds?: strin
 
   const rows = await pool.query(
     `SELECT pa.id AS "participantId", pa.name AS "participantName", pa.booking_code AS "bookingCode",
+            pa.passport_number AS "paPassportNumber", pa.contact AS "paContact",
             pa.jamaah_id AS "jamaahId", pa.visa_number AS "visaNumber",
             TO_CHAR(pa.visa_expiry, 'YYYY-MM-DD') AS "visaExpiry",
             jp.full_name AS "fullName", jp.passport_name AS "passportName", jp.father_name AS "fatherName",
@@ -170,16 +171,28 @@ export async function loadManifestData(packageId: string, participantIds?: strin
   );
 
   const unlinked: ManifestData["unlinked"] = [];
-  const linked: Array<Record<string, any>> = [];
+  const exportableRows: Array<Record<string, any>> = [];
   for (const r of rows.rows) {
-    if (r.jamaahId) linked.push(r);
-    else unlinked.push({ participantId: r.participantId, name: r.participantName, bookingCode: r.bookingCode });
+    if (r.jamaahId) {
+      exportableRows.push(r);
+    } else {
+      unlinked.push({ participantId: r.participantId, name: r.participantName, bookingCode: r.bookingCode });
+      // Sertakan juga ke baris manifest agar jamaah yang belum ditautkan profilnya
+      // tetap masuk ke manifest maskapai / siskopatuh dengan data yang ada di tabel participants.
+      exportableRows.push({
+        ...r,
+        fullName: r.participantName,
+        passportName: r.participantName,
+        passportNumber: r.paPassportNumber || "",
+        phone: r.paContact || "",
+      });
+    }
   }
 
   // Tanpa tanggal berangkat yang terbaca, umur dihitung per hari ini.
   const onDate = departureDate ?? new Date().toISOString().slice(0, 10);
 
-  const passengers: Passenger[] = linked.map((r) => {
+  const passengers: Passenger[] = exportableRows.map((r) => {
     const p: Passenger = {
       participantId: r.participantId,
       jamaahId: r.jamaahId,
@@ -225,7 +238,7 @@ export async function loadManifestData(packageId: string, participantIds?: strin
     g.participantIds.push(p.participantId);
   }
   for (const g of groups) {
-    const members = linked.filter((r) => g.participantIds.includes(r.participantId));
+    const members = exportableRows.filter((r) => g.participantIds.includes(r.participantId));
     g.label = groupLabel(
       members.map((m) => ({
         gender: m.gender ?? "",

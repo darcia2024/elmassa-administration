@@ -24,8 +24,8 @@ export const AIRLINE_HEADERS = (kind: AirlineKind) => [
   "DOE",
 ];
 
-// Lebar kolom dari file contoh internasional.
-const WIDTHS = [7.5, 24, 37.7, 18, 18, 14, 16, 14, 14];
+// Lebar kolom dari file resmi Format manifest INTERNATIONAL.xlsx.
+const WIDTHS = [7.6, 33.3, 37.7, 24.7, 25.7, 18.7, 20.1, 14.1, 15.3];
 
 // Warna tema Office 2007 yang dipakai file contoh: accent1 & accent2 tint 80%.
 const HEADER_FILL = "FF4F81BD";
@@ -55,7 +55,7 @@ export async function buildAirlineXlsx(
   ws.mergeCells("A1:C1");
   const pnrCell = ws.getCell("A1");
   pnrCell.value = `PNR : ${opts.pnr.trim().toUpperCase()}`;
-  pnrCell.font = { bold: true, size: 14 };
+  pnrCell.font = { name: "Calibri", bold: true, size: 14 };
   ws.getRow(1).height = 25;
 
   const thin = { style: "thin" as const, color: { argb: "FF000000" } };
@@ -65,7 +65,12 @@ export async function buildAirlineXlsx(
   header.values = AIRLINE_HEADERS(kind);
   header.height = 18;
   header.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: kind === "internasional" ? "FFFFFFFF" : "FF000000" } };
+    cell.font = {
+      name: "Calibri",
+      size: 11,
+      bold: true,
+      color: { argb: kind === "internasional" ? "FFFFFFFF" : "FF000000" },
+    };
     cell.alignment = { horizontal: "center", vertical: "middle" };
     cell.border = border;
     if (kind === "internasional") cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
@@ -85,15 +90,17 @@ export async function buildAirlineXlsx(
       row.values = [
         index,
         p.title,
-        p.name,
+        (p.name || p.fullName || "").toUpperCase().trim(),
         rowNo === firstRow ? group.label : null,
         asDate(p.birthDate),
         "IDN",
-        p.passportNumber,
+        (p.passportNumber || "").toUpperCase().replace(/\s+/g, ""),
         asDate(p.passportIssueDate),
         asDate(p.passportExpiry),
       ];
+      row.height = 18;
       row.eachCell({ includeEmpty: true }, (cell, col) => {
+        cell.font = { name: "Calibri", size: 11 };
         cell.border = border;
         cell.alignment = { horizontal: col === 3 ? "left" : "center", vertical: "middle" };
         if ([5, 8, 9].includes(col)) cell.numFmt = "yyyy-mm-dd";
