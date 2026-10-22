@@ -1,13 +1,8 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2, HelpCircle, Mail, Phone, Send, ShieldAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, HelpCircle, Send, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-
-const adminContacts = [
-  { label: "CEO & Direksi", name: "Azriandri", value: "0812-3344-7788", icon: Phone },
-  { label: "Email Bantuan", name: "Tim Admin", value: "admin@elmassa.test", icon: Mail },
-];
 
 const verificationItems = ["Nama lengkap staf", "Email yang terdaftar", "Role atau cabang kerja", "Alasan reset akses"];
 
@@ -16,12 +11,21 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
-    if (!email.trim()) {
-      return;
-    }
-
-    setSubmitted(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const handleSubmit = async () => {
+    if (sending || !email.trim()) return;
+    setSending(true); setError("");
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, message }),
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || "Permintaan gagal disimpan.");
+      setSubmitted(true);
+    } catch (e) { setError(e instanceof Error ? e.message : "Tidak bisa menghubungi server."); }
+    finally { setSending(false); }
   };
 
   return (
@@ -41,23 +45,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {adminContacts.map((contact) => (
-              <article key={contact.label} className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-brand-rose text-brand-pink">
-                    <contact.icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase text-stone-500">{contact.label}</p>
-                    <p className="font-bold text-brand-cocoa">{contact.name}</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-lg font-bold text-brand-cocoa">{contact.value}</p>
-                <p className="mt-2 text-sm text-stone-500">Senin-Sabtu, 09.00-17.00 WIB</p>
-              </article>
-            ))}
-          </div>
+
         </div>
 
         <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-soft">
@@ -65,30 +53,31 @@ export default function ForgotPasswordPage() {
             <div className="mb-4 grid h-12 w-12 place-items-center rounded-lg bg-brand-rose text-brand-pink">
               <HelpCircle className="h-6 w-6" aria-hidden="true" />
             </div>
-            <h2 className="text-2xl font-bold text-brand-cocoa">Permintaan Reset dummy</h2>
-            <p className="mt-2 text-sm leading-6 text-stone-500">Form ini hanya menampilkan status permintaan, belum mengirim email.</p>
+            <h2 className="text-2xl font-bold text-brand-cocoa">Permintaan Reset Password</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-500">Permintaan akan diteruskan ke pusat notifikasi admin untuk verifikasi dan reset manual.</p>
           </div>
 
           <div className="space-y-4">
             <label className="block text-sm font-semibold text-brand-cocoa">
               Email akun
-              <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={email} onChange={(event) => { setEmail(event.target.value); setSubmitted(false); }} placeholder="nama@elmassa.test" />
+              <input className="mt-2 h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm outline-none" value={email} onChange={(event) => { setEmail(event.target.value); setSubmitted(false); }} type="email" placeholder="Email akun Anda" />
             </label>
             <label className="block text-sm font-semibold text-brand-cocoa">
               Catatan untuk admin
-              <textarea className="mt-2 min-h-24 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm outline-none" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Contoh: akun sales tidak bisa masuk sejak pagi" />
+              <textarea maxLength={2000} className="mt-2 min-h-24 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm outline-none" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Contoh: akun sales tidak bisa masuk sejak pagi" />
             </label>
           </div>
 
-          <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-stone-300" type="button" disabled={!email.trim()} onClick={handleSubmit}>
+          <button className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-pink px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-stone-300" type="button" disabled={!email.trim() || sending} onClick={handleSubmit}>
             <Send className="h-4 w-4" aria-hidden="true" />
-            Kirim permintaan dummy
+            {sending ? "Mengirim..." : "Kirim permintaan"}
           </button>
 
+          {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
           {submitted ? (
             <div className="mt-4 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <p>Permintaan reset untuk {email} tercatat di layar ini. Hubungi admin untuk proses manual.</p>
+              <p>Jika {email} terdaftar, permintaan telah diteruskan ke admin untuk verifikasi manual.</p>
             </div>
           ) : null}
 

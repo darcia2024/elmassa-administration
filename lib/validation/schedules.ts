@@ -1,4 +1,4 @@
-import type { ScheduleRow } from "@/lib/seed-data/schedules";
+import type { ScheduleRow } from "@/lib/schedules/store";
 
 const scheduleStatuses = ["Terjadwal", "Berangkat", "Selesai"] as const;
 

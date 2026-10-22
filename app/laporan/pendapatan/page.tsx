@@ -25,6 +25,7 @@ type IncomeRowItem = {
   bookingCode: string;
   customer: string;
   date: string;
+  estimatedMargin: number | null;
   gross: number;
   grossDisplay: string;
   paid: number;
@@ -56,6 +57,7 @@ export default function IncomeReportPage() {
             bookingCode: r.bookingCode,
             customer: r.customer,
             date: r.date,
+            estimatedMargin: r.estimatedMargin ?? null,
             gross: r.amount,
             grossDisplay: r.amountDisplay,
             paid: r.paid,
@@ -96,7 +98,7 @@ export default function IncomeReportPage() {
                 Rekapitulasi Pendapatan Omzet & Estimasi Margin Profit
               </h1>
               <p className="text-xs text-stone-500 mt-1 sm:text-sm">
-                Analisa omzet kotor penjualan paket wisata, realisasi dana masuk, serta proyeksi keuntungan bersih travel.
+                Analisa omzet kotor penjualan paket wisata, realisasi dana masuk, serta estimasi margin berdasarkan HPP Quad paket terkini.
               </p>
             </div>
 
@@ -166,9 +168,9 @@ export default function IncomeReportPage() {
               <TrendingUp className="h-4 w-4 text-brand-pink shrink-0" strokeWidth={1.5} />
             </div>
             <p className="mt-1 text-xs sm:text-sm font-semibold text-stone-400">
-              Data belum tersedia
+              {filteredRows.some(r => r.estimatedMargin !== null) ? `Rp ${filteredRows.reduce((sum, r) => sum + (r.estimatedMargin ?? 0), 0).toLocaleString("id-ID")}` : "HPP belum tersedia"}
             </p>
-            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400">Kalkulator HPP belum menyimpan breakdown biaya ke database</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-stone-400">Estimasi HPP Quad paket terkini. {filteredRows.filter(r => r.estimatedMargin === null).length} booking belum memiliki HPP.</p>
           </article>
 
           <article className="rounded-2xl border border-stone-200/70 bg-white p-3.5 sm:p-5 shadow-2xs">

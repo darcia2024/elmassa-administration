@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  packageExists,
   deleteScheduleRowById,
   findScheduleRowById,
   updateScheduleRowById,
-} from "@/lib/seed-data/schedules";
-import { validateSchedulePatch } from "@/lib/validation/schedules";
+} from "@/lib/schedules/store";
+import { validateSchedulePatch, validateScheduleCreate } from "@/lib/validation/schedules";
 
 type ScheduleDetailRouteProps = {
   params: Promise<{
@@ -14,7 +15,7 @@ type ScheduleDetailRouteProps = {
 
 export async function GET(_: NextRequest, { params }: ScheduleDetailRouteProps) {
   const { scheduleId } = await params;
-  const data = findScheduleRowById(scheduleId);
+  const data = await findScheduleRowById(scheduleId);
 
   if (!data) {
     return NextResponse.json({ error: "Jadwal tidak ditemukan" }, { status: 404 });
@@ -25,7 +26,7 @@ export async function GET(_: NextRequest, { params }: ScheduleDetailRouteProps) 
 
 export async function PATCH(request: NextRequest, { params }: ScheduleDetailRouteProps) {
   const { scheduleId } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
   const validation = validateSchedulePatch(body);
 
   if (validation.errors) {
@@ -40,7 +41,13 @@ export async function PATCH(request: NextRequest, { params }: ScheduleDetailRout
     );
   }
 
-  const data = updateScheduleRowById(scheduleId, validation.data);
+  const existing = await findScheduleRowById(scheduleId);
+  if (!existing) return NextResponse.json({ error: "Jadwal tidak ditemukan" }, { status: 404 });
+  const merged = { ...existing, ...Object.fromEntries(Object.entries(validation.data).filter(([, value]) => value !== undefined)) };
+  const fullValidation = validateScheduleCreate(merged);
+  if (fullValidation.errors) return NextResponse.json({ error: "Payload jadwal tidak valid", details: fullValidation.errors }, { status: 400 });
+  if (!await packageExists(merged.packageId)) return NextResponse.json({ error: "Paket tidak ditemukan" }, { status: 404 });
+  const data = await updateScheduleRowById(scheduleId, validation.data);
 
   if (!data) {
     return NextResponse.json({ error: "Jadwal tidak ditemukan" }, { status: 404 });
@@ -51,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: ScheduleDetailRout
 
 export async function DELETE(_: NextRequest, { params }: ScheduleDetailRouteProps) {
   const { scheduleId } = await params;
-  const deleted = deleteScheduleRowById(scheduleId);
+  const deleted = await deleteScheduleRowById(scheduleId);
 
   if (!deleted) {
     return NextResponse.json({ error: "Jadwal tidak ditemukan" }, { status: 404 });

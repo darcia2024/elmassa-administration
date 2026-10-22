@@ -100,7 +100,7 @@ export default function ChangePasswordPage() {
             </div>
             <div>
               <h3 className="font-bold text-brand-cocoa">Form Password Baru</h3>
-              <p className="text-sm text-stone-500">Tidak terhubung backend, hanya validasi dummy.</p>
+              <p className="text-sm text-stone-500">Password diperbarui pada akun staf Anda.</p>
             </div>
           </div>
 

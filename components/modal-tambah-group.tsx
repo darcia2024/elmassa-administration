@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Plus, Sparkles, Building2, Calendar, Plane, Users, Banknote } from "lucide-react";
@@ -258,12 +260,12 @@ export function ModalTambahGroup({ isOpen, onClose, onSuccess }: ModalTambahGrou
           </div>
 
           <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
-            <a
+            <Link
               href="/paket/kalkulator"
               className="text-[11px] font-bold text-stone-500 hover:text-brand-pink transition"
             >
               Atau kalkulasi via Kalkulator HPP & Costing →
-            </a>
+            </Link>
 
             <div className="flex items-center gap-2">
               <button

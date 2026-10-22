@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findPackageRow } from "@/lib/seed-data/packages";
-import { createScheduleRow, listScheduleRows } from "@/lib/seed-data/schedules";
+import { packageExists } from "@/lib/schedules/store";
+import { createScheduleRow, listScheduleRows } from "@/lib/schedules/store";
 import { validateScheduleCreate } from "@/lib/validation/schedules";
 
 type PackageSchedulesRouteProps = {
@@ -12,24 +12,24 @@ type PackageSchedulesRouteProps = {
 export async function GET(_: NextRequest, { params }: PackageSchedulesRouteProps) {
   const { id } = await params;
 
-  if (!findPackageRow(id)) {
+  if (!await packageExists(id)) {
     return NextResponse.json({ error: "Paket tidak ditemukan" }, { status: 404 });
   }
 
   return NextResponse.json({
-    data: listScheduleRows(id),
+    data: await listScheduleRows(id),
     meta: {
       packageId: id,
-      source: "dummy",
+      source: "supabase",
     },
   });
 }
 
 export async function POST(request: NextRequest, { params }: PackageSchedulesRouteProps) {
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
 
-  if (!findPackageRow(id)) {
+  if (!await packageExists(id)) {
     return NextResponse.json({ error: "Paket tidak ditemukan" }, { status: 404 });
   }
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: PackageSchedulesRou
     );
   }
 
-  const data = createScheduleRow(validation.data);
+  const data = await createScheduleRow(validation.data);
 
   return NextResponse.json({ data }, { status: 201 });
 }

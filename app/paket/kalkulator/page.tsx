@@ -1,5 +1,7 @@
 "use client";
 
+import { publishPackage } from "@/lib/catalog/publish-package";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -236,6 +238,8 @@ export default function PackageCalculatorPage() {
 
   // 4. Modal Terbitkan Paket State & Form
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [pubPackageName, setPubPackageName] = useState("");
   const [pubCategory, setPubCategory] = useState("November");
@@ -700,7 +704,10 @@ export default function PackageCalculatorPage() {
     setIsPublishModalOpen(true);
   };
 
-  const handleConfirmPublish = () => {
+  const handleConfirmPublish = async () => {
+    if (isPublishing) return;
+    setIsPublishing(true);
+    setPublishError("");
     const totalDays = (makkahNights || 5) + (madinahNights || 4);
     const targetId = editingPackageId || `pkg-${categoryName.toLowerCase()}-${Date.now()}`;
 
@@ -736,6 +743,7 @@ export default function PackageCalculatorPage() {
       triplePaxCount: triplePaxCount,
       doublePaxCount: doublePaxCount,
       costingData: {
+        estimatedHppQuadPerPax: calculations.hppQuadPerPax,
         id: targetId,
         packageName: pubPackageName || packageName,
         categoryName: pubCategory || categoryName,
@@ -834,44 +842,19 @@ export default function PackageCalculatorPage() {
     };
 
     try {
-      const existingStr = localStorage.getItem("el_massa_published_packages");
-      const existing = existingStr ? JSON.parse(existingStr) : [];
-      
-      let updated: any[] = [];
-      if (editingPackageId && existing.some((item: any) => item.id === editingPackageId)) {
-        updated = existing.map((item: any) => (item.id === editingPackageId ? newPackage : item));
-      } else {
-        updated = [newPackage, ...existing.filter((item: any) => item.id !== targetId)];
-      }
-
-      localStorage.setItem("el_massa_published_packages", JSON.stringify(updated));
-
-      // Sync live to Supabase PostgreSQL Cloud Database
-      fetch("/api/packages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPackage),
-      }).catch((e) => console.error("Supabase package sync error:", e));
-
-      // Push real live notification to Bell Notification Center
-      const newNotif = {
-        id: `notif-${Date.now()}`,
-        title: "📦 Paket Umrah Diterbitkan",
-        message: `Paket "${newPackage.name}" (${formatRupiah(calculations.sellingPriceQuad)}) resmi terbit di katalog.`,
-        time: "Baru saja",
-        category: "Dokumen",
-        read: false,
-        link: "/paket",
-      };
-      const existingNotifStr = localStorage.getItem("el_massa_real_notifications");
-      const existingNotifs = existingNotifStr ? JSON.parse(existingNotifStr) : [];
-      localStorage.setItem("el_massa_real_notifications", JSON.stringify([newNotif, ...existingNotifs]));
-    } catch (e) {
-      console.error(e);
-    }
-
-    setIsPublishModalOpen(false);
-    setIsSuccessModalOpen(true);
+      await publishPackage(newPackage);
+      // Database is authoritative; browser cache is optional.
+      try {
+        const existing = JSON.parse(localStorage.getItem("el_massa_published_packages") || "[]");
+        localStorage.setItem("el_massa_published_packages", JSON.stringify([
+          newPackage, ...(Array.isArray(existing) ? existing : []).filter((item: { id: string }) => item.id !== targetId),
+        ]));
+      } catch { /* A cache failure must not undo a saved package. */ }
+      setIsPublishModalOpen(false);
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      setPublishError(error instanceof Error ? error.message : "Tidak bisa menghubungi server.");
+    } finally { setIsPublishing(false); }
   };
 
   const handleCancelEditPackage = () => {
@@ -1822,7 +1805,7 @@ export default function PackageCalculatorPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Kerudung Syar'i Resmi</label>
+                      <label className="text-[11px] font-semibold text-stone-700 truncate">3. Kerudung Syar&apos;i Resmi</label>
                       <input
                         type="number"
                         value={equipWomenKerudung}
@@ -2378,6 +2361,7 @@ export default function PackageCalculatorPage() {
               </div>
             </div>
 
+            {publishError && <p role="alert" className="text-sm text-red-700">{publishError}</p>}
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => setIsPublishModalOpen(false)}
@@ -2386,10 +2370,11 @@ export default function PackageCalculatorPage() {
                 Batal
               </button>
               <button
+                disabled={isPublishing}
                 onClick={handleConfirmPublish}
                 className="w-1/2 h-10 rounded-xl bg-brand-pink text-xs font-bold text-white shadow-md hover:bg-brand-pinkHover transition"
               >
-                Terbitkan Paket Sekarang
+                {isPublishing ? "Menyimpan..." : "Terbitkan Paket Sekarang"}
               </button>
             </div>
           </div>

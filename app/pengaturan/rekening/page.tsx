@@ -169,7 +169,7 @@ export default function PaymentAccountsPage() {
         <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <p className="text-sm font-semibold text-stone-500">Total Rekening</p>
           <p className="mt-3 text-2xl font-bold text-brand-cocoa">{accounts.length}</p>
-          <p className="mt-2 text-sm text-stone-500">Data dummy lokal</p>
+          <p className="mt-2 text-sm text-stone-500">Data rekening perusahaan</p>
         </article>
         <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-soft">
           <p className="text-sm font-semibold text-stone-500">Aktif</p>
@@ -191,7 +191,7 @@ export default function PaymentAccountsPage() {
             </div>
             <div>
               <h3 className="font-bold text-brand-cocoa">{editingId ? "Edit Rekening" : "Tambah Rekening"}</h3>
-              <p className="text-sm text-stone-500">Perubahan disimpan di state dummy.</p>
+              <p className="text-sm text-stone-500">Perubahan disimpan ke database perusahaan.</p>
             </div>
           </div>
 

@@ -159,7 +159,7 @@ export default function ServiceTypesPage() {
             </div>
             <div>
               <h3 className="font-bold text-brand-cocoa">{editingId ? "Edit Jenis Layanan" : "Tambah Jenis Layanan"}</h3>
-              <p className="text-sm text-stone-500">Perubahan tersimpan di state dummy.</p>
+              <p className="text-sm text-stone-500">Perubahan disimpan ke database perusahaan.</p>
             </div>
           </div>
 

@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
       paid: item.paid,
       paidDisplay: formatRupiah(item.paid),
       status: item.status,
+      estimatedCost: item.estimatedCost,
+      estimatedMargin: item.estimatedMargin,
     }));
 
   const totalIncome = data.reduce((total, item) => total + item.amount, 0);
@@ -48,7 +50,9 @@ export async function GET(request: NextRequest) {
         totalIncomeDisplay: formatRupiah(totalIncome),
         totalPaid,
         totalPaidDisplay: formatRupiah(totalPaid),
-        marginNote: "Data margin/HPP per booking belum tersedia -- Kalkulator HPP belum menyimpan breakdown biaya ke database.",
+        estimatedMargin: data.reduce((sum, item) => sum + (item.estimatedMargin ?? 0), 0),
+        marginMissingCount: data.filter(item => item.estimatedMargin === null).length,
+        marginNote: "Estimasi menggunakan HPP Quad terakhir di paket × jumlah peserta; belum termasuk realisasi biaya dan perubahan biaya historis. Paket lama perlu diterbitkan ulang dari kalkulator agar HPP tersedia.",
       },
       meta: {
         source: "supabase",

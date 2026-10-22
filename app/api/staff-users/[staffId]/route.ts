@@ -1,3 +1,4 @@
+import { resolvePasswordResetRequests } from "@/lib/auth/password-reset-requests";
 import { NextRequest, NextResponse } from "next/server";
 import { deleteStaff, listStaff, updateStaff } from "@/lib/auth/staff-store";
 
@@ -48,6 +49,7 @@ export async function PATCH(request: NextRequest, { params }: StaffUserDetailRou
       return NextResponse.json({ error: "Staf pengguna tidak ditemukan" }, { status: 404 });
     }
 
+    if (body.password !== undefined) await resolvePasswordResetRequests(data.email);
     return NextResponse.json({ data });
   } catch (err: any) {
     if (err?.code === "23505") {

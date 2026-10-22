@@ -835,7 +835,7 @@ export function AppShell({ children }: AppShellProps) {
                       ) : searchResults.length === 0 ? (
                         <div className="py-6 text-center text-xs text-stone-400 space-y-1">
                           <p className="font-semibold text-stone-600">Tidak ada hasil ditemukan</p>
-                          <p className="text-[11px]">Tidak ada data yang cocok dengan "{searchQuery}"</p>
+                          <p className="text-[11px]">Tidak ada data yang cocok dengan &quot;{searchQuery}&quot;</p>
                         </div>
                       ) : (
                         searchResults.map((item) => (

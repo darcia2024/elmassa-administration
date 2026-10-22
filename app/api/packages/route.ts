@@ -39,11 +39,13 @@ async function ensureTable() {
         costing_data JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE published_packages ADD COLUMN IF NOT EXISTS target_pax INTEGER NOT NULL DEFAULT 45;
       ALTER TABLE published_packages ADD COLUMN IF NOT EXISTS costing_data JSONB DEFAULT '{}'::jsonb;
     `);
     isTableEnsured = true;
   } catch (err) {
     console.error("Error creating published_packages table:", err);
+    throw err;
   }
 }
 

@@ -1,3 +1,4 @@
+import { ensurePasswordResetRequests } from "@/lib/auth/password-reset-requests";
 import { getPool } from "@/lib/db/connection";
 import { parseIndonesianDate, todayWIB } from "@/lib/format/date";
 import { listItems } from "@/lib/inventory/store";
@@ -113,6 +114,18 @@ function rupiah(value: unknown): string {
 /* ------------------------------------------------------------------ *
  * Sumber-sumber notifikasi
  * ------------------------------------------------------------------ */
+
+async function dariResetPassword(): Promise<OperationalNotification[]> {
+  await ensurePasswordResetRequests();
+  const result = await getPool().query("SELECT email, message, requested_at FROM staff_password_reset_requests WHERE resolved_at IS NULL ORDER BY requested_at DESC");
+  return result.rows.map((row) => ({
+    key: `reset-password:${row.email}:${new Date(row.requested_at).toISOString()}`,
+    title: "Permintaan reset password staf",
+    message: `Verifikasi identitas pemilik akun ${row.email} sebelum mengubah password. ${row.message || ""}`,
+    severity: "peringatan", category: "Operasional", module: "pengaturan",
+    link: "/pengaturan/staf", daysUntil: null, read: false,
+  }));
+}
 
 async function dariPelunasan(): Promise<OperationalNotification[]> {
   const res = await getPool().query(`
@@ -406,6 +419,7 @@ export async function listNotifications(userId: string): Promise<NotificationFor
   // lebih baik menampilkan sebagian daripada bel yang kosong tanpa penjelasan.
   const [sumber, modulBoleh, dibaca] = await Promise.all([
     Promise.allSettled([
+      dariResetPassword(),
       dariPelunasan(),
       dariDokumenJamaah(),
       dariPembayaran(),

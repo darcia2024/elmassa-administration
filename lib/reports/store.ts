@@ -1,3 +1,4 @@
+import { estimateBookingMargin } from "@/lib/reports/margin";
 import { getPool } from "@/lib/db/connection";
 import { todayWIB } from "@/lib/format/date";
 
@@ -79,19 +80,19 @@ export type IncomeRow = {
   total: number;
   paid: number;
   status: "Final / Lunas" | "DP / Parsial" | "Belum Bayar";
+  estimatedCost: number | null;
+  estimatedMargin: number | null;
 };
 
 const INCOME_QUERY = `
-  SELECT
-    code AS "bookingCode",
-    customer_name AS "customer",
-    package_name AS "packageName",
-    TO_CHAR(created_at, 'YYYY-MM-DD') AS "date",
-    total_amount AS "total",
-    paid_amount AS "paid",
-    status
-  FROM real_bookings
-  ORDER BY created_at DESC;
+  SELECT b.code AS "bookingCode", b.customer_name AS "customer", b.package_name AS "packageName",
+    TO_CHAR(b.created_at, 'YYYY-MM-DD') AS "date", b.total_amount AS "total",
+    b.paid_amount AS "paid", b.status, b.participants,
+    p.costing_data ->> 'estimatedHppQuadPerPax' AS "hppPerPax"
+  FROM real_bookings b
+  LEFT JOIN published_packages p ON p.id = b.package_id
+  WHERE b.status NOT IN ('Dibatalkan', 'Batal')
+  ORDER BY b.created_at DESC;
 `;
 
 function resolveIncomeStatus(status: string): IncomeRow["status"] {
@@ -110,5 +111,6 @@ export async function listIncome(): Promise<IncomeRow[]> {
     total: Number(row.total),
     paid: Number(row.paid),
     status: resolveIncomeStatus(row.status),
+    ...estimateBookingMargin(row.total, row.participants, row.hppPerPax),
   }));
 }

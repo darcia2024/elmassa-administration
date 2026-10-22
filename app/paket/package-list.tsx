@@ -510,7 +510,7 @@ export function PackageList() {
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-extrabold text-stone-900">
-                Tidak ada paket di filter "{selectedCategory}"
+                Tidak ada paket di filter &quot;{selectedCategory}&quot;
               </h3>
               <p className="text-xs text-stone-500 max-w-md mx-auto">
                 Paket yang baru saja kamu buat ada di pilihan bulan keberangkatannya (atau klik tombol di bawah untuk menampilkan <b>Semua Paket</b>).
@@ -560,7 +560,7 @@ export function PackageList() {
                   </span>
                   {pkg.featured && (
                     <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/60 flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Recommended 2x Jum'at
+                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Recommended 2x Jum&apos;at
                     </span>
                   )}
                 </div>

@@ -903,7 +903,7 @@ export default function PenerbitanUmrahmePage() {
                 <div className="flex items-center gap-2.5">
                   <Compass className="h-4 w-4 text-pink-600" />
                   <div>
-                    <p className="font-bold text-stone-900">Counter Ibadah (Tawaf & Sa'i)</p>
+                    <p className="font-bold text-stone-900">Counter Ibadah (Tawaf & Sa&apos;i)</p>
                     <p className="text-[10px] text-stone-500">Penghitung putaran & doa otomatis</p>
                   </div>
                 </div>
@@ -1014,7 +1014,7 @@ export default function PenerbitanUmrahmePage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-500">Klik 'Detail' untuk melihat/mengedit informasi lengkap personal & keberangkatan jamaah.</p>
+              <p className="text-xs text-stone-500">Klik &apos;Detail&apos; untuk melihat/mengedit informasi lengkap personal & keberangkatan jamaah.</p>
             </div>
 
             <div className="relative w-full sm:w-64">

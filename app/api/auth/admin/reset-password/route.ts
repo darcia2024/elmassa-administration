@@ -1,19 +1,20 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { findAuthUserByEmail, findAuthUserById, toSessionUser, updateAuthUserPassword } from "@/lib/seed-data/auth-users";
+import { findStaffByEmail, findStaffById, updateStaff } from "@/lib/auth/staff-store";
+import { resolvePasswordResetRequests } from "@/lib/auth/password-reset-requests";
 
-const resetAllowedRoles = new Set(["Admin Operasional", "Supervisor"]);
+// Module edit permission is enforced by proxy.ts, as for staff-user updates.
 
 export async function POST(request: NextRequest) {
   const headerList = await headers();
   const actorId = headerList.get("x-el-massa-user-id");
-  const actor = actorId ? findAuthUserById(actorId) : null;
+  const actor = actorId ? await findStaffById(actorId) : null;
 
-  if (!actor || !resetAllowedRoles.has(actor.role)) {
+  if (!actor || actor.status !== "Aktif") {
     return NextResponse.json({ error: "Hanya admin yang boleh reset password staf" }, { status: 403 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const targetEmail = body.email === undefined ? "" : String(body.email).trim().toLowerCase();
   const targetId = body.userId === undefined ? "" : String(body.userId).trim();
   const newPassword = body.newPassword === undefined ? "" : String(body.newPassword);
@@ -37,22 +38,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Payload reset password tidak valid", fields }, { status: 400 });
   }
 
-  const target = targetId ? findAuthUserById(targetId) : findAuthUserByEmail(targetEmail);
+  const target = targetId ? await findStaffById(targetId) : await findStaffByEmail(targetEmail);
 
   if (!target) {
     return NextResponse.json({ error: "User target tidak ditemukan" }, { status: 404 });
   }
 
-  const updated = updateAuthUserPassword(target.id, newPassword);
+  const updated = await updateStaff(target.id, { password: newPassword });
+  if (!updated) return NextResponse.json({ error: "User target tidak ditemukan" }, { status: 404 });
+  await resolvePasswordResetRequests(target.email);
 
   return NextResponse.json({
     data: {
       reset: true,
-      user: updated ? toSessionUser(updated) : toSessionUser(target),
-      resetBy: toSessionUser(actor),
+      user: { id: updated.id, name: updated.name, email: updated.email, role: updated.role },
+      resetBy: { id: actor.id, name: actor.name, email: actor.email, role: actor.role },
     },
     meta: {
-      source: "dummy",
+      source: "supabase",
     },
   });
 }
