@@ -186,12 +186,12 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
         {/* 📄 FORMAT RESMI INVOICE EL MASSA TOUR & TRAVEL */}
         <section className="mx-auto max-w-[800px] border border-stone-300 bg-white p-8 sm:p-10 text-stone-900 shadow-md space-y-6 font-sans print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
           {/* Header Surat */}
-          <div className="flex items-start justify-between gap-4 pb-4 border-b border-stone-300">
+          <div className="flex items-center justify-between gap-4 pb-4 border-b border-stone-300">
             <div className="flex items-center">
               <img
-                src="/logo-el-massa-horizontal.png?v=3"
+                src="/logo-el-massa.png"
                 alt="El Massa Tour & Travel"
-                className="h-16 w-auto object-contain shrink-0"
+                className="h-20 w-auto object-contain shrink-0"
               />
             </div>
             <div className="text-right text-[10px] leading-tight text-stone-700 font-sans space-y-0.5">

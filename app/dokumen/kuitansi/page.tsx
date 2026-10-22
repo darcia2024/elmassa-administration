@@ -145,11 +145,11 @@ export default function ReceiptPage() {
           <article className="receipt-print mx-auto w-full max-w-[920px] border border-black bg-white p-6 sm:p-8 text-black shadow-sm font-sans space-y-3 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
             {/* Box Atas: Logo Kiri & Kotak Penerima Kanan */}
             <div className="grid grid-cols-[38%_62%] border border-black">
-              <div className="flex items-center justify-center p-3 border-r border-black">
+              <div className="flex items-center justify-center p-2.5 border-r border-black">
                 <img
-                  src="/logo-el-massa-horizontal.png?v=3"
+                  src="/logo-el-massa.png"
                   alt="El Massa Tour & Travel"
-                  className="h-16 w-auto object-contain shrink-0"
+                  className="h-20 sm:h-24 w-auto object-contain shrink-0"
                 />
               </div>
 
