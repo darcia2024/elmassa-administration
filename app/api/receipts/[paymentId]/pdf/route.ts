@@ -35,7 +35,7 @@ export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
     return Response.json({ error: "Kuitansi tidak ditemukan" }, { status: 404 });
   }
 
-  const logoBase64 = getBase64Image("logo-el-massa.png");
+  const logoBase64 = getBase64Image("logo-el-massa-horizontal.png");
   const stampBase64 = getBase64Image("stempel-ttd-el-massa.png");
 
   const participants = data.payment.participants || 1;
@@ -84,7 +84,8 @@ export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
       padding: 12px;
     }
     .logo-container img {
-      max-height: 80px;
+      max-height: 55px;
+      max-width: 90%;
       width: auto;
       object-fit: contain;
     }
