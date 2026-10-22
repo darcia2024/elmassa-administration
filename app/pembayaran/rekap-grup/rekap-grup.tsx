@@ -761,14 +761,11 @@ export function RekapGrup() {
           <button onclick="window.print()" style="background: #be185d; color: #fff; font-weight: 700; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cetak Sekarang (Print)</button>
         </div>
 
-        <div class="kop">
-          <div class="kop-left">
-            <h1>PT EL MASSA TOUR &amp; TRAVEL</h1>
-            <p>Izin Umrah PPIU Kemenag RI No. U.419 Tahun 2021 | Akreditasi A</p>
-            <p>Jl. KH. Ahmad Dahlan No. 12, Pangkalpinang, Bangka Belitung | Telp: (0717) 910-8888 | WhatsApp: 0812-7890-1234</p>
-          </div>
-          <div class="kop-badge">
-            SISTEM KEUANGAN RESMI<br/>TERVERIFIKASI
+        <div class="kop" style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 16px;">
+          <img src="/kop-surat-el-massa.png" alt="PT Al Massa Azka Wisata" style="width: 100%; max-width: 100%; height: auto; display: block;" />
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #334155; padding-top: 6px; font-weight: 600;">
+            <span>Email: <strong style="color: #0f172a;">elmassatour@gmail.com</strong></span>
+            <span>No. Admin Kantor: <strong style="color: #0f172a;">+62 811-7171-5125</strong></span>
           </div>
         </div>
 
@@ -936,19 +933,13 @@ export function RekapGrup() {
           </style>
         </head>
         <body>
-          <table class="header-table">
-            <tr>
-              <td>
-                <div class="brand">PT. EL MASSA TOUR & TRAVEL</div>
-                <div class="subbrand">Izin PPIU Kemenag RI · Sistem Rekap Keuangan & Laba Rugi Rombongan</div>
-              </td>
-              <td>
-                <div class="title">REKAPITULASI KEUANGAN ROMBONGAN</div>
-                <div class="meta">Rombongan: <strong>${selectedGroup.name}</strong></div>
-                <div class="meta">Dicetak: ${todayStr}</div>
-              </td>
-            </tr>
-          </table>
+          <div style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px;">
+            <img src="/kop-surat-el-massa.png" alt="PT Al Massa Azka Wisata" style="width: 100%; max-width: 100%; height: auto; display: block;" />
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #475569; padding-top: 4px; font-weight: 600;">
+              <span>Email: <strong style="color: #0f172a;">elmassatour@gmail.com</strong></span>
+              <span>No. Admin Kantor: <strong style="color: #0f172a;">+62 811-7171-5125</strong></span>
+            </div>
+          </div>
 
           <div class="kpi-grid">
             <div class="kpi-col">
@@ -2119,22 +2110,16 @@ export function RekapGrup() {
             {/* Modal Body / Invoice Sheet Preview */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs font-sans bg-stone-50/40">
               <div className="rounded-xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-5">
-                {/* Kop Surat PT El Massa */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-stone-900 pb-4">
-                  <div>
-                    <h1 className="text-lg font-black tracking-wide text-brand-pink">PT EL MASSA TOUR &amp; TRAVEL</h1>
-                    <p className="text-[11px] font-semibold text-stone-700 mt-0.5">
-                      Izin PPIU Kemenag RI No. U.419 Tahun 2021 &bull; Akreditasi A
-                    </p>
-                    <p className="text-[10px] text-stone-500">
-                      Jl. KH. Ahmad Dahlan No. 12, Pangkalpinang, Bangka Belitung &bull; Telp: (0717) 910-8888 &bull; WA: 0812-7890-1234
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-pink-200 bg-pink-50/70 p-2 text-right">
-                    <span className="block text-[9px] font-bold uppercase text-brand-pink tracking-wider">Status Invoice</span>
-                    <span className={`text-xs font-black ${invoiceModalJamaah.isSettled ? "text-emerald-700" : "text-amber-700"}`}>
-                      {invoiceModalJamaah.isSettled ? "LUNAS 100%" : "BELUM LUNAS"}
-                    </span>
+                {/* 🏢 KOP SURAT RESMI PT AL MASSA AZKA WISATA */}
+                <div className="w-full pb-2 border-b-2 border-stone-900">
+                  <img
+                    src="/kop-surat-el-massa.png"
+                    alt="Kop Surat Resmi PT Al Massa Azka Wisata"
+                    className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
+                  />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
+                    <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+                    <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
                   </div>
                 </div>
 

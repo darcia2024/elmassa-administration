@@ -107,6 +107,10 @@ function ManifestPrintContent() {
               alt="Kop Surat Resmi PT Al Massa Azka Wisata"
               className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
             />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
+              <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+              <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
+            </div>
           </div>
 
           <div className="text-center space-y-1">

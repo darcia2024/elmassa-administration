@@ -5,16 +5,16 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
 const initialIdentity = {
-  address: "Komplek Ruko Best Cinema, Jln. Gabek Raya, Selindung Baru, Kec. Gabek, Kota Pangkal Pinang, Bangka Belitung",
+  address: "Ruko Bes Cinema, Jl. Jendral Sudirman, Selindung Baru, Pangkal Pinang",
   documentFooter: "Terima kasih telah mempercayakan perjalanan ibadah Anda kepada PT. AL MASSA AZKA WISATA (El Massa Tour). SK Kemenkumham: AHU-0112355.AH.01.01. • No. Izin PPIU: 10032300465890002.",
   email: "elmassatour@gmail.com",
   legalName: "PT. AL MASSA AZKA WISATA",
   name: "El Massa Tour & Travel",
   kemenkumham: "AHU-0112355.AH.01.01.",
   ppiu: "10032300465890002",
-  phone: "081249476778",
+  phone: "+62 811-7171-5125",
   website: "www.elmassatour.com",
-  gmapsUrl: "https://maps.google.com/?q=Komplek+Ruko+Best+Cinema+Jln+Gabek+Raya+Selindung+Baru+Pangkalpinang",
+  gmapsUrl: "https://maps.google.com/?q=Ruko+Bes+Cinema+Jl+Jendral+Sudirman+Selindung+Baru+Pangkalpinang",
 };
 
 export default function IdentitySettingsPage() {

@@ -142,28 +142,33 @@ export default function ReceiptPage() {
 
           {/* Receipt Viewport */}
           <article className="receipt-print rounded-2xl border border-stone-200/70 bg-white p-6 sm:p-8 shadow-2xs space-y-6">
-            <div className="flex flex-col gap-6 border-b border-stone-200/60 pb-6 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-4">
-                <img
-                  src="/logo-el-massa.png"
-                  alt="El Massa Tour & Travel Logo"
-                  className="h-12 w-auto object-contain shrink-0"
-                />
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand-brown">{companyName}</p>
-                  <h1 className="mt-0.5 text-2xl font-extrabold text-brand-cocoa">Kuitansi Pembayaran</h1>
-                  <p className="mt-1 text-xs text-stone-500">{companyAddress}</p>
-                </div>
+            {/* 🏢 KOP SURAT RESMI PT AL MASSA AZKA WISATA */}
+            <div className="w-full pb-2 border-b border-stone-800">
+              <img
+                src="/kop-surat-el-massa.png"
+                alt="Kop Surat Resmi PT Al Massa Azka Wisata"
+                className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
+              />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
+                <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+                <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 border-b border-stone-200/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-black uppercase text-stone-900 tracking-tight">Kuitansi Pembayaran</h1>
+                <p className="text-xs text-stone-500 mt-0.5">Tanda bukti penerimaan pembayaran resmi PT Al Massa Azka Wisata</p>
               </div>
 
-              <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-4 text-xs space-y-2 shrink-0 min-w-[180px]">
-                <div>
-                  <p className="text-[10px] font-bold uppercase text-stone-400">Nomor Kuitansi</p>
-                  <p className="font-bold font-mono text-brand-cocoa text-sm">{receipt.number}</p>
+              <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 text-xs space-y-1 shrink-0 min-w-[200px]">
+                <div className="flex justify-between">
+                  <span className="text-stone-400 font-bold uppercase text-[10px]">No. Kuitansi:</span>
+                  <span className="font-mono font-bold text-stone-900">{receipt.number}</span>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase text-stone-400">Tanggal Terbit</p>
-                  <p className="font-medium text-stone-700">{receipt.date}</p>
+                <div className="flex justify-between">
+                  <span className="text-stone-400 font-bold uppercase text-[10px]">Tgl Terbit:</span>
+                  <span className="font-semibold text-stone-800">{receipt.date}</span>
                 </div>
               </div>
             </div>

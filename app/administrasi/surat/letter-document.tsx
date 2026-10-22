@@ -18,8 +18,8 @@ const COMPANY = {
   brand: "El Massa Tour & Travel",
   license: "Izin PPIU Kemenag RI No. 10032300465890002",
   address: "Komplek Ruko Best Cinema, Pangkalpinang, Kepulauan Bangka Belitung",
-  phone: "0717-000000",
-  email: "admin@elmassa.travel",
+  phone: "+62 811-7171-5125",
+  email: "elmassatour@gmail.com",
 };
 
 const MONTHS = [
@@ -249,12 +249,16 @@ export function LetterDocument({
       `}</style>
 
       {/* Kop surat resmi — satu gambar berisi logo, badan hukum, izin PPIU & alamat. */}
-      <header>
+      <header className="border-b border-stone-800 pb-1">
         <img
           src="/kop-surat-el-massa.png"
           alt={`Kop surat ${COMPANY.legal}`}
           className="block w-full"
         />
+        <div className="flex items-center justify-between text-[11px] text-stone-600 pt-1 font-medium">
+          <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+          <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
+        </div>
       </header>
 
       {/* Nomor & perihal */}

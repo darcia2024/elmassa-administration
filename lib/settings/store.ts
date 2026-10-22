@@ -66,9 +66,8 @@ const ACCOUNT_COLUMNS = `
 const DEFAULT_IDENTITY = {
   name: "El Massa Tour & Travel",
   legalName: "PT. AL MASSA AZKA WISATA",
-  address:
-    "Komplek Ruko Best Cinema, Jln. Gabek Raya, Selindung Baru, Kec. Gabek, Kota Pangkal Pinang, Bangka Belitung",
-  phone: "081249476778",
+  address: "Ruko Bes Cinema, Jl. Jendral Sudirman, Selindung Baru, Pangkal Pinang",
+  phone: "+62 811-7171-5125",
   email: "elmassatour@gmail.com",
   website: "www.elmassatour.com",
   documentFooter:
@@ -76,7 +75,7 @@ const DEFAULT_IDENTITY = {
   kemenkumham: "AHU-0112355.AH.01.01.",
   ppiu: "10032300465890002",
   gmapsUrl:
-    "https://maps.google.com/?q=Komplek+Ruko+Best+Cinema+Jln+Gabek+Raya+Selindung+Baru+Pangkalpinang",
+    "https://maps.google.com/?q=Ruko+Bes+Cinema+Jl+Jendral+Sudirman+Selindung+Baru+Pangkalpinang",
 };
 
 let ready = false;
