@@ -347,6 +347,26 @@ export function RekapGrup() {
   const [selectedInstallmentIndex, setSelectedInstallmentIndex] = useState<number>(0);
   const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
 
+  const renderPaymentProofButton = (jamaah: GroupPaymentRow, index: number) => {
+    const payment = jamaah.installments[index];
+    if (!payment) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedInstallmentIndex(index);
+          setProofModalJamaah(jamaah);
+        }}
+        aria-label={`${payment.proofUrl ? "Lihat" : "Unggah"} bukti pembayaran ${index + 1} — ${jamaah.customerName}`}
+        className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100"
+      >
+        <Eye className="h-3 w-3" />
+        {payment.proofUrl ? "Lihat Bukti" : "Unggah Bukti"}
+      </button>
+    );
+  };
+
+
   // Load Departures & Grand Totals
   const loadDepartures = useCallback(async () => {
     setIsLoading(true);
@@ -1568,7 +1588,7 @@ export function RekapGrup() {
                       <th className="py-2.5 pr-2 text-right">Nilai Paket</th>
                       <th className="py-2.5 pr-2">Pembayaran 1 (DP Awal)</th>
                       <th className="py-2.5 pr-2">Pembayaran 2 (Cicilan)</th>
-                      <th className="py-2.5 pr-2">Pembayaran 3 (Pelunasan)</th>
+                      <th className="py-2.5 pr-2">Pembayaran 3 &amp; Seterusnya</th>
                       <th className="py-2.5 pr-2 text-right">Terbayar</th>
                       <th className="py-2.5 pr-2 text-right">Sisa Tagihan</th>
                       <th className="py-2.5 pr-2 text-center">Status</th>
@@ -1586,7 +1606,7 @@ export function RekapGrup() {
                       filteredJamaah.map((j, idx) => {
                         const dp = j.installments[0];
                         const c1 = j.installments[1];
-                        const c2 = j.installments[2];
+                        const laterPayments = j.installments.slice(2);
                         const percent = j.totalAmount > 0 ? Math.round((j.paidAmount / j.totalAmount) * 100) : 0;
                         const cleanPhone = (j.phone || "").replace(/\D/g, "");
 
@@ -1626,6 +1646,7 @@ export function RekapGrup() {
                                       {dp.account || dp.method}
                                     </span>
                                   </div>
+                                  {renderPaymentProofButton(j, 0)}
                                 </div>
                               ) : (
                                 <span className="text-stone-400 text-[11px]">—</span>
@@ -1644,28 +1665,31 @@ export function RekapGrup() {
                                       {c1.account || c1.method}
                                     </span>
                                   </div>
+                                  {renderPaymentProofButton(j, 1)}
                                 </div>
                               ) : (
                                 <span className="text-stone-400 text-[11px]">—</span>
                               )}
                             </td>
 
-                            {/* Pembayaran 3: Pelunasan */}
+                            {/* Every later payment keeps its own proof and upload target. */}
                             <td className="py-2.5 pr-2">
-                              {c2 ? (
-                                <div className="space-y-0.5">
-                                  <p className="font-black text-emerald-700 leading-tight">{formatIDR(c2.amount)}</p>
-                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
-                                    <span>{c2.date}</span>
-                                    <span>·</span>
-                                    <span className="rounded bg-emerald-100 text-emerald-900 px-1 font-bold">
-                                      {c2.account || c2.method}
-                                    </span>
-                                  </div>
+                              {laterPayments.length ? (
+                                <div className="space-y-2">
+                                  {laterPayments.map((payment, paymentIndex) => (
+                                    <div key={payment.id} className="space-y-0.5 border-b border-stone-100 pb-2 last:border-0">
+                                      <p className="text-[10px] font-bold text-stone-500">Pembayaran {paymentIndex + 3} · {payment.label}</p>
+                                      <p className="font-black text-emerald-700 leading-tight">{formatIDR(payment.amount)}</p>
+                                      <div className="flex items-center gap-1 text-[10px] text-stone-500">
+                                        <span>{payment.date}</span>
+                                        <span>·</span>
+                                        <span className="rounded bg-emerald-100 text-emerald-900 px-1 font-bold">{payment.account || payment.method}</span>
+                                      </div>
+                                      {renderPaymentProofButton(j, paymentIndex + 2)}
+                                    </div>
+                                  ))}
                                 </div>
-                              ) : (
-                                <span className="text-stone-400 text-[11px]">—</span>
-                              )}
+                              ) : <span className="text-stone-400 text-[11px]">—</span>}
                             </td>
 
                             {/* Total Terbayar & % Progress */}
