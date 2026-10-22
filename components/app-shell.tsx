@@ -263,7 +263,7 @@ export function AppShell({ children }: AppShellProps) {
       const dariBooking: SearchResultItem[] = (bookingRes?.data ?? []).map((b: Record<string, unknown>) => ({
         id: `b-${b.code}`,
         title: String(b.customerName ?? ""),
-        subtitle: `${b.code} â€¢ ${b.packageName ?? ""} â€¢ Sisa ${Number(b.remainingAmount ?? 0).toLocaleString("id-ID")}`,
+        subtitle: `${b.code} · ${b.packageName ?? ""} · Sisa ${Number(b.remainingAmount ?? 0).toLocaleString("id-ID")}`,
         category: "Jamaah & Booking" as const,
         link: `/booking/${encodeURIComponent(String(b.code))}`,
         badge: String(b.status ?? ""),
@@ -272,7 +272,7 @@ export function AppShell({ children }: AppShellProps) {
       const dariPaket: SearchResultItem[] = (paketRes?.data ?? []).map((p: Record<string, unknown>) => ({
         id: `p-${p.id}`,
         title: String(p.name ?? ""),
-        subtitle: `${p.duration ?? ""} â€¢ ${p.price ?? ""} â€¢ ${p.makkahHotel ?? ""}`,
+        subtitle: `${p.duration ?? ""} · ${p.price ?? ""} · ${p.makkahHotel ?? ""}`,
         category: "Paket & Flight" as const,
         link: `/paket/${encodeURIComponent(String(p.id))}`,
         badge: String(p.category ?? ""),
@@ -743,7 +743,7 @@ export function AppShell({ children }: AppShellProps) {
             {/* ðŸ“… Date & Accurate Hijri Date Pill */}
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[11px] font-medium text-stone-700 shadow-2xs">
               <span className="font-semibold text-stone-900">{liveDate.gregorian}</span>
-              {liveDate.hijri ? <span className="text-stone-300">â€¢</span> : null}
+              {liveDate.hijri ? <span className="text-stone-300">·</span> : null}
               {liveDate.hijri ? <span className="font-bold text-pink-600 font-mono">{liveDate.hijri}</span> : null}
             </div>
             
