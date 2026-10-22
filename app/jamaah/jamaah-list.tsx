@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  AlertCircle,
   Armchair,
   ArrowLeft,
   CalendarDays,
@@ -331,7 +332,7 @@ export function JamaahList() {
   const [paymentFilter, setPaymentFilter] = useState<string>("");
   const [paymentDetailModal, setPaymentDetailModal] = useState<{
     isOpen: boolean;
-    status: "Lunas" | "Sudah 50%" | "DP" | "Belum Bayar" | null;
+    status: "Lunas" | "Sudah 50%" | "DP" | "Belum Bayar" | "Belum Lunas" | null;
   }>({ isOpen: false, status: null });
 
   // Group-First State
@@ -569,6 +570,15 @@ export function JamaahList() {
     return paymentSummaryData.global;
   }, [paymentSummaryData, selectedGroup, activePackage]);
 
+  // Total Jamaah Belum Lunas (Sisa tagihan > 0 atau status !== 'Lunas')
+  const belumLunasCount = useMemo(() => {
+    return currentScopedRows.filter((r) => {
+      const pay = paymentSummaryData?.byJamaahId[r.id];
+      if (!pay) return true;
+      return pay.status !== "Lunas" || pay.remainingAmount > 0;
+    }).length;
+  }, [currentScopedRows, paymentSummaryData]);
+
   // Tour Leader & Muthawwif Info for selected group
   const currentLeaders = useMemo(() => {
     const defaults = {
@@ -741,8 +751,14 @@ export function JamaahList() {
         if (pStatus !== processFilter) return false;
       }
       if (paymentFilter) {
-        const payStatus = paymentSummaryData?.byJamaahId[r.id]?.status || "Belum Bayar";
-        if (payStatus !== paymentFilter) return false;
+        if (paymentFilter === "Belum Lunas") {
+          const pay = paymentSummaryData?.byJamaahId[r.id];
+          const isLunas = pay?.status === "Lunas" && pay?.remainingAmount === 0;
+          if (isLunas) return false;
+        } else {
+          const payStatus = paymentSummaryData?.byJamaahId[r.id]?.status || "Belum Bayar";
+          if (payStatus !== paymentFilter) return false;
+        }
       }
       if (!q) return true;
       return (
@@ -1275,32 +1291,34 @@ export function JamaahList() {
             </div>
           </div>
 
-          {/* Card 2: Jamaah Sudah 50% */}
+          {/* Card 2: Jamaah Belum Lunas */}
           <div
-            onClick={() => setPaymentDetailModal({ isOpen: true, status: "Sudah 50%" })}
+            onClick={() => setPaymentDetailModal({ isOpen: true, status: "Belum Lunas" })}
             role="button"
             tabIndex={0}
-            className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-3 shadow-2xs hover:border-indigo-400 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer group"
-            title="Klik untuk melihat daftar nama jamaah yang sudah membayar 50%"
+            className="rounded-xl border border-rose-200/80 bg-gradient-to-br from-rose-50/50 to-white p-3 shadow-2xs hover:border-rose-400 hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer group"
+            title="Klik untuk melihat daftar & cetak jamaah yang belum lunas (sisa tagihan)"
           >
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Sudah Membayar 50%</p>
-              <div className="rounded-lg bg-indigo-100 p-1 text-indigo-800 group-hover:scale-105 transition">
-                <CircleDollarSign className="h-3.5 w-3.5" />
+              <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700">Jamaah Belum Lunas</p>
+              <div className="rounded-lg bg-rose-100 p-1 text-rose-800 group-hover:scale-105 transition">
+                <AlertCircle className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="mt-1 text-lg font-black leading-tight text-indigo-900">
-              {scopedPaymentStats.jamaah50 || scopedPaymentStats.count50}{" "}
+            <p className="mt-1 text-lg font-black leading-tight text-rose-900">
+              {belumLunasCount}{" "}
               <span className="text-xs font-semibold text-stone-500">Jamaah</span>
             </p>
-            <p className="mt-1 text-[10px] text-indigo-700/80 font-medium">Cicilan masuk &ge; 50% biaya</p>
-            <div className="mt-2 pt-1.5 border-t border-indigo-100/80 flex items-center justify-between text-indigo-800">
+            <p className="mt-1 text-[10px] text-rose-700/80 font-medium truncate" title={`Sisa: ${formatIDR(scopedPaymentStats.totalOutstanding)}`}>
+              Sisa tagihan: {formatIDR(scopedPaymentStats.totalOutstanding)}
+            </p>
+            <div className="mt-2 pt-1.5 border-t border-rose-100/80 flex items-center justify-between text-rose-800">
               <span className="text-[10px] font-bold group-hover:underline flex items-center gap-1">
-                <span>Lihat daftar nama</span>
+                <span>Daftar & cetak data</span>
                 <ExternalLink className="h-2.5 w-2.5" />
               </span>
-              <span className="text-[9px] font-bold bg-indigo-100 text-indigo-800 rounded px-1.5 py-0.2">
-                Buka ↗
+              <span className="text-[9px] font-bold bg-rose-100 text-rose-800 rounded px-1.5 py-0.2">
+                Buka 🖨️
               </span>
             </div>
           </div>
