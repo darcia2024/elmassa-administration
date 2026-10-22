@@ -24,6 +24,7 @@ type ReceiptDetail = {
     customerName: string;
     customerPhone: string;
     packageName: string;
+    participants?: number;
   };
 };
 
@@ -140,75 +141,163 @@ export default function ReceiptPage() {
               </div>
             </aside>
 
-          {/* Receipt Viewport */}
-          <article className="receipt-print rounded-2xl border border-stone-200/70 bg-white p-6 sm:p-8 shadow-2xs space-y-6">
-            {/* 🏢 KOP SURAT RESMI PT AL MASSA AZKA WISATA */}
-            <div className="w-full pb-2 border-b border-stone-800">
-              <img
-                src="/kop-surat-el-massa.png"
-                alt="Kop Surat Resmi PT Al Massa Azka Wisata"
-                className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
-              />
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
-                <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
-                <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4 border-b border-stone-200/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-black uppercase text-stone-900 tracking-tight">Kuitansi Pembayaran</h1>
-                <p className="text-xs text-stone-500 mt-0.5">Tanda bukti penerimaan pembayaran resmi PT Al Massa Azka Wisata</p>
+          {/* 📄 FORMAT RESMI KWITANSI EL MASSA TOUR & TRAVEL */}
+          <article className="receipt-print mx-auto w-full max-w-[920px] border border-black bg-white p-6 sm:p-8 text-black shadow-sm font-sans space-y-3 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
+            {/* Box Atas: Logo Kiri & Kotak Penerima Kanan */}
+            <div className="grid grid-cols-[38%_62%] border border-black">
+              <div className="flex items-center justify-center p-3 border-r border-black">
+                <img
+                  src="/logo-el-massa-header.png"
+                  alt="El Massa Tour & Travel"
+                  className="h-16 w-auto object-contain"
+                />
               </div>
 
-              <div className="rounded-xl border border-stone-200/60 bg-stone-50/50 p-3 text-xs space-y-1 shrink-0 min-w-[200px]">
-                <div className="flex justify-between">
-                  <span className="text-stone-400 font-bold uppercase text-[10px]">No. Kuitansi:</span>
-                  <span className="font-mono font-bold text-stone-900">{receipt.number}</span>
+              <div className="flex flex-col text-xs font-sans">
+                <div className="p-1.5 border-b border-black text-stone-600 text-[11px]">
+                  Telah diterima Dari:
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-400 font-bold uppercase text-[10px]">Tgl Terbit:</span>
-                  <span className="font-semibold text-stone-800">{receipt.date}</span>
+                <div className="p-1.5 border-b border-black font-extrabold uppercase text-sm tracking-wide text-stone-950">
+                  {receipt.receivedFrom}
+                </div>
+                <div className="h-5 border-b border-black"></div>
+                <div className="h-5"></div>
+              </div>
+            </div>
+
+            {/* Banner Judul Pink: KWITANSI */}
+            <div className="w-full bg-[#fce7f3] border border-black py-1 text-center">
+              <h1 className="text-base sm:text-lg font-black tracking-widest uppercase text-stone-950 font-serif">
+                KWITANSI
+              </h1>
+            </div>
+
+            {/* Tanggal */}
+            <div className="text-xs font-semibold text-stone-900 pt-0.5">
+              <span>Tanggal:{receipt.date}</span>
+            </div>
+
+            {/* Tabel Transaksi */}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-black text-xs text-left">
+                <thead>
+                  <tr className="border-b border-black text-center font-bold">
+                    <th className="border-r border-black p-1.5 w-16">UNIT</th>
+                    <th className="border-r border-black p-1.5">DESKRIPSI</th>
+                    <th className="border-r border-black p-1.5 w-28">TANGGAL</th>
+                    <th className="border-r border-black p-1.5 w-36">UANG SEJUMLAH</th>
+                    <th className="p-1.5 w-28">KETERANGAN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-black font-medium">
+                    <td className="border-r border-black p-1.5 text-center font-bold">
+                      {payment.participants ? `${payment.participants} PAX` : "1 PAX"}
+                    </td>
+                    <td className="border-r border-black p-1.5 font-semibold">
+                      {receipt.paymentFor || `Pembayaran Paket ${payment.packageName}`}
+                    </td>
+                    <td className="border-r border-black p-1.5 text-center font-mono">
+                      {receipt.date}
+                    </td>
+                    <td className="border-r border-black p-1.5 font-mono font-bold">
+                      <div className="flex justify-between px-1">
+                        <span>Rp</span>
+                        <span>{receipt.amount.toLocaleString("id-ID")}</span>
+                      </div>
+                    </td>
+                    <td className="p-1.5 text-center font-bold uppercase">
+                      {receipt.paymentMethod.toUpperCase().includes("TUNAI") ? "TUNAI" : "TRANSFER"}
+                    </td>
+                  </tr>
+
+                  {/* 5 baris kosong bergaris ledger mengikuti template resmi */}
+                  <tr className="border-b border-black h-5">
+                    <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                  </tr>
+                  <tr className="border-b border-black h-5">
+                    <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                  </tr>
+                  <tr className="border-b border-black h-5">
+                    <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                  </tr>
+                  <tr className="border-b border-black h-5">
+                    <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                  </tr>
+                  <tr className="border-b border-black h-5">
+                    <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                  </tr>
+
+                  {/* Baris Total Pembayaran Pink */}
+                  <tr className="bg-[#fce7f3] border-t-2 border-black font-bold">
+                    <td colSpan={3} className="border-r border-black p-1.5 text-center font-extrabold text-xs">
+                      Total Pembayaran
+                    </td>
+                    <td className="border-r border-black p-1.5 font-mono font-extrabold text-xs">
+                      <div className="flex justify-between px-1">
+                        <span>Rp</span>
+                        <span>{receipt.amount.toLocaleString("id-ID")}</span>
+                      </div>
+                    </td>
+                    <td className="p-1.5"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bagian Bawah: Terbilang, Metode, & TTD Stempel */}
+            <div className="grid grid-cols-[65%_35%] pt-3 items-start gap-4">
+              <div className="space-y-3 text-xs">
+                <div>
+                  <p className="text-[10px] font-bold text-stone-600 tracking-wider">TERBILANG</p>
+                  <p className="font-extrabold uppercase text-stone-950 text-xs">
+                    &ldquo;{receipt.amountWords.toUpperCase()}&rdquo;
+                  </p>
+                </div>
+
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold text-stone-600 tracking-wider">DIBAYARKAN</p>
+                  <p className="font-extrabold uppercase text-stone-950 text-xs">
+                    {receipt.paymentMethod.toUpperCase().includes("TUNAI")
+                      ? "SECARA TUNAI DI KANTOR ELMASSA"
+                      : `TRANSFER KE REKENING PT. ALMASSA AZKA WISATA`}
+                  </p>
+                  <p className="font-extrabold text-xs text-stone-950 uppercase pt-0.5 font-sans">
+                    PT. ALMASSA AZKA WISATA
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* Receipt Details Grid */}
-            <div className="space-y-4 text-xs">
-              <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
-                <span className="font-semibold text-stone-500">Telah Diterima Dari</span>
-                <span className="font-bold text-brand-cocoa">{receipt.receivedFrom} ({payment.customerPhone})</span>
-              </div>
-
-              <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
-                <span className="font-semibold text-stone-500">Uang Sejumlah</span>
-                <span className="font-semibold italic text-brand-cocoa bg-rose-50/50 px-3 py-1 rounded-lg border border-brand-pink/20">
-                  {receipt.amountWords}
-                </span>
-              </div>
-
-              <div className="grid gap-2 border-b border-stone-100 pb-3 sm:grid-cols-[140px_1fr]">
-                <span className="font-semibold text-stone-500">Untuk Pembayaran</span>
-                <span className="font-medium text-stone-700">{receipt.paymentFor} (Kode: {payment.bookingCode})</span>
-              </div>
-            </div>
-
-            {/* Total Footer Box */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t border-stone-200/60 pt-4">
-              <div className="rounded-xl border border-stone-200/60 bg-stone-50/60 px-4 py-2.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Total Terbayar</span>
-                <p className="text-xl font-extrabold text-brand-pink">Rp {receipt.amount.toLocaleString("id-ID")}</p>
-              </div>
-
-              <div className="text-right text-xs">
-                <p className="text-stone-500">Penerima Kasir</p>
-                <p className="mt-4 font-bold text-brand-cocoa">{receipt.staff}</p>
-                <p className="text-[10px] text-stone-400">Admin Operasional</p>
+              {/* Tanda Tangan & Stempel Resmi */}
+              <div className="text-center flex flex-col items-center">
+                <img
+                  src="/stempel-ttd-el-massa.png"
+                  alt="Stempel & Tanda Tangan Direktur PT Al Massa Azka Wisata"
+                  className="h-24 w-auto object-contain my-[-6px]"
+                />
+                <p className="text-xs font-bold uppercase text-stone-950 underline underline-offset-2">
+                  AZRIANDRI.LC
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700">
+                  DIREKTUR
+                </p>
               </div>
             </div>
           </article>
         </section>
         )}
+
+        <style jsx global>{`
+          @media print {
+            body {
+              background: white !important;
+            }
+            @page {
+              size: A4 landscape;
+              margin: 8mm;
+            }
+          }
+        `}</style>
       </div>
     </AppShell>
   );

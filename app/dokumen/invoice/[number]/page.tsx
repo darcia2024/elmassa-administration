@@ -164,7 +164,7 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
       <div className="space-y-5">
 
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between print:hidden">
           <Link
             href="/dokumen/invoice"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-brand-pink transition"
@@ -176,170 +176,262 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-black transition"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-black transition cursor-pointer"
           >
             <Printer className="h-4 w-4" strokeWidth={1.5} />
             <span>Cetak Invoice</span>
           </button>
         </div>
 
-        {/* 📄 MINIMALIST EDITORIAL INVOICE SHEET */}
-        <section className="mx-auto max-w-4xl rounded-xl border border-stone-300 bg-[#f4f6f0] p-8 sm:p-12 text-stone-900 shadow-md space-y-8 font-sans">
-
-          <div className="w-full pb-2 border-b border-stone-800">
-            <img
-              src="/kop-surat-el-massa.png"
-              alt="Kop Surat Resmi PT Al Massa Azka Wisata"
-              className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
-            />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
-              <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
-              <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
+        {/* 📄 FORMAT RESMI INVOICE EL MASSA TOUR & TRAVEL */}
+        <section className="mx-auto max-w-[800px] border border-stone-300 bg-white p-8 sm:p-10 text-stone-900 shadow-md space-y-6 font-sans print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
+          {/* Header Surat */}
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-stone-300">
+            <div className="flex items-center gap-2">
+              <img
+                src="/logo-el-massa-header.png"
+                alt="El Massa Tour & Travel"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
+            <div className="text-right text-[10px] leading-tight text-stone-700 font-sans space-y-0.5">
+              <p className="font-semibold text-stone-800">Ruko Bes Cinema, Jl Jendral sudirman, selindung Baru,</p>
+              <p className="font-semibold text-stone-800">Pangkalpinang</p>
+              <p className="font-medium text-stone-600">No Telp : 081249476768 - Email : elmassatour@gmail.com</p>
+              <p className="text-[9px] text-stone-500 font-medium">SK Kemenkumham &#123;AHU-0112355.AH.01.01.&#125; No Izin PPIU 10032300465890002</p>
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-3 items-end pt-2">
+          {/* Metadata & Title */}
+          <div className="flex items-end justify-between pt-1">
             <div className="space-y-1 text-xs">
-              <p className="font-bold uppercase tracking-wider text-stone-500 text-[11px]">Invoice to</p>
-              <p className="font-extrabold text-sm text-stone-950">{invoice.customer}</p>
-              <p className="text-stone-700">{invoice.address || "-"}</p>
-              <p className="font-mono text-stone-600 text-[11px]">{invoice.phone}</p>
+              <div className="flex">
+                <span className="w-24 font-bold text-stone-800">NO</span>
+                <span className="font-bold text-stone-950">{invoice.number}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-stone-800">KEPADA</span>
+                <span className="font-extrabold uppercase text-stone-950">{invoice.customer}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-stone-800">TANGGAL</span>
+                <span className="font-bold text-stone-950">{invoice.issueDate}</span>
+              </div>
             </div>
 
-            <div className="space-y-1 text-xs">
-              <p className="font-bold uppercase tracking-wider text-stone-500 text-[11px]">Tanggal Terbit</p>
-              <p className="font-bold text-sm text-stone-900">{invoice.issueDate}</p>
-              <p className="text-[11px] font-semibold text-stone-600">Kode Booking: <span className="font-mono font-bold text-stone-900">{invoice.bookingCode}</span></p>
-            </div>
-
-            <div className="sm:text-right">
-              <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-stone-950 font-serif">
-                Invoice<span className="text-brand-pink">.</span>
+            <div className="text-right">
+              <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-wider text-[#4a2e18]">
+                INVOICE
               </h1>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">Rincian Paket</h3>
-            <div className="overflow-hidden border border-stone-800 rounded-sm">
-              <table className="w-full border-collapse text-left text-xs divide-y divide-stone-800">
-                <thead className="bg-[#e9ebe4] font-bold text-stone-900 border-b border-stone-800">
-                  <tr>
-                    <th className="p-3 border-r border-stone-800">Pilihan Paket</th>
-                    <th className="p-3 text-right border-r border-stone-800 w-32">Harga / Pax</th>
-                    <th className="p-3 text-center border-r border-stone-800 w-16">Jumlah</th>
-                    <th className="p-3 text-right w-36">Total Harga</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-800 font-medium">
-                  <tr className="bg-transparent">
-                    <td className="p-3 border-r border-stone-800 font-bold text-stone-950">{invoice.packageName}</td>
-                    <td className="p-3 text-right border-r border-stone-800 font-mono">Rp {pricePerPax.toLocaleString("id-ID")}</td>
-                    <td className="p-3 text-center border-r border-stone-800 font-bold">{invoice.participants} Pax</td>
-                    <td className="p-3 text-right font-mono font-bold text-stone-950">Rp {invoice.subtotal.toLocaleString("id-ID")}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          {/* Tabel 1: Rincian Paket */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-black text-xs text-left">
+              <thead>
+                <tr className="border-b border-black text-center font-bold">
+                  <th className="border-r border-black p-1.5 w-10">No</th>
+                  <th className="border-r border-black p-1.5">Keterangan</th>
+                  <th className="border-r border-black p-1.5 w-32">Harga</th>
+                  <th className="border-r border-black p-1.5 w-24">Jumlah</th>
+                  <th className="border-r border-black p-1.5 w-24">Diskon</th>
+                  <th className="p-1.5 w-36">Jumlah</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-black">
+                  <td className="border-r border-black p-1.5 text-center font-bold">1</td>
+                  <td className="border-r border-black p-1.5 font-bold uppercase">{invoice.packageName}</td>
+                  <td className="border-r border-black p-1.5 text-right font-mono">
+                    <span className="float-left">Rp</span>
+                    <span>{pricePerPax.toLocaleString("id-ID")}</span>
+                  </td>
+                  <td className="border-r border-black p-1.5 text-center font-bold uppercase">{invoice.participants} PAX</td>
+                  <td className="border-r border-black p-1.5 text-right font-mono">
+                    {invoice.discountAmount > 0 ? `Rp ${invoice.discountAmount.toLocaleString("id-ID")}` : "-"}
+                  </td>
+                  <td className="p-1.5 text-right font-mono font-bold">
+                    <span className="float-left">Rp</span>
+                    <span>{invoice.subtotal.toLocaleString("id-ID")}</span>
+                  </td>
+                </tr>
+                <tr className="font-bold bg-white">
+                  <td colSpan={5} className="border-r border-black p-1.5 text-center font-extrabold text-sm uppercase">
+                    TOTAL
+                  </td>
+                  <td className="p-1.5 text-right font-mono font-extrabold text-sm">
+                    <span className="float-left">Rp</span>
+                    <span>{invoice.subtotal.toLocaleString("id-ID")}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">Riwayat Transaksi Pembayaran & Cicilan</h3>
-            <div className="overflow-hidden border border-stone-800 rounded-sm">
-              <table className="w-full border-collapse text-left text-xs divide-y divide-stone-800">
-                <thead className="bg-[#e9ebe4] font-bold text-stone-900 border-b border-stone-800">
-                  <tr>
-                    <th className="p-3 border-r border-stone-800 w-28">Tanggal</th>
-                    <th className="p-3 border-r border-stone-800">Deskripsi</th>
-                    <th className="p-3 text-right border-r border-stone-800 w-32">Nominal</th>
-                    <th className="p-3 border-r border-stone-800">Keterangan</th>
-                    <th className="p-3 text-right w-36">Sisa Total</th>
+          {/* Tabel 2: Riwayat Transaksi & Pelunasan */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-black text-xs text-left">
+              <thead>
+                <tr className="bg-[#fce7f3] border-b border-black text-center font-bold">
+                  <th className="border-r border-black p-1.5 w-28">Tanggal</th>
+                  <th className="border-r border-black p-1.5">DESKRIPSI</th>
+                  <th className="border-r border-black p-1.5 w-20">Jumlah</th>
+                  <th className="border-r border-black p-1.5 w-32">Nominal</th>
+                  <th className="border-r border-black p-1.5 w-28">Keterangan</th>
+                  <th className="p-1.5 w-36">Total Pelunasan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historyLogs.map((log, i) => (
+                  <tr key={i} className={`border-b border-black ${i % 2 === 0 ? "bg-[#fdf2f8]" : "bg-white"}`}>
+                    <td className="border-r border-black p-1.5 text-center font-mono">{log.date}</td>
+                    <td className="border-r border-black p-1.5 font-bold uppercase">{invoice.packageName}</td>
+                    <td className="border-r border-black p-1.5 text-center font-bold uppercase">{invoice.participants} PAX</td>
+                    <td className="border-r border-black p-1.5 text-right font-mono font-bold">
+                      <span className="float-left">Rp</span>
+                      <span>{log.nominal.replace(/Rp\s*/g, "")}</span>
+                    </td>
+                    <td className="border-r border-black p-1.5 text-center font-bold uppercase">{log.description.toUpperCase().includes("TUNAI") ? "TUNAI" : "TRANSFER"}</td>
+                    <td className="p-1.5 text-right font-mono font-bold">
+                      <span className="float-left">Rp</span>
+                      <span>{log.nominal.replace(/Rp\s*/g, "")}</span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-800 font-medium bg-rose-50/20">
-                  {historyLogs.map((log, lIdx) => (
-                    <tr key={lIdx}>
-                      <td className="p-3 border-r border-stone-800 font-mono font-bold text-stone-900">{log.date}</td>
-                      <td className="p-3 border-r border-stone-800 font-semibold text-stone-900">{log.description}</td>
-                      <td className="p-3 text-right border-r border-stone-800 font-mono font-bold text-emerald-800">{log.nominal}</td>
-                      <td className="p-3 border-r border-stone-800 text-stone-700">{log.notes}</td>
-                      <td className="p-3 text-right font-mono font-bold text-stone-950">{log.remainingTotal}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {/* Baris kosong bergaris selang-seling mengikuti contoh resmi */}
+                <tr className="border-b border-black h-5 bg-[#fdf2f8]">
+                  <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                </tr>
+                <tr className="border-b border-black h-5 bg-white">
+                  <td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td className="border-r border-black"></td><td></td>
+                </tr>
+                <tr className="font-bold bg-[#f472b6] text-stone-900 border-t-2 border-black">
+                  <td colSpan={5} className="border-r border-black p-1.5 text-center font-extrabold text-sm uppercase">
+                    TOTAL
+                  </td>
+                  <td className="p-1.5 text-right font-mono font-extrabold text-sm">
+                    <span className="float-left">Rp</span>
+                    <span>{invoice.paid.toLocaleString("id-ID")}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="rounded-sm border-l-4 border-stone-900 bg-[#eef0ea] p-3 text-xs space-y-0.5">
-            <p className="font-extrabold uppercase tracking-wider text-stone-900">Catatan :</p>
-            <p className="font-semibold text-stone-800">
-              Pelunasan paling lambat 30 Hari sebelum keberangkatan rombongan. Dokumen kuitansi resmi hanya berlaku setelah diverifikasi oleh kasir keuangan.
-            </p>
-          </div>
-
+          {/* Bagian Bawah: Catatan, Rekening & Ringkasan Tagihan */}
           <div className="grid gap-6 sm:grid-cols-2 pt-2 items-start">
-            <div className="rounded-sm border border-stone-800 bg-white p-4 space-y-2 text-xs">
-              <p className="font-semibold text-stone-600">Silahkan Melakukan Pembayaran Melalui Rekening Berikut :</p>
-              {primaryAccounts.length === 0 ? (
-                <p className="border-t border-stone-200 pt-2 text-amber-700 font-semibold">
-                  Belum ada rekening terdaftar — atur di Pengaturan &gt; Rekening.
+            <div className="space-y-4 text-[11px]">
+              <div className="space-y-0.5">
+                <p className="font-bold text-stone-900">Catatan:</p>
+                <p className="text-stone-700 font-medium">Pelunasan sebesar 45 % dari total biaya paling lambat H-45 keberangkatan</p>
+                <p className="text-stone-700 font-medium">Pelunasan sebesar 100% dari total biaya paling lambat H-30 kebrangkatan</p>
+              </div>
+
+              <div className="space-y-1.5 pt-2">
+                <p className="font-semibold text-stone-800 leading-tight">
+                  Silahkan Melakukan Pembayaran<br />Melalui Rekening Berikut :
                 </p>
-              ) : (
-                primaryAccounts.map((acc, i) => (
-                  <div
-                    key={`${acc.bankName}-${acc.accountNumber}`}
-                    className={i === 0 ? "border-t border-stone-200 pt-2 space-y-1 font-mono" : "pt-1 border-t border-stone-100 space-y-1 font-mono"}
-                  >
-                    <p className="text-lg font-black tracking-wider text-stone-950">{acc.accountNumber}</p>
-                    <p className="font-bold text-stone-900">{acc.bankName}</p>
-                    <p className="font-bold text-brand-pink text-xs uppercase">{acc.accountName}</p>
+                <div className="space-y-1 font-mono text-xs">
+                  <div className="flex gap-2">
+                    <span className="w-28 font-bold text-stone-800 font-sans">Bank BTN</span>
+                    <span className="font-bold text-stone-950">20901880001965</span>
                   </div>
-                ))
-              )}
+                  <div className="flex gap-2">
+                    <span className="w-28 font-bold text-stone-800 font-sans">Bank BSI</span>
+                    <span className="font-bold text-stone-950">7345411423</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="w-28 font-bold text-stone-800 font-sans">MANDIRI Rupiah</span>
+                    <span className="font-bold text-stone-950">1690005294688</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="w-28 font-bold text-stone-800 font-sans">MANDIRI Dollar</span>
+                    <span className="font-bold text-stone-950">1690005294720</span>
+                  </div>
+                  <p className="font-extrabold text-xs pt-1 text-stone-950 uppercase font-sans tracking-wide">PT. ALMASSA AZKA WISATA</p>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-3 text-xs sm:pl-8">
-              <div className="flex items-center justify-between py-1 border-b border-stone-300">
-                <span className="font-bold text-stone-700">Diskon :</span>
-                <span className="font-mono font-bold text-stone-900">Rp {invoice.discountAmount.toLocaleString("id-ID")}</span>
+            <div className="space-y-4">
+              <div className="space-y-1 text-xs font-semibold">
+                <div className="flex justify-between py-0.5">
+                  <span className="font-bold text-stone-800">Total Harga</span>
+                  <span className="font-mono font-bold">
+                    <span className="mr-3">Rp</span>
+                    {invoice.total.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="flex justify-between py-0.5">
+                  <span className="text-stone-700">Diskon Pendaftaran</span>
+                  <span className="font-mono">
+                    <span className="mr-3">Rp</span>
+                    {invoice.discountAmount > 0 ? invoice.discountAmount.toLocaleString("id-ID") : "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 px-2.5 rounded-xs bg-[#70c042] text-black font-bold">
+                  <span>Total Diskon</span>
+                  <span className="font-mono">
+                    <span className="mr-3">Rp</span>
+                    {invoice.discountAmount > 0 ? invoice.discountAmount.toLocaleString("id-ID") : "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between py-0.5">
+                  <span className="font-bold text-stone-800">Total Tagihan</span>
+                  <span className="font-mono font-bold">
+                    <span className="mr-3">Rp</span>
+                    {invoice.total.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 px-2.5 rounded-xs bg-[#93c5fd] text-black font-bold">
+                  <span>Total Pelunasan</span>
+                  <span className="font-mono">
+                    <span className="mr-3">Rp</span>
+                    {invoice.paid.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 px-2.5 rounded-xs bg-[#fecdd3] text-black font-bold">
+                  <span>Sisa Tagihan</span>
+                  <span className="font-mono">
+                    <span className="mr-3">Rp</span>
+                    {invoice.remaining.toLocaleString("id-ID")}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between py-1 border-b border-stone-300">
-                <span className="font-bold text-stone-700">Total Pembayaran (Terbayar) :</span>
-                <span className="font-mono font-bold text-emerald-800 text-sm">Rp {invoice.paid.toLocaleString("id-ID")}</span>
-              </div>
-
-              <div className="flex items-center justify-between py-2 border-b-2 border-stone-900 font-extrabold text-sm">
-                <span className="text-stone-950 uppercase tracking-wider">Sisa Pelunasan :</span>
-                <span className="font-mono text-brand-pink text-lg">Rp {invoice.remaining.toLocaleString("id-ID")}</span>
+              {/* Tanda Tangan & Stempel Resmi Direktur */}
+              <div className="text-center pt-2 space-y-0.5 flex flex-col items-center">
+                <p className="text-[11px] font-bold uppercase text-stone-800">EL MASSA TOUR & TRAVEL</p>
+                <img
+                  src="/stempel-ttd-direktur.png"
+                  alt="Stempel & Tanda Tangan Direktur PT Al Massa Azka Wisata"
+                  className="h-20 w-auto object-contain my-[-4px]"
+                />
+                <p className="text-xs font-bold uppercase text-stone-950 underline underline-offset-2">AZRIANDRI.LC</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700">DIREKTUR</p>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 pt-4 items-end border-t border-stone-800">
-            <div className="space-y-1">
-              <h3 className="text-2xl font-black text-stone-950 font-serif">Terima Kasih!</h3>
-              <p className="text-xs font-semibold italic text-stone-700">
-                Semoga Perjalanan Ibadah Umrah Anda Dipermudah oleh Allah SWT
-              </p>
-            </div>
-
-            <div className="text-right space-y-2 sm:pl-12">
-              <div className="inline-block text-center">
-                <svg className="h-16 w-44 mx-auto text-stone-900" viewBox="0 0 200 70" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 45 C30 10, 50 65, 75 25 C90 5, 110 55, 135 20 C145 35, 160 15, 185 40 M45 40 L165 40" />
-                </svg>
-                <p className="text-sm font-extrabold text-stone-950 tracking-tight">Azriandri</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-stone-600">
-                  CEO / Founder
-                </p>
-              </div>
-            </div>
+          {/* Footer Ucapan Terima Kasih */}
+          <div className="pt-4 text-center space-y-0.5 border-t border-stone-200">
+            <h4 className="text-base font-extrabold text-stone-950">Terima Kasih!</h4>
+            <p className="text-xs text-stone-600 font-medium">Semoga Perjalanan Ibadah Umrah Anda Dipermudah oleh Allah SWT</p>
           </div>
-
         </section>
 
+        <style jsx global>{`
+          @media print {
+            body {
+              background: white !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 8mm;
+            }
+          }
+        `}</style>
       </div>
     </AppShell>
   );

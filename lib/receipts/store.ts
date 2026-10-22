@@ -25,6 +25,7 @@ export type ReceiptDetail = {
     customerName: string;
     customerPhone: string;
     packageName: string;
+    participants: number;
   };
 };
 
@@ -44,7 +45,8 @@ const DETAIL_QUERY = `
     p.method,
     b.customer_name AS "customerName",
     b.phone AS "customerPhone",
-    b.package_name AS "packageName"
+    b.package_name AS "packageName",
+    COALESCE(b.participants, 1)::int AS "participants"
   FROM receipts r
   JOIN payments p ON p.id = r.payment_id
   JOIN real_bookings b ON b.code = p.booking_code
@@ -70,6 +72,7 @@ function toReceiptDetail(row: any): ReceiptDetail {
       customerName: row.customerName,
       customerPhone: row.customerPhone,
       packageName: row.packageName,
+      participants: Number(row.participants) || 1,
     },
   };
 }
