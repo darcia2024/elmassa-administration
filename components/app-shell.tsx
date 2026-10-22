@@ -80,7 +80,7 @@ const navGroups = [
       { label: "Verifikasi Pembayaran", icon: CircleDollarSign, href: "/pembayaran" },
       { label: "Kwitansi", icon: ReceiptText, href: "/dokumen/kuitansi" },
       { label: "Invoice", icon: FileSpreadsheet, href: "/dokumen/invoice" },
-      { label: "Rekap Pembayaran Grup", icon: Layers, href: "/pembayaran/rekap-grup" },
+      { label: "Rekap Keuangan Grup", icon: Layers, href: "/pembayaran/rekap-grup" },
     ],
   },
   {
@@ -123,6 +123,7 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/administrasi/surat": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Admin Master"],
   "/pembayaran/arus-kas": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/pembayaran/rekap-grup": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
+  "/keuangan": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/operasional/karyawan": ["CEO / Admin Master", "Admin Master"],
   "/operasional/agen": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],
   "/operasional/stok": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Admin Master"],
@@ -247,7 +248,7 @@ export function AppShell({ children }: AppShellProps) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
 
-  // 🔍 Global Live Search Engine States
+  // ðŸ” Global Live Search Engine States
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -262,7 +263,7 @@ export function AppShell({ children }: AppShellProps) {
       const dariBooking: SearchResultItem[] = (bookingRes?.data ?? []).map((b: Record<string, unknown>) => ({
         id: `b-${b.code}`,
         title: String(b.customerName ?? ""),
-        subtitle: `${b.code} • ${b.packageName ?? ""} • Sisa ${Number(b.remainingAmount ?? 0).toLocaleString("id-ID")}`,
+        subtitle: `${b.code} â€¢ ${b.packageName ?? ""} â€¢ Sisa ${Number(b.remainingAmount ?? 0).toLocaleString("id-ID")}`,
         category: "Jamaah & Booking" as const,
         link: `/booking/${encodeURIComponent(String(b.code))}`,
         badge: String(b.status ?? ""),
@@ -271,7 +272,7 @@ export function AppShell({ children }: AppShellProps) {
       const dariPaket: SearchResultItem[] = (paketRes?.data ?? []).map((p: Record<string, unknown>) => ({
         id: `p-${p.id}`,
         title: String(p.name ?? ""),
-        subtitle: `${p.duration ?? ""} • ${p.price ?? ""} • ${p.makkahHotel ?? ""}`,
+        subtitle: `${p.duration ?? ""} â€¢ ${p.price ?? ""} â€¢ ${p.makkahHotel ?? ""}`,
         category: "Paket & Flight" as const,
         link: `/paket/${encodeURIComponent(String(p.id))}`,
         badge: String(p.category ?? ""),
@@ -292,7 +293,7 @@ export function AppShell({ children }: AppShellProps) {
     );
   }, [searchQuery, dataCari]);
 
-  // 🔔 Notification Center States (Real-time Live Sync)
+  // ðŸ”” Notification Center States (Real-time Live Sync)
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
@@ -412,7 +413,7 @@ export function AppShell({ children }: AppShellProps) {
    * Sesi punya dua penanda dengan umur berbeda: cookie httpOnly yang dipakai
    * semua API (12 jam) dan objek localStorage yang dipakai tampilan ini (tanpa
    * kedaluwarsa). Begitu cookienya mati, shell masih melihat localStorage dan
-   * tetap menggambar aplikasi seolah login — sementara setiap panggilan API
+   * tetap menggambar aplikasi seolah login â€” sementara setiap panggilan API
    * dijawab 401. Hasilnya staf terjebak di aplikasi yang terlihat normal tapi
    * semua datanya error, tanpa petunjuk untuk login ulang.
    *
@@ -636,7 +637,7 @@ export function AppShell({ children }: AppShellProps) {
                                   }`}
                                   title={pkg.name}
                                 >
-                                  <span className="text-[11px] shrink-0">🕋</span>
+                                  <span className="text-[11px] shrink-0">ðŸ•‹</span>
                                   <span className="truncate">{pkg.name}</span>
                                 </Link>
                               );
@@ -672,7 +673,7 @@ export function AppShell({ children }: AppShellProps) {
           <p className="text-[11px] font-medium text-stone-600">Sistem Live & Aktif</p>
         </div>
         <Link href="/master" className="mt-1 block text-xs text-stone-500 hover:text-stone-700 transition" title="System Engine">
-          El Massa Tour & Travel © 2026
+          El Massa Tour & Travel Â© 2026
         </Link>
       </div>
     </div>
@@ -736,17 +737,17 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          {/* Right Controls: 📅 Date & Hijri Pill + 🔍 Global Search Engine & 🔔 Notifications */}
+          {/* Right Controls: ðŸ“… Date & Hijri Pill + ðŸ” Global Search Engine & ðŸ”” Notifications */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             
-            {/* 📅 Date & Accurate Hijri Date Pill */}
+            {/* ðŸ“… Date & Accurate Hijri Date Pill */}
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[11px] font-medium text-stone-700 shadow-2xs">
               <span className="font-semibold text-stone-900">{liveDate.gregorian}</span>
-              {liveDate.hijri ? <span className="text-stone-300">•</span> : null}
+              {liveDate.hijri ? <span className="text-stone-300">â€¢</span> : null}
               {liveDate.hijri ? <span className="font-bold text-pink-600 font-mono">{liveDate.hijri}</span> : null}
             </div>
             
-            {/* 🔍 Global Live Search Input Container */}
+            {/* ðŸ” Global Live Search Input Container */}
             <div className="relative">
               {/* Mobile Search Icon Button */}
               <button
@@ -784,7 +785,7 @@ export function AppShell({ children }: AppShellProps) {
                   </button>
                 ) : (
                   <kbd className="hidden sm:inline-block rounded border border-stone-200 bg-stone-100 px-1.5 py-0.2 text-[9px] font-mono text-stone-400">
-                    ⌘K
+                    âŒ˜K
                   </kbd>
                 )}
               </div>
@@ -861,7 +862,7 @@ export function AppShell({ children }: AppShellProps) {
                               <p className="text-[11px] text-stone-500 leading-tight line-clamp-1">{item.subtitle}</p>
                             </div>
                             <span className="text-[10px] font-semibold text-stone-400 group-hover:text-brand-pink shrink-0 mt-0.5">
-                              {item.category.split(" ")[0]} →
+                              {item.category.split(" ")[0]} â†’
                             </span>
                           </Link>
                         ))
@@ -878,7 +879,7 @@ export function AppShell({ children }: AppShellProps) {
               )}
             </div>
 
-            {/* 🔔 Interactive Notification Center Popover */}
+            {/* ðŸ”” Interactive Notification Center Popover */}
             <div className="relative">
               <button
                 className="relative grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 shadow-2xs shrink-0 transition"
@@ -992,7 +993,7 @@ export function AppShell({ children }: AppShellProps) {
                                   onClick={() => setIsNotifOpen(false)}
                                   className="font-bold text-brand-pink hover:underline"
                                 >
-                                  Tindak lanjuti →
+                                  Tindak lanjuti â†’
                                 </Link>
                               </div>
                             </div>
@@ -1041,7 +1042,7 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </section>
 
-      {/* 📱 100% FIXED ALWAYS-VISIBLE MOBILE BOTTOM NAVBAR */}
+      {/* ðŸ“± 100% FIXED ALWAYS-VISIBLE MOBILE BOTTOM NAVBAR */}
       <nav className="fixed bottom-0 inset-x-0 z-[100] flex items-center justify-between gap-0.5 overflow-hidden border-t border-stone-200/80 bg-white/95 backdrop-blur-xl px-1.5 py-2 shadow-2xl lg:hidden font-sans">
         {[
           { label: "Beranda", icon: LayoutDashboard, href: "/dashboard" },

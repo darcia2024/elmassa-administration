@@ -4,7 +4,7 @@ import { amountToWordsIDR } from "@/lib/terbilang";
 /**
  * Payment records, stored in the `payments` table the Drizzle migrations
  * already created. `booking_code` points at `real_bookings.code` (see
- * lib/db/schema.ts) — not the unused Drizzle `bookings` table.
+ * lib/db/schema.ts) â€” not the unused Drizzle `bookings` table.
  *
  * Every payment auto-generates a matching `receipts` row (kuitansi) and
  * keeps `real_bookings.paid_amount` / `remaining_amount` / `status` in step,
@@ -78,8 +78,10 @@ export type GroupPaymentInstallment = {
   date: string;
   amount: number;
   method: string;
+  account?: string;
   status: string;
   receiptNumber: string | null;
+  notes?: string;
 };
 
 export type GroupPaymentRow = {
@@ -109,7 +111,7 @@ function labelInstallment(index: number, amount: number, totalAmount: number): s
 /**
  * Every jamaah booking in one departure group, each with its own payment
  * timeline. Amounts come straight from `real_bookings`, which lib/payments
- * keeps in step with the `payments` rows on every create/update/delete — so
+ * keeps in step with the `payments` rows on every create/update/delete â€” so
  * the per-row installments here always add up to the paidAmount beside them.
  */
 export async function listGroupPayments(packageId: string): Promise<GroupPaymentRow[]> {
@@ -140,6 +142,8 @@ export async function listGroupPayments(packageId: string): Promise<GroupPayment
        p.amount,
        p.method,
        p.status,
+       p.reference_number AS "referenceNumber",
+       p.notes,
        r.receipt_number AS "receiptNumber"
      FROM payments p
      LEFT JOIN receipts r ON r.payment_id = p.id
@@ -171,15 +175,33 @@ export async function listGroupPayments(packageId: string): Promise<GroupPayment
       remainingAmount,
       status: b.status,
       isSettled: remainingAmount <= 0 && paidAmount > 0,
-      installments: rows.map((p, index) => ({
-        id: p.id,
-        label: labelInstallment(index, Number(p.amount), totalAmount),
-        date: p.date,
-        amount: Number(p.amount),
-        method: p.method,
-        status: p.status,
-        receiptNumber: p.receiptNumber,
-      })),
+      installments: rows.map((p, index) => {
+        const rawNote = (p.notes || "").toLowerCase();
+        const rawRef = (p.referenceNumber || "").toUpperCase();
+        const rawMethod = (p.method || "").toUpperCase();
+        let account = "BSI 719-2024-001 (PT El Massa)";
+        if (rawNote.includes("bca") || rawRef.includes("BCA") || rawMethod.includes("BCA")) {
+          account = "BCA 041-8899-100 (PT El Massa)";
+        } else if (rawNote.includes("mandiri") || rawRef.includes("MANDIRI") || rawMethod.includes("MANDIRI")) {
+          account = "Mandiri 169-00-112233-4 (PT El Massa)";
+        } else if (rawMethod.includes("TUNAI") || rawMethod.includes("CASH")) {
+          account = "Kas Tunai Kantor";
+        } else if (p.referenceNumber && p.referenceNumber.trim().length > 3) {
+          account = p.referenceNumber.trim();
+        }
+
+        return {
+          id: p.id,
+          label: labelInstallment(index, Number(p.amount), totalAmount),
+          date: p.date,
+          amount: Number(p.amount),
+          method: p.method || "Transfer",
+          account,
+          status: p.status,
+          receiptNumber: p.receiptNumber,
+          notes: p.notes,
+        };
+      }),
     };
   });
 }

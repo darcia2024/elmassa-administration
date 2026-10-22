@@ -8,6 +8,7 @@ export async function GET(request: Request) {
     from: searchParams.get("from") ?? undefined,
     to: searchParams.get("to") ?? undefined,
     category: searchParams.get("category") ?? undefined,
+    packageId: searchParams.get("packageId") ?? undefined,
   });
 
   return NextResponse.json(

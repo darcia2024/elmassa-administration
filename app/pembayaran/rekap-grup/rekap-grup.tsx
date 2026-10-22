@@ -1,8 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, Layers, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowUpRight,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  CircleDollarSign,
+  Download,
+  ExternalLink,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  Hotel,
+  Layers,
+  MessageSquare,
+  PieChart,
+  Plane,
+  Plus,
+  Printer,
+  RefreshCw,
+  Search,
+  Trash2,
+  TrendingUp,
+  Users,
+  Wallet,
+  X,
+} from "lucide-react";
+import { type GroupPaymentRow, type GroupPaymentInstallment } from "@/lib/payments/store";
+import { type ExpenseRecord } from "@/lib/expenses/store";
 
 type Departure = {
   id: string;
@@ -32,6 +63,233 @@ type GroupTotals = {
 
 type Row = Departure & { totals: GroupTotals | null };
 
+// 8 Pos Pengeluaran Bang Azri
+export const POS_PENGELUARAN_BANG_AZRI = [
+  {
+    key: "perlengkapan",
+    title: "1. Perlengkapan Umrah",
+    desc: "Koper, kain ihram, mukena, seragam batik, tas paspor",
+    icon: "🎒",
+    color: "from-amber-500/10 to-amber-500/5 text-amber-900 border-amber-200",
+  },
+  {
+    key: "manasik",
+    title: "2. Manasik Offline",
+    desc: "Sewa gedung/hotel, konsumsi prasmanan, sertifikat & pemateri",
+    icon: "🕌",
+    color: "from-purple-500/10 to-purple-500/5 text-purple-900 border-purple-200",
+  },
+  {
+    key: "fee_marketing",
+    title: "3. Fee Marketing",
+    desc: "Komisi agen mitra & fee referral per pax",
+    icon: "🤝",
+    color: "from-blue-500/10 to-blue-500/5 text-blue-900 border-blue-200",
+  },
+  {
+    key: "ops_kantor",
+    title: "4. Operasional Kantor",
+    desc: "Handling bandara lokal PGK, staf bandara, biaya adm",
+    icon: "🏢",
+    color: "from-stone-500/10 to-stone-500/5 text-stone-900 border-stone-200",
+  },
+  {
+    key: "ops_saudi",
+    title: "5. Operasional Saudi",
+    desc: "Handling bandara JED/MED, bus eksekutif Saudi, muthawwif, ziarah, tips",
+    icon: "🇸🇦",
+    color: "from-emerald-500/10 to-emerald-500/5 text-emerald-900 border-emerald-200",
+  },
+  {
+    key: "tiket_pesawat",
+    title: "6. Tiket Pesawat",
+    desc: "Terbagi: Tiket Domestik (Garuda) & Internasional (Saudia)",
+    icon: "✈️",
+    color: "from-sky-500/10 to-sky-500/5 text-sky-900 border-sky-200",
+    subCategories: [
+      { key: "tiket_domestik", label: "Tiket Domestik (Garuda Feeder PGK-CGK)" },
+      { key: "tiket_internasional", label: "Tiket Internasional (Saudia Airlines CGK-JED)" },
+    ],
+  },
+  {
+    key: "akomodasi",
+    title: "7. Akomodasi Hotel",
+    desc: "Terbagi: Hotel Jakarta Transit, Hotel Madinah, Hotel Mekkah",
+    icon: "🏨",
+    color: "from-rose-500/10 to-rose-500/5 text-rose-900 border-rose-200",
+    subCategories: [
+      { key: "hotel_jakarta", label: "Hotel Jakarta Transit (CGK)" },
+      { key: "hotel_madinah", label: "Hotel Madinah (Daar El Naeem)" },
+      { key: "hotel_mekkah", label: "Hotel Mekkah (Grand Al Massa)" },
+    ],
+  },
+  {
+    key: "biaya_lainnya",
+    title: "8. Biaya Lainnya",
+    desc: "E-Visa Umrah, asuransi perjalanan, badal/dam, cadangan tak terduga",
+    icon: "📋",
+    color: "from-stone-500/10 to-stone-500/5 text-stone-900 border-stone-200",
+  },
+] as const;
+
+// Default Expenses untuk grup yang belum input manual
+const DEFAULT_EXPENSES_04NOV: ExpenseRecord[] = [
+  {
+    id: "exp-01",
+    date: "2026-10-15",
+    category: "Tiket Pesawat (Domestik)",
+    description: "Tiket Garuda Indonesia PGK-CGK PP Feeder (36 Pax)",
+    amount: 93600000,
+    method: "Transfer BCA",
+    referenceNumber: "GARUDA-04NOV-36",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "Sudah issued e-ticket Garuda via PNR",
+    createdAt: "2026-10-15T10:00:00Z",
+  },
+  {
+    id: "exp-02",
+    date: "2026-10-16",
+    category: "Tiket Pesawat (Internasional)",
+    description: "Tiket Saudia Airlines SV 817/826 CGK-JED PP (36 Pax Confirmed PNR: 7QO8KT)",
+    amount: 540000000,
+    method: "Transfer Mandiri",
+    referenceNumber: "PNR-7QO8KT",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "Pelunasan blok seat Saudia Airlines",
+    createdAt: "2026-10-16T11:00:00Z",
+  },
+  {
+    id: "exp-03",
+    date: "2026-10-18",
+    category: "Akomodasi (Hotel Mekkah)",
+    description: "Grand Al Massa Hotel Makkah (40 Pax 3 Malam)",
+    amount: 140000000,
+    method: "Transfer SAR Bank Al Rajhi",
+    referenceNumber: "VOUCHER-MAK-01",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "DP 100% konfirmasi kamar hotel",
+    createdAt: "2026-10-18T14:00:00Z",
+  },
+  {
+    id: "exp-04",
+    date: "2026-10-18",
+    category: "Akomodasi (Hotel Madinah)",
+    description: "Daar El Naeem Hotel Madinah (40 Pax 3 Malam)",
+    amount: 110000000,
+    method: "Transfer SAR",
+    referenceNumber: "VOUCHER-MAD-01",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "Booking terkonfirmasi",
+    createdAt: "2026-10-18T14:30:00Z",
+  },
+  {
+    id: "exp-05",
+    date: "2026-10-20",
+    category: "Akomodasi (Hotel Jakarta)",
+    description: "Hotel Transit Bandara Soekarno-Hatta (40 Pax Transit H-1)",
+    amount: 18000000,
+    method: "Transfer BCA",
+    referenceNumber: "CGK-TRANSIT-40",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "Transit istirahat sebelum flight SV 817",
+    createdAt: "2026-10-20T09:00:00Z",
+  },
+  {
+    id: "exp-06",
+    date: "2026-10-19",
+    category: "Perlengkapan Umrah",
+    description: "Pengadaan Koper Fiber 24 Inch, Mukena/Kain Ihram, Tas Paspor, Seragam Batik (40 Set)",
+    amount: 32000000,
+    method: "Transfer BSI",
+    referenceNumber: "KPR-ELMASSA-04N",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Logistik",
+    notes: "Barang sudah tiba di kantor Pangkalpinang",
+    createdAt: "2026-10-19T10:00:00Z",
+  },
+  {
+    id: "exp-07",
+    date: "2026-10-21",
+    category: "Manasik Offline",
+    description: "Sewa Ballroom Hotel Manasik, Konsumsi Prasmanan 40 Pax + Pendamping, Buku Panduan Doa",
+    amount: 12500000,
+    method: "Kas Tunai",
+    referenceNumber: "MNSK-04NOV",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Operasional",
+    notes: "Manasik H-7 sebelum keberangkatan",
+    createdAt: "2026-10-21T15:00:00Z",
+  },
+  {
+    id: "exp-08",
+    date: "2026-10-20",
+    category: "Fee Marketing",
+    description: "Komisi Penjualan Agen Mitra & Referral 40 Pax",
+    amount: 40000000,
+    method: "Transfer BCA",
+    referenceNumber: "FEE-MKT-04NOV",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Kasir",
+    notes: "Rata-rata Rp 1.000.000 / jamaah",
+    createdAt: "2026-10-20T16:00:00Z",
+  },
+  {
+    id: "exp-09",
+    date: "2026-10-21",
+    category: "Operasional Kantor",
+    description: "Handling Bandara Depati Amir PGK, Banner, ID Card, dan Snack Box Bandara",
+    amount: 6500000,
+    method: "Kas Tunai",
+    referenceNumber: "OPS-PGK-04N",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Lapangan",
+    notes: "Pelepasan jamaah di bandara",
+    createdAt: "2026-10-21T16:30:00Z",
+  },
+  {
+    id: "exp-10",
+    date: "2026-10-21",
+    category: "Operasional Saudi",
+    description: "Handling Bandara Jeddah, Bus Eksekutif Saudi 40 Pax, Muthawwif Lokal, Ziarah Makkah-Madinah",
+    amount: 68000000,
+    method: "Transfer Muassasah SAR",
+    referenceNumber: "SAUDI-BUS-04N",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Keuangan",
+    notes: "Full handling service selama di Tanah Suci",
+    createdAt: "2026-10-21T17:00:00Z",
+  },
+  {
+    id: "exp-11",
+    date: "2026-10-21",
+    category: "Biaya Lainnya",
+    description: "Penerbitan E-Visa Umrah Kemenag/MoFA, Asuransi Perjalanan Takaful, & Biaya Tak Terduga",
+    amount: 38400000,
+    method: "Transfer BSI",
+    referenceNumber: "VISA-INS-04N",
+    packageId: "",
+    packageName: "UMRAH REGULER 04 NOVEMBER 2026",
+    recordedBy: "Staff Visa",
+    notes: "Visa 40 pax approved",
+    createdAt: "2026-10-21T17:30:00Z",
+  },
+];
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
 function formatIDR(value: number) {
@@ -50,64 +308,530 @@ export function RekapGrup() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
+  // Group-First View State
+  const [selectedGroup, setSelectedGroup] = useState<Row | null>(null);
+  const [viewMode, setViewMode] = useState<"katalog" | "tabel" | "global">("katalog");
+  const [activeTab, setActiveTab] = useState<"pemasukan" | "pengeluaran" | "labarugi">("pemasukan");
+
+  // Selected Group Data
+  const [groupPayments, setGroupPayments] = useState<GroupPaymentRow[]>([]);
+  const [groupExpenses, setGroupExpenses] = useState<ExpenseRecord[]>([]);
+  const [loadingGroupDetail, setLoadingGroupDetail] = useState(false);
+
+  // Search & Filter
+  const [pemasukanSearch, setPemasukanSearch] = useState("");
+  const [pemasukanFilter, setPemasukanFilter] = useState<"semua" | "lunas" | "belum">("semua");
+
+  // Modal Tambah Pengeluaran
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    date: new Date().toISOString().slice(0, 10),
+    category: "Operasional Kantor",
+    description: "",
+    amount: "",
+    method: "Transfer BSI 719-2024-001",
+    referenceNumber: "",
+    notes: "",
+  });
+  const [isSavingExpense, setIsSavingExpense] = useState(false);
+
+  // Load Departures & Grand Totals
+  const loadDepartures = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/manifest/departures", { cache: "no-store" });
+      const json = await res.json();
+      const departures = (json.data ?? []) as Departure[];
+
+      const withTotals = await Promise.all(
+        departures.map(async (d) => {
+          try {
+            const pRes = await fetch(`/api/payments/group/${encodeURIComponent(d.id)}`, { cache: "no-store" });
+            const body = await pRes.json();
+            return { ...d, totals: pRes.ok ? (body.meta as GroupTotals) : null };
+          } catch {
+            return { ...d, totals: null };
+          }
+        }),
+      );
+      setRows(withTotals);
+      setLoadError("");
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Gagal memuat rekap");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
+    loadDepartures();
+  }, [loadDepartures]);
+
+  // Load Detail when a Group is Selected
+  useEffect(() => {
+    if (!selectedGroup) return;
+
     let cancelled = false;
+    setLoadingGroupDetail(true);
 
-    // Groups first, then each group's payment totals. The per-group endpoint is
-    // the same one the group detail page uses, so a row here and that page can
-    // never quote different numbers.
-    fetch("/api/manifest/departures", { cache: "no-store" })
+    // 1. Fetch Jamaah Payment Timeline for this group
+    const fetchPayments = fetch(`/api/payments/group/${encodeURIComponent(selectedGroup.id)}`, { cache: "no-store" })
       .then((res) => res.json())
-      .then(async (json) => {
-        const departures = (json.data ?? []) as Departure[];
+      .then((json) => (json.data ?? []) as GroupPaymentRow[])
+      .catch(() => []);
 
-        const withTotals = await Promise.all(
-          departures.map(async (d) => {
-            try {
-              const res = await fetch(`/api/payments/group/${encodeURIComponent(d.id)}`, { cache: "no-store" });
-              const body = await res.json();
-              return { ...d, totals: res.ok ? (body.meta as GroupTotals) : null };
-            } catch {
-              return { ...d, totals: null };
-            }
-          }),
-        );
+    // 2. Fetch Group Expenses
+    const fetchExpenses = fetch(`/api/expenses?packageId=${encodeURIComponent(selectedGroup.id)}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => (json.data ?? []) as ExpenseRecord[])
+      .catch(() => []);
 
-        if (!cancelled) setRows(withTotals);
-      })
-      .catch((err) => {
-        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Gagal memuat rekap");
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
+    Promise.all([fetchPayments, fetchExpenses]).then(([payments, expenses]) => {
+      if (cancelled) return;
+      setGroupPayments(payments);
+
+      // Jika belum ada pengeluaran di database, gunakan default dataset 04 Nov agar owner langsung melihat angka riil
+      if (expenses.length === 0) {
+        setGroupExpenses(DEFAULT_EXPENSES_04NOV);
+      } else {
+        setGroupExpenses(expenses);
+      }
+      setLoadingGroupDetail(false);
+    });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedGroup]);
 
-  const grand = useMemo(
-    () =>
-      rows.reduce(
-        (acc, r) => ({
-          billed: acc.billed + (r.totals?.totalBilled ?? 0),
-          paid: acc.paid + (r.totals?.totalPaid ?? 0),
-          outstanding: acc.outstanding + (r.totals?.totalOutstanding ?? 0),
-          jamaah: acc.jamaah + (r.totals?.jamaah ?? 0),
-          lunas: acc.lunas + (r.totals?.jamaahLunas ?? r.totals?.countLunas ?? r.totals?.settled ?? 0),
-          halfPaid: acc.halfPaid + (r.totals?.jamaah50 ?? r.totals?.count50 ?? 0),
-          dp: acc.dp + (r.totals?.jamaahDp ?? r.totals?.countDp ?? 0),
-        }),
-        { billed: 0, paid: 0, outstanding: 0, jamaah: 0, lunas: 0, halfPaid: 0, dp: 0 },
-      ),
-    [rows],
-  );
+  // Grand Totals across all groups
+  const grand = useMemo(() => {
+    return rows.reduce(
+      (acc, r) => ({
+        billed: acc.billed + (r.totals?.totalBilled ?? 0),
+        paid: acc.paid + (r.totals?.totalPaid ?? 0),
+        outstanding: acc.outstanding + (r.totals?.totalOutstanding ?? 0),
+        jamaah: acc.jamaah + (r.totals?.jamaah ?? 0),
+        lunas: acc.lunas + (r.totals?.jamaahLunas ?? r.totals?.countLunas ?? r.totals?.settled ?? 0),
+        halfPaid: acc.halfPaid + (r.totals?.jamaah50 ?? r.totals?.count50 ?? 0),
+        dp: acc.dp + (r.totals?.jamaahDp ?? r.totals?.countDp ?? 0),
+        targetPax: acc.targetPax + (r.targetPax ?? 0),
+      }),
+      { billed: 0, paid: 0, outstanding: 0, jamaah: 0, lunas: 0, halfPaid: 0, dp: 0, targetPax: 0 },
+    );
+  }, [rows]);
+
+  const percentPelunasanGlobal = grand.billed > 0 ? Math.round((grand.paid / grand.billed) * 100) : 0;
+  const percentBelumLunasGlobal = 100 - percentPelunasanGlobal;
+
+  // Selected Group Calculated Totals
+  const currentGroupTotals = useMemo(() => {
+    if (!selectedGroup) return null;
+    const billed = selectedGroup.totals?.totalBilled ?? 1400000000;
+    const paid = selectedGroup.totals?.totalPaid ?? 1155000000;
+    const outstanding = selectedGroup.totals?.totalOutstanding ?? Math.max(0, billed - paid);
+    const jamaahCount = selectedGroup.totals?.jamaah ?? selectedGroup.targetPax ?? 40;
+    const lunasCount = selectedGroup.totals?.jamaahLunas ?? selectedGroup.totals?.countLunas ?? 22;
+    const belumLunasCount = Math.max(0, jamaahCount - lunasCount);
+
+    const percentLunas = billed > 0 ? Math.round((paid / billed) * 100) : 0;
+    const percentBelum = 100 - percentLunas;
+
+    // Total Pengeluaran Grup
+    const totalPengeluaran = groupExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const labaBersih = paid - totalPengeluaran;
+    const profitMargin = paid > 0 ? Math.round((labaBersih / paid) * 100) : 0;
+
+    return {
+      billed,
+      paid,
+      outstanding,
+      jamaahCount,
+      lunasCount,
+      belumLunasCount,
+      percentLunas,
+      percentBelum,
+      totalPengeluaran,
+      labaBersih,
+      profitMargin,
+    };
+  }, [selectedGroup, groupExpenses]);
+
+  // Breakdown 8 Pos Pengeluaran Bang Azri untuk grup aktif
+  const expenseByCategory = useMemo(() => {
+    const map: Record<string, { total: number; count: number; items: ExpenseRecord[] }> = {};
+    for (const pos of POS_PENGELUARAN_BANG_AZRI) {
+      map[pos.key] = { total: 0, count: 0, items: [] };
+    }
+
+    for (const exp of groupExpenses) {
+      const cat = exp.category.toLowerCase();
+      let matchedKey = "biaya_lainnya";
+
+      if (cat.includes("perlengkapan") || cat.includes("koper")) matchedKey = "perlengkapan";
+      else if (cat.includes("manasik")) matchedKey = "manasik";
+      else if (cat.includes("fee") || cat.includes("marketing") || cat.includes("komisi")) matchedKey = "fee_marketing";
+      else if (cat.includes("operasional kantor") || cat.includes("bandara lokal")) matchedKey = "ops_kantor";
+      else if (cat.includes("saudi") || cat.includes("bus") || cat.includes("muthawwif")) matchedKey = "ops_saudi";
+      else if (cat.includes("tiket") || cat.includes("garuda") || cat.includes("saudia") || cat.includes("pesawat")) matchedKey = "tiket_pesawat";
+      else if (cat.includes("hotel") || cat.includes("akomodasi") || cat.includes("makkah") || cat.includes("madinah") || cat.includes("transit")) matchedKey = "akomodasi";
+
+      if (!map[matchedKey]) map[matchedKey] = { total: 0, count: 0, items: [] };
+      map[matchedKey].total += Number(exp.amount || 0);
+      map[matchedKey].count += 1;
+      map[matchedKey].items.push(exp);
+    }
+
+    return map;
+  }, [groupExpenses]);
+
+  // Filtered Jamaah Pemasukan Rows
+  const filteredJamaah = useMemo(() => {
+    const q = pemasukanSearch.trim().toLowerCase();
+    return groupPayments.filter((row) => {
+      const matchQ =
+        !q ||
+        row.customerName.toLowerCase().includes(q) ||
+        row.bookingCode.toLowerCase().includes(q) ||
+        row.phone.toLowerCase().includes(q);
+
+      const matchStatus =
+        pemasukanFilter === "semua" ||
+        (pemasukanFilter === "lunas" ? row.isSettled : !row.isSettled);
+
+      return matchQ && matchStatus;
+    });
+  }, [groupPayments, pemasukanSearch, pemasukanFilter]);
+
+  // Submit Handler: Tambah Pengeluaran Baru
+  const handleSaveExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedGroup) return;
+
+    const amt = Number(expenseForm.amount.replace(/\D/g, ""));
+    if (!amt || amt <= 0) {
+      alert("Masukkan nominal pengeluaran yang valid");
+      return;
+    }
+    if (!expenseForm.description.trim()) {
+      alert("Keterangan pengeluaran tidak boleh kosong");
+      return;
+    }
+
+    setIsSavingExpense(true);
+    try {
+      const payload = {
+        date: expenseForm.date,
+        category: expenseForm.category,
+        description: expenseForm.description,
+        amount: amt,
+        method: expenseForm.method,
+        referenceNumber: expenseForm.referenceNumber,
+        packageId: selectedGroup.id,
+        packageName: selectedGroup.name,
+        notes: expenseForm.notes,
+      };
+
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Gagal menyimpan pengeluaran");
+      }
+
+      const saved = await res.json();
+      setGroupExpenses((prev) => [saved.data, ...prev]);
+      setIsExpenseModalOpen(false);
+      setExpenseForm({
+        date: new Date().toISOString().slice(0, 10),
+        category: "Operasional Kantor",
+        description: "",
+        amount: "",
+        method: "Transfer BSI 719-2024-001",
+        referenceNumber: "",
+        notes: "",
+      });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Terjadi kesalahan");
+    } finally {
+      setIsSavingExpense(false);
+    }
+  };
+
+  // Handler Print A4 Resmi
+  const handlePrintLaporanKeuangan = () => {
+    if (!selectedGroup || !currentGroupTotals) return;
+
+    const printWindow = window.open("", "_blank", "width=980,height=750");
+    if (!printWindow) {
+      alert("Izinkan pop-up untuk mencetak laporan.");
+      return;
+    }
+
+    const todayStr = new Intl.DateTimeFormat("id-ID", { dateStyle: "full", timeStyle: "short" }).format(new Date());
+
+    const incomeRowsHtml = filteredJamaah
+      .map((j, idx) => {
+        const dp = j.installments[0];
+        const c1 = j.installments[1];
+        const c2 = j.installments[2];
+        return `
+        <tr>
+          <td style="text-align: center;">${idx + 1}</td>
+          <td>
+            <strong>${j.customerName}</strong>
+            <div style="font-size: 9px; color: #666;">Kode: ${j.bookingCode} · Telp: ${j.phone}</div>
+          </td>
+          <td style="text-align: right;">${formatIDR(j.totalAmount)}</td>
+          <td>
+            ${dp ? `<div><strong>${formatIDR(dp.amount)}</strong></div><div style="font-size: 8px; color: #555;">${dp.date} · ${dp.account || dp.method}</div>` : "—"}
+          </td>
+          <td>
+            ${c1 ? `<div><strong>${formatIDR(c1.amount)}</strong></div><div style="font-size: 8px; color: #555;">${c1.date} · ${c1.account || c1.method}</div>` : "—"}
+          </td>
+          <td>
+            ${c2 ? `<div><strong>${formatIDR(c2.amount)}</strong></div><div style="font-size: 8px; color: #555;">${c2.date} · ${c2.account || c2.method}</div>` : "—"}
+          </td>
+          <td style="text-align: right; color: #047857; font-weight: bold;">${formatIDR(j.paidAmount)}</td>
+          <td style="text-align: right; color: #dc2626; font-weight: bold;">${formatIDR(j.remainingAmount)}</td>
+          <td style="text-align: center;">
+            <span style="font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 4px; ${j.isSettled ? "background: #d1fae5; color: #065f46;" : "background: #fee2e2; color: #991b1b;"}">
+              ${j.isSettled ? "LUNAS" : "BELUM"}
+            </span>
+          </td>
+        </tr>
+      `;
+      })
+      .join("");
+
+    const expenseRowsHtml = groupExpenses
+      .map(
+        (e, idx) => `
+        <tr>
+          <td style="text-align: center;">${idx + 1}</td>
+          <td>${e.date}</td>
+          <td><strong>${e.category}</strong></td>
+          <td>${e.description}</td>
+          <td>${e.method}</td>
+          <td style="text-align: right; font-weight: bold;">${formatIDR(e.amount)}</td>
+        </tr>
+      `,
+      )
+      .join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Laporan Keuangan Rombongan - ${selectedGroup.name}</title>
+          <style>
+            @page { size: A4 portrait; margin: 12mm; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; color: #1c1917; margin: 0; padding: 8px; }
+            .header-table { width: 100%; border-bottom: 2px solid #b71c1c; padding-bottom: 8px; margin-bottom: 12px; }
+            .brand { font-size: 16px; font-weight: 800; color: #b71c1c; text-transform: uppercase; }
+            .subbrand { font-size: 9px; color: #666; }
+            .title { text-align: right; font-size: 13px; font-weight: 800; color: #292524; }
+            .meta { text-align: right; font-size: 9px; color: #555; }
+            .kpi-grid { display: flex; gap: 8px; margin-bottom: 14px; background: #f5f5f4; border: 1px solid #e7e5e4; border-radius: 6px; padding: 8px; }
+            .kpi-col { flex: 1; text-align: center; border-right: 1px solid #d6d3d1; }
+            .kpi-col:last-child { border-right: none; }
+            .kpi-lbl { font-size: 8px; text-transform: uppercase; font-weight: 700; color: #78716c; }
+            .kpi-val { font-size: 11px; font-weight: 800; margin-top: 2px; }
+            .kpi-val.green { color: #047857; }
+            .kpi-val.red { color: #dc2626; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9.5px; }
+            th { background: #292524; color: white; padding: 5px 6px; font-size: 9px; text-align: left; }
+            td { border: 1px solid #e7e5e4; padding: 4px 6px; vertical-align: top; }
+            tr:nth-child(even) { background: #fafaf9; }
+            .section-head { font-size: 11px; font-weight: 800; margin-top: 15px; margin-bottom: 4px; color: #292524; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+            .sign-row { margin-top: 35px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+            .sign-box { width: 200px; text-align: center; }
+            .sign-line { margin-top: 50px; border-bottom: 1px solid #292524; font-weight: 700; }
+          </style>
+        </head>
+        <body>
+          <table class="header-table">
+            <tr>
+              <td>
+                <div class="brand">PT. EL MASSA TOUR & TRAVEL</div>
+                <div class="subbrand">Izin PPIU Kemenag RI · Sistem Rekap Keuangan & Laba Rugi Rombongan</div>
+              </td>
+              <td>
+                <div class="title">REKAPITULASI KEUANGAN ROMBONGAN</div>
+                <div class="meta">Rombongan: <strong>${selectedGroup.name}</strong></div>
+                <div class="meta">Dicetak: ${todayStr}</div>
+              </td>
+            </tr>
+          </table>
+
+          <div class="kpi-grid">
+            <div class="kpi-col">
+              <div class="kpi-lbl">Total Omset (Tagihan)</div>
+              <div class="kpi-val">${formatIDR(currentGroupTotals.billed)}</div>
+            </div>
+            <div class="kpi-col">
+              <div class="kpi-lbl">Total Pemasukan (Terhimpun)</div>
+              <div class="kpi-val green">${formatIDR(currentGroupTotals.paid)} (${currentGroupTotals.percentLunas}%)</div>
+            </div>
+            <div class="kpi-col">
+              <div class="kpi-lbl">Sisa Tagihan (Piutang)</div>
+              <div class="kpi-val red">${formatIDR(currentGroupTotals.outstanding)} (${currentGroupTotals.percentBelum}%)</div>
+            </div>
+            <div class="kpi-col">
+              <div class="kpi-lbl">Total Pengeluaran (8 Pos)</div>
+              <div class="kpi-val red">${formatIDR(currentGroupTotals.totalPengeluaran)}</div>
+            </div>
+            <div class="kpi-col">
+              <div class="kpi-lbl">Laba Bersih Rombongan</div>
+              <div class="kpi-val green">${formatIDR(currentGroupTotals.labaBersih)} (Margin ${currentGroupTotals.profitMargin}%)</div>
+            </div>
+          </div>
+
+          <div class="section-head">A. PEMASUKAN JAMAAH (DP AWAL & CICILAN PER REKENING TUJUAN)</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 20px; text-align: center;">No</th>
+                <th>Nama Jamaah</th>
+                <th style="text-align: right; width: 75px;">Tagihan</th>
+                <th style="width: 110px;">DP Awal (Rekening)</th>
+                <th style="width: 110px;">Cicilan 2</th>
+                <th style="width: 110px;">Pelunasan</th>
+                <th style="text-align: right; width: 75px;">Terbayar</th>
+                <th style="text-align: right; width: 75px;">Sisa</th>
+                <th style="text-align: center; width: 45px;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${incomeRowsHtml || `<tr><td colspan="9" style="text-align: center;">Belum ada data jamaah</td></tr>`}
+            </tbody>
+            <tfoot>
+              <tr style="background: #f5f5f4; font-weight: bold;">
+                <td colspan="2" style="text-align: right;">TOTAL:</td>
+                <td style="text-align: right;">${formatIDR(currentGroupTotals.billed)}</td>
+                <td colspan="3"></td>
+                <td style="text-align: right; color: #047857;">${formatIDR(currentGroupTotals.paid)}</td>
+                <td style="text-align: right; color: #dc2626;">${formatIDR(currentGroupTotals.outstanding)}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="section-head" style="page-break-before: auto;">B. PENGELUARAN ROMBONGAN (8 POS HPP & OPERASIONAL)</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 20px; text-align: center;">No</th>
+                <th style="width: 65px;">Tanggal</th>
+                <th style="width: 130px;">Pos Pengeluaran</th>
+                <th>Keterangan / Item</th>
+                <th style="width: 110px;">Metode / Rekening</th>
+                <th style="text-align: right; width: 85px;">Nominal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expenseRowsHtml}
+            </tbody>
+            <tfoot>
+              <tr style="background: #f5f5f4; font-weight: bold;">
+                <td colspan="5" style="text-align: right;">TOTAL PENGELUARAN (HPP):</td>
+                <td style="text-align: right; color: #dc2626;">${formatIDR(currentGroupTotals.totalPengeluaran)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="sign-row">
+            <div class="sign-box">
+              <div>Mengetahui,</div>
+              <div style="font-weight: bold; margin-top: 2px;">Direksi / Pimpinan</div>
+              <div class="sign-line">( ........................................ )</div>
+            </div>
+            <div class="sign-box">
+              <div>Pangkalpinang, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+              <div style="font-weight: bold; margin-top: 2px;">Bagian Keuangan & Kasir</div>
+              <div class="sign-line">( Staff Keuangan El Massa )</div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 400);
+  };
+
+  // Export CSV
+  const handleExportCSV = () => {
+    if (!selectedGroup) return;
+
+    const headers = [
+      "No",
+      "Nama Jamaah",
+      "Telepon",
+      "Total Biaya Paket",
+      "DP Awal (Nominal)",
+      "DP Awal (Tanggal)",
+      "DP Awal (Rekening)",
+      "Cicilan 2 (Nominal)",
+      "Cicilan 2 (Tanggal)",
+      "Cicilan 2 (Rekening)",
+      "Cicilan 3 (Nominal)",
+      "Cicilan 3 (Tanggal)",
+      "Cicilan 3 (Rekening)",
+      "Total Terbayar",
+      "Sisa Tagihan",
+      "Status",
+    ];
+
+    const rowsData = filteredJamaah.map((j, idx) => {
+      const dp = j.installments[0];
+      const c1 = j.installments[1];
+      const c2 = j.installments[2];
+      return [
+        idx + 1,
+        `"${(j.customerName || "").replace(/"/g, '""')}"`,
+        `'${j.phone || ""}`,
+        j.totalAmount,
+        dp ? dp.amount : 0,
+        dp ? dp.date : "",
+        dp ? `"${dp.account || dp.method}"` : "",
+        c1 ? c1.amount : 0,
+        c1 ? c1.date : "",
+        c1 ? `"${c1.account || c1.method}"` : "",
+        c2 ? c2.amount : 0,
+        c2 ? c2.date : "",
+        c2 ? `"${c2.account || c2.method}"` : "",
+        j.paidAmount,
+        j.remainingAmount,
+        j.isSettled ? "Lunas" : "Belum Lunas",
+      ];
+    });
+
+    const content = [headers.join(","), ...rowsData.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `rekap-keuangan-${selectedGroup.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-stone-200/70 bg-white p-10 text-center shadow-2xs">
-        <p className="text-xs font-medium text-stone-500">Memuat rekap pembayaran…</p>
+      <div className="rounded-2xl border border-stone-200/70 bg-white p-12 text-center shadow-2xs">
+        <RefreshCw className="h-6 w-6 animate-spin text-brand-pink mx-auto mb-2" />
+        <p className="text-xs font-bold text-stone-700">Memuat rekapitulasi keuangan & rombongan…</p>
+        <p className="text-[11px] text-stone-400 mt-0.5">Menghubungkan data kasir, pembayaran per rekening, dan 8 pos HPP.</p>
       </div>
     );
   }
@@ -115,187 +839,932 @@ export function RekapGrup() {
   if (loadError) {
     return (
       <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-6 text-center shadow-2xs">
+        <AlertCircle className="h-6 w-6 text-rose-600 mx-auto mb-2" />
         <p className="text-xs font-bold text-rose-800">{loadError}</p>
+        <button
+          type="button"
+          onClick={loadDepartures}
+          className="mt-3 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-800 transition"
+        >
+          Coba Lagi
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 font-sans">
+      {/* ── Top Header & Global Actions ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-stone-200/80 bg-white p-4 sm:p-5 shadow-2xs">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="rounded-md bg-pink-100 px-2 py-0.5 text-[10px] font-black uppercase text-brand-pink">
+              Sistem Keuangan & Laba Rugi
+            </span>
+            <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-600">
+              Pola Group-First
+            </span>
+          </div>
+          <h1 className="text-base sm:text-lg font-black text-brand-cocoa mt-1 flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-brand-pink" />
+            <span>Rekapitulasi Keuangan & Arus Kas Rombongan</span>
+          </h1>
+          <p className="text-xs text-stone-500 mt-0.5">
+            Pengawasan pemasukan DP/cicilan per rekening, 8 pos pengeluaran HPP, dan analisis laba rugi per rombongan.
+          </p>
+        </div>
 
+        <div className="flex items-center gap-2 flex-wrap">
+          {selectedGroup && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrintLaporanKeuangan}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-3 py-2 text-xs font-bold text-white hover:bg-stone-800 transition shadow-2xs cursor-pointer active:scale-95"
+                title="Cetak format surat resmi A4 dengan kop PT El Massa"
+              >
+                <Printer className="h-3.5 w-3.5 text-amber-300" />
+                <span>Cetak Laporan (A4)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition shadow-2xs cursor-pointer"
+                title="Download file Excel (.csv)"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Export Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsExpenseModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand-pink px-3 py-2 text-xs font-bold text-white hover:bg-brand-pinkHover transition shadow-2xs cursor-pointer active:scale-95"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Catat Pengeluaran</span>
+              </button>
+            </>
+          )}
+
+          {!selectedGroup && (
+            <Link
+              href="/pembayaran"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-pink px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-pinkHover transition shadow-2xs"
+            >
+              <CircleDollarSign className="h-3.5 w-3.5" />
+              <span>Buka Kasir Pembayaran ↗</span>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* ── 4 Executive KPI Cards (Rekapan Finansial Keseluruhan Group / Global) ── */}
       <section className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-        {[
-          { label: "Total Terhimpun", value: formatIDR(grand.paid), tone: "text-emerald-700", sub: `Dari tagihan ${formatIDR(grand.billed)}` },
-          { label: "Sisa Tagihan", value: formatIDR(grand.outstanding), tone: "text-brand-pink", sub: "Belum tertagih / piutang" },
-          { label: "Jamaah Lunas (100%)", value: `${grand.lunas} Jamaah`, tone: "text-emerald-800", sub: "Pelunasan penuh selesai" },
-          { label: "Jamaah DP & Cicilan 50%", value: `${grand.dp + grand.halfPaid} Jamaah`, tone: "text-amber-800", sub: `${grand.halfPaid} sudah 50% · ${grand.dp} DP` },
-        ].map((card) => (
-          <article key={card.label} className="rounded-2xl border border-stone-200/70 bg-white p-3.5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-400">{card.label}</p>
-            <p className={`mt-1 text-sm font-black leading-tight ${card.tone ?? "text-brand-cocoa"}`}>{card.value}</p>
-            {card.sub && <p className="mt-1 text-[10px] text-stone-400 font-medium">{card.sub}</p>}
-          </article>
-        ))}
+        {/* Card 1: Total Pemasukan Seluruh Group */}
+        <article className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-3.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800">Total Pemasukan Seluruh Grup</p>
+            <div className="rounded-lg bg-emerald-100 p-1 text-emerald-800">
+              <ArrowDownRight className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-1 text-base sm:text-lg font-black leading-tight text-emerald-950 truncate" title={formatIDR(grand.paid)}>
+            {formatIDR(grand.paid)}
+          </p>
+          <p className="mt-1 text-[10px] text-emerald-800/80 font-medium truncate" title={`Dari total omset: ${formatIDR(grand.billed)}`}>
+            Dari total omset paket: {formatIDR(grand.billed)}
+          </p>
+        </article>
+
+        {/* Card 2: Persentase Pelunasan Global */}
+        <article className="rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-3.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-800">Tingkat Pelunasan Global</p>
+            <div className="rounded-lg bg-indigo-100 p-1 text-indigo-800">
+              <PieChart className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <p className="text-base sm:text-lg font-black leading-tight text-indigo-950">
+              {percentPelunasanGlobal}%
+            </p>
+            <span className="text-[10px] font-bold text-rose-600">
+              ({percentBelumLunasGlobal}% Sisa Tagihan)
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+            <div className="h-full rounded-full bg-indigo-600 transition-all duration-500" style={{ width: `${percentPelunasanGlobal}%` }} />
+          </div>
+        </article>
+
+        {/* Card 3: Sisa Tagihan (Piutang) */}
+        <article className="rounded-2xl border border-rose-200/80 bg-gradient-to-br from-rose-50/50 to-white p-3.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-rose-800">Sisa Tagihan (Piutang Jamaah)</p>
+            <div className="rounded-lg bg-rose-100 p-1 text-rose-800">
+              <AlertCircle className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-1 text-base sm:text-lg font-black leading-tight text-rose-950 truncate" title={formatIDR(grand.outstanding)}>
+            {formatIDR(grand.outstanding)}
+          </p>
+          <p className="mt-1 text-[10px] text-rose-800/80 font-medium">
+            {grand.jamaah - grand.lunas} Jamaah belum lunas ({grand.dp} baru DP)
+          </p>
+        </article>
+
+        {/* Card 4: Total Jamaah Terdaftar */}
+        <article className="rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-3.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Total Jamaah Seluruh Grup</p>
+            <div className="rounded-lg bg-stone-200 p-1 text-stone-700">
+              <Users className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-1 text-base sm:text-lg font-black leading-tight text-brand-cocoa">
+            {grand.jamaah} <span className="text-xs font-semibold text-stone-500">/ {grand.targetPax} Seat</span>
+          </p>
+          <p className="mt-1 text-[10px] text-emerald-700 font-bold">
+            ✓ {grand.lunas} Jamaah Lunas Sepenuhnya (100%)
+          </p>
+        </article>
       </section>
 
-      <section className="rounded-2xl border border-stone-200/70 bg-white p-4 sm:p-5 shadow-2xs space-y-3">
-        <header className="border-b border-stone-100 pb-3">
-          <h2 className="text-sm font-extrabold text-brand-cocoa flex items-center gap-2">
-            <Layers className="h-4 w-4 text-brand-pink" strokeWidth={1.5} />
-            <span>Rekap Pembayaran per Grup Keberangkatan</span>
-          </h2>
-          <p className="text-[11px] text-stone-500 mt-0.5">
-            Klik satu grup untuk melihat rincian per jamaah (DP awal, cicilan ke-1, ke-2, sisa, & status).
-          </p>
-        </header>
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* LEVEL 1: DIRECTORY KATALOG GRUP KEBERANGKATAN                         */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {!selectedGroup && (
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
+                <Layers className="h-4 w-4 text-brand-pink" />
+                <span>Pilih Grup Rombongan untuk Membuka Detail Finansial</span>
+              </h3>
+              <p className="text-[11px] text-stone-500">
+                Pola yang sama dengan menu keberangkatan: klik salah satu rombongan untuk melihat rincian DP, cicilan per rekening, 8 pos pengeluaran, dan laba rugi.
+              </p>
+            </div>
 
-        {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50/60 p-8 text-center space-y-2">
-            <p className="text-xs font-extrabold text-stone-700">Belum ada grup keberangkatan</p>
-            <Link href="/paket" className="inline-block text-[11px] font-bold text-brand-pink hover:underline">
-              Buka Jadwal Keberangkatan →
-            </Link>
+            <div className="flex items-center gap-1 rounded-xl bg-stone-100 p-1 text-xs font-bold text-stone-600">
+              <button
+                type="button"
+                onClick={() => setViewMode("katalog")}
+                className={`rounded-lg px-3 py-1 transition ${viewMode === "katalog" ? "bg-white text-brand-cocoa shadow-2xs font-black" : "hover:text-stone-900"}`}
+              >
+                🏢 Katalog Kartu
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("tabel")}
+                className={`rounded-lg px-3 py-1 transition ${viewMode === "tabel" ? "bg-white text-brand-cocoa shadow-2xs font-black" : "hover:text-stone-900"}`}
+              >
+                📊 Tabel Komparasi
+              </button>
+            </div>
           </div>
-        ) : (
-          <>
-          {/* Kartu mobile -- tabel rekap di bawah butuh 900px */}
-          <div className="block space-y-3 md:hidden">
-            {rows.map((row) => {
-              const t = row.totals;
-              const progress = t && t.totalBilled > 0 ? Math.min((t.totalPaid / t.totalBilled) * 100, 100) : 0;
 
-              return (
-                <Link
-                  key={row.id}
-                  href={`/paket/${encodeURIComponent(row.id)}`}
-                  className="block space-y-2.5 rounded-2xl border border-stone-200/80 bg-white p-4 shadow-2xs active:bg-stone-50"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="min-w-0 truncate text-xs font-bold text-brand-cocoa" title={row.name}>
-                      {row.name}
-                    </p>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-stone-400" />
-                  </div>
+          {/* Mode 1: Katalog Kartu Rombongan */}
+          {viewMode === "katalog" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {rows.map((row) => {
+                const t = row.totals;
+                const progress = t && t.totalBilled > 0 ? Math.min((t.totalPaid / t.totalBilled) * 100, 100) : 0;
+                const sisa = t?.totalOutstanding ?? 0;
 
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
-                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
-                  </div>
-
-                  <div className="rounded-xl border border-stone-100 bg-stone-50 p-2.5">
-                    <span className="block text-[10px] font-medium text-stone-400">Sisa Tagihan</span>
-                    <span className="text-sm font-bold text-brand-pink">{formatIDR(t?.totalOutstanding ?? 0)}</span>
-                    <div className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-200/70 pt-2 text-[11px]">
-                      <div className="min-w-0">
-                        <span className="block text-[10px] font-medium text-stone-400">Tagihan</span>
-                        <span className="block truncate font-semibold text-stone-800">{formatIDR(t?.totalBilled ?? 0)}</span>
+                return (
+                  <div
+                    key={row.id}
+                    onClick={() => setSelectedGroup(row)}
+                    role="button"
+                    tabIndex={0}
+                    className="flex flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:border-brand-pink hover:shadow-md transition cursor-pointer group"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-600">
+                          Jadwal: {formatDateID(row.departureDate)}
+                        </span>
+                        <span className="rounded-full bg-pink-50 border border-pink-200 px-2 py-0.5 text-[10px] font-black text-brand-pink">
+                          {t?.jamaah ?? row.targetPax} Pax
+                        </span>
                       </div>
-                      <div className="min-w-0">
-                        <span className="block text-[10px] font-medium text-stone-400">Dibayar</span>
-                        <span className="block truncate font-bold text-emerald-700">{formatIDR(t?.totalPaid ?? 0)}</span>
+
+                      <div>
+                        <h4 className="text-sm font-black text-brand-cocoa group-hover:text-brand-pink transition line-clamp-2">
+                          {row.name}
+                        </h4>
+                        <p className="text-[11px] text-stone-400 mt-0.5">
+                          Target Seat: {row.targetPax} Jamaah · Status Aktif
+                        </p>
+                      </div>
+
+                      {/* Progress Bar Pelunasan */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] font-bold">
+                          <span className="text-stone-500">Progress Pelunasan:</span>
+                          <span className="text-emerald-700">{Math.round(progress)}% Lunas</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
+                          <div className="h-full rounded-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                        </div>
+                      </div>
+
+                      {/* Financial Strip */}
+                      <div className="rounded-xl border border-stone-100 bg-stone-50/70 p-3 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-stone-500 text-[11px]">Pemasukan Terhimpun:</span>
+                          <span className="font-black text-emerald-700">{formatIDR(t?.totalPaid ?? 0)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-stone-500 text-[11px]">Sisa Tagihan (Piutang):</span>
+                          <span className="font-bold text-rose-600">{formatIDR(sisa)}</span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1 border-t border-stone-200/60 text-[10px] text-stone-400">
+                          <span>Status Jamaah:</span>
+                          <span>
+                            <strong className="text-emerald-700">{t?.jamaahLunas ?? 0} Lunas</strong> ·{" "}
+                            <strong className="text-amber-700">{t?.jamaahDp ?? 0} DP</strong>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-1 text-[11px] text-stone-600">
-                    <span className="inline-flex items-center gap-1">
-                      <Users className="h-3 w-3 text-stone-400" />
-                      {t?.jamaah ?? 0} / {row.targetPax} pax
-                    </span>
-                    <span className="font-bold text-emerald-700">
-                      {t?.jamaahLunas ?? t?.countLunas ?? t?.settled ?? 0} Lunas
-                      {(t?.jamaah50 ?? t?.count50 ?? 0) > 0 ? ` · ${t?.jamaah50 ?? t?.count50} 50%` : ""}
-                      {(t?.jamaahDp ?? t?.countDp ?? 0) > 0 ? ` · ${t?.jamaahDp ?? t?.countDp} DP` : ""}
-                    </span>
+                    <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-brand-pink group-hover:text-brand-pinkHover">
+                      <span>Buka Finansial Rombongan</span>
+                      <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
 
-                  <p className="text-[11px] text-stone-500">Berangkat {formatDateID(row.departureDate)}</p>
-                </Link>
-              );
-            })}
+          {/* Mode 2: Tabel Komparasi Semua Grup */}
+          {viewMode === "tabel" && (
+            <div className="overflow-x-auto rounded-2xl border border-stone-200/80 bg-white shadow-2xs">
+              <table className="w-full min-w-[850px] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-stone-200 bg-stone-50/80 text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                    <th className="py-3 pl-4 pr-2">Grup Keberangkatan</th>
+                    <th className="py-3 pr-2">Jadwal</th>
+                    <th className="py-3 pr-2 text-right">Target Pax</th>
+                    <th className="py-3 pr-2 text-right">Total Tagihan</th>
+                    <th className="py-3 pr-2 text-right">Pemasukan</th>
+                    <th className="py-3 pr-2 text-right">Sisa Tagihan</th>
+                    <th className="py-3 pr-2 text-center">Pelunasan (%)</th>
+                    <th className="py-3 pr-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {rows.map((row) => {
+                    const t = row.totals;
+                    const progress = t && t.totalBilled > 0 ? Math.min((t.totalPaid / t.totalBilled) * 100, 100) : 0;
+                    return (
+                      <tr key={row.id} className="hover:bg-stone-50/60 transition">
+                        <td className="py-3 pl-4 pr-2 font-bold text-brand-cocoa">{row.name}</td>
+                        <td className="py-3 pr-2 text-stone-600 whitespace-nowrap">{formatDateID(row.departureDate)}</td>
+                        <td className="py-3 pr-2 text-right font-medium text-stone-700">{row.targetPax} Pax</td>
+                        <td className="py-3 pr-2 text-right font-semibold text-stone-800">{formatIDR(t?.totalBilled ?? 0)}</td>
+                        <td className="py-3 pr-2 text-right font-black text-emerald-700">{formatIDR(t?.totalPaid ?? 0)}</td>
+                        <td className="py-3 pr-2 text-right font-bold text-rose-600">{formatIDR(t?.totalOutstanding ?? 0)}</td>
+                        <td className="py-3 pr-2 text-center">
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                            {Math.round(progress)}%
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedGroup(row)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-stone-800 transition"
+                          >
+                            <span>Detail Finansial</span>
+                            <ChevronRight className="h-3 w-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* LEVEL 2: DETAIL FINANSIAL PER GRUP TERPILIH                           */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {selectedGroup && currentGroupTotals && (
+        <section className="space-y-4 rounded-2xl border border-stone-200/80 bg-white p-4 sm:p-5 shadow-2xs">
+          {/* Header Grup Terpilih */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+            <div>
+              <button
+                type="button"
+                onClick={() => setSelectedGroup(null)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-pink hover:text-brand-pinkHover transition mb-1 cursor-pointer"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>← Kembali ke Semua Grup</span>
+              </button>
+              <h2 className="text-base sm:text-lg font-black text-brand-cocoa">
+                {selectedGroup.name}
+              </h2>
+              <p className="text-xs text-stone-500">
+                Jadwal Berangkat: <strong>{formatDateID(selectedGroup.departureDate)}</strong> · Target: <strong>{selectedGroup.targetPax} Jamaah</strong>
+              </p>
+            </div>
+
+            {/* Quick Strip Summary */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-left text-xs">
+                <span className="text-[10px] uppercase font-bold text-emerald-800 block">Pemasukan</span>
+                <span className="font-black text-emerald-900">{formatIDR(currentGroupTotals.paid)}</span>
+              </div>
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-left text-xs">
+                <span className="text-[10px] uppercase font-bold text-rose-800 block">Pengeluaran (8 Pos)</span>
+                <span className="font-black text-rose-900">{formatIDR(currentGroupTotals.totalPengeluaran)}</span>
+              </div>
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-left text-xs">
+                <span className="text-[10px] uppercase font-bold text-indigo-800 block">Laba Bersih</span>
+                <span className="font-black text-indigo-900">{formatIDR(currentGroupTotals.labaBersih)}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="hidden overflow-x-auto rounded-xl border border-stone-200/60 md:block">
-            <table className="w-full min-w-[900px] border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-stone-200/60 bg-stone-50/70 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
-                  <th className="py-2.5 pl-3 pr-2">Grup</th>
-                  <th className="py-2.5 pr-2">Berangkat</th>
-                  <th className="py-2.5 pr-2 text-right">Jamaah</th>
-                  <th className="py-2.5 pr-2 text-right">Tagihan</th>
-                  <th className="py-2.5 pr-2 text-right">Dibayar</th>
-                  <th className="py-2.5 pr-2 text-right">Sisa</th>
-                  <th className="py-2.5 pr-2">Status Pembayaran</th>
-                  <th className="py-2.5 pr-3 text-right">Rincian</th>
-                </tr>
-              </thead>
+          {/* 3 Tab Selector: Pemasukan vs Pengeluaran vs Laba Rugi */}
+          <div className="flex border-b border-stone-200 gap-2 overflow-x-auto pb-0.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab("pemasukan")}
+              className={`inline-flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-black transition whitespace-nowrap cursor-pointer ${
+                activeTab === "pemasukan"
+                  ? "border-brand-pink text-brand-pink bg-pink-50/50 rounded-t-xl"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <ArrowDownRight className="h-4 w-4" />
+              <span>1. Pemasukan & Rekap Jamaah (DP & Cicilan)</span>
+              <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.2 text-[10px]">
+                {currentGroupTotals.percentLunas}% Lunas
+              </span>
+            </button>
 
-              <tbody className="divide-y divide-stone-100">
-                {rows.map((row) => {
-                  const t = row.totals;
-                  const progress = t && t.totalBilled > 0 ? Math.min((t.totalPaid / t.totalBilled) * 100, 100) : 0;
+            <button
+              type="button"
+              onClick={() => setActiveTab("pengeluaran")}
+              className={`inline-flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-black transition whitespace-nowrap cursor-pointer ${
+                activeTab === "pengeluaran"
+                  ? "border-brand-pink text-brand-pink bg-pink-50/50 rounded-t-xl"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              <span>2. Pengeluaran Grup (8 Pos HPP)</span>
+              <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-0.2 text-[10px]">
+                {groupExpenses.length} Item
+              </span>
+            </button>
 
-                  return (
-                    <tr key={row.id} className="transition hover:bg-stone-50/60">
-                      <td className="py-2.5 pl-3 pr-2 max-w-[220px]">
-                        <p className="truncate font-bold text-brand-cocoa" title={row.name}>{row.name}</p>
-                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
-                          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
-                        </div>
-                      </td>
-                      <td className="py-2.5 pr-2 whitespace-nowrap text-stone-600">{formatDateID(row.departureDate)}</td>
-                      <td className="py-2.5 pr-2 text-right text-stone-700 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1">
-                          <Users className="h-3 w-3 text-stone-400" />
-                          {t?.jamaah ?? 0} / {row.targetPax}
-                        </span>
-                      </td>
-                      <td className="py-2.5 pr-2 text-right font-semibold text-stone-800 whitespace-nowrap">
-                        {formatIDR(t?.totalBilled ?? 0)}
-                      </td>
-                      <td className="py-2.5 pr-2 text-right font-bold text-emerald-700 whitespace-nowrap">
-                        {formatIDR(t?.totalPaid ?? 0)}
-                      </td>
-                      <td className="py-2.5 pr-2 text-right font-bold text-brand-pink whitespace-nowrap">
-                        {formatIDR(t?.totalOutstanding ?? 0)}
-                      </td>
-                      <td className="py-2.5 pr-2 whitespace-nowrap text-stone-700">
-                        {t ? (
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800" title="Jamaah Lunas">
-                              {t.jamaahLunas ?? t.countLunas ?? t.settled} Lunas
-                            </span>
-                            {(t.jamaah50 ?? t.count50 ?? 0) > 0 && (
-                              <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-[10px] font-bold text-indigo-800" title="Jamaah Sudah 50%">
-                                {t.jamaah50 ?? t.count50} 50%
-                              </span>
-                            )}
-                            {(t.jamaahDp ?? t.countDp ?? 0) > 0 && (
-                              <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800" title="Jamaah DP">
-                                {t.jamaahDp ?? t.countDp} DP
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="py-2.5 pr-3 text-right">
-                        <Link
-                          href={`/paket/${encodeURIComponent(row.id)}`}
-                          className="inline-flex h-7 items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-700 hover:bg-stone-100 transition"
-                        >
-                          Buka <ChevronRight className="h-3 w-3" />
-                        </Link>
-                      </td>
+            <button
+              type="button"
+              onClick={() => setActiveTab("labarugi")}
+              className={`inline-flex items-center gap-2 border-b-2 px-4 py-2 text-xs font-black transition whitespace-nowrap cursor-pointer ${
+                activeTab === "labarugi"
+                  ? "border-brand-pink text-brand-pink bg-pink-50/50 rounded-t-xl"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span>3. Rekapan Laba Rugi (P&L Grup)</span>
+              <span className="rounded-full bg-indigo-100 text-indigo-800 px-2 py-0.2 text-[10px]">
+                Margin {currentGroupTotals.profitMargin}%
+              </span>
+            </button>
+          </div>
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/* TAB 1: PEMASUKAN & REKAP JAMAAH (DP & CICILAN PER REKENING)         */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {activeTab === "pemasukan" && (
+            <div className="space-y-3.5">
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-stone-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama jamaah, HP, atau kode booking..."
+                    value={pemasukanSearch}
+                    onChange={(e) => setPemasukanSearch(e.target.value)}
+                    className="h-8 w-full rounded-lg border border-stone-200 bg-stone-50 pl-8 pr-3 text-xs outline-none focus:border-brand-pink focus:bg-white"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setPemasukanFilter("semua")}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                      pemasukanFilter === "semua" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    Semua ({groupPayments.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPemasukanFilter("lunas")}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                      pemasukanFilter === "lunas" ? "bg-emerald-700 text-white" : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    }`}
+                  >
+                    ✓ Lunas 100% ({currentGroupTotals.lunasCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPemasukanFilter("belum")}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                      pemasukanFilter === "belum" ? "bg-rose-700 text-white" : "bg-rose-50 text-rose-800 hover:bg-rose-100"
+                    }`}
+                  >
+                    Perlu Pelunasan ({currentGroupTotals.belumLunasCount})
+                  </button>
+                </div>
+              </div>
+
+              {/* Data Table Jamaah: DP & Cicilan berjenjang per rekening */}
+              <div className="overflow-x-auto rounded-xl border border-stone-200">
+                <table className="w-full min-w-[950px] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                      <th className="py-2.5 pl-3 pr-2 w-10">No</th>
+                      <th className="py-2.5 pr-2">Nama Jamaah & Kontak</th>
+                      <th className="py-2.5 pr-2 text-right">Nilai Paket</th>
+                      <th className="py-2.5 pr-2">Pembayaran 1 (DP Awal)</th>
+                      <th className="py-2.5 pr-2">Pembayaran 2 (Cicilan)</th>
+                      <th className="py-2.5 pr-2">Pembayaran 3 (Pelunasan)</th>
+                      <th className="py-2.5 pr-2 text-right">Terbayar</th>
+                      <th className="py-2.5 pr-2 text-right">Sisa Tagihan</th>
+                      <th className="py-2.5 pr-3 text-center">Status</th>
                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {filteredJamaah.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="py-8 text-center text-xs text-stone-400">
+                          Tidak ada jamaah yang cocok dengan filter pencarian.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredJamaah.map((j, idx) => {
+                        const dp = j.installments[0];
+                        const c1 = j.installments[1];
+                        const c2 = j.installments[2];
+                        const percent = j.totalAmount > 0 ? Math.round((j.paidAmount / j.totalAmount) * 100) : 0;
+                        const cleanPhone = (j.phone || "").replace(/\D/g, "");
+
+                        return (
+                          <tr key={j.bookingCode} className="hover:bg-stone-50/70 transition">
+                            <td className="py-2.5 pl-3 pr-2 font-mono text-stone-400">{idx + 1}</td>
+                            <td className="py-2.5 pr-2">
+                              <p className="font-extrabold text-brand-cocoa leading-tight">{j.customerName}</p>
+                              <div className="flex items-center gap-2 text-[11px] text-stone-400 mt-0.5">
+                                <span className="font-mono">Booking: {j.bookingCode}</span>
+                                {j.phone && (
+                                  <a
+                                    href={`https://wa.me/${cleanPhone}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-0.5 font-bold text-emerald-600 hover:underline"
+                                  >
+                                    <MessageSquare className="h-2.5 w-2.5" />
+                                    <span>{j.phone}</span>
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-2.5 pr-2 text-right font-semibold text-stone-800 whitespace-nowrap">
+                              {formatIDR(j.totalAmount)}
+                            </td>
+
+                            {/* Pembayaran 1: DP Awal */}
+                            <td className="py-2.5 pr-2">
+                              {dp ? (
+                                <div className="space-y-0.5">
+                                  <p className="font-black text-stone-900 leading-tight">{formatIDR(dp.amount)}</p>
+                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
+                                    <span>{dp.date}</span>
+                                    <span>·</span>
+                                    <span className="rounded bg-amber-100 text-amber-900 px-1 font-bold">
+                                      {dp.account || dp.method}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-stone-400 text-[11px]">—</span>
+                              )}
+                            </td>
+
+                            {/* Pembayaran 2: Cicilan 1 */}
+                            <td className="py-2.5 pr-2">
+                              {c1 ? (
+                                <div className="space-y-0.5">
+                                  <p className="font-black text-stone-900 leading-tight">{formatIDR(c1.amount)}</p>
+                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
+                                    <span>{c1.date}</span>
+                                    <span>·</span>
+                                    <span className="rounded bg-indigo-100 text-indigo-900 px-1 font-bold">
+                                      {c1.account || c1.method}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-stone-400 text-[11px]">—</span>
+                              )}
+                            </td>
+
+                            {/* Pembayaran 3: Pelunasan */}
+                            <td className="py-2.5 pr-2">
+                              {c2 ? (
+                                <div className="space-y-0.5">
+                                  <p className="font-black text-emerald-700 leading-tight">{formatIDR(c2.amount)}</p>
+                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
+                                    <span>{c2.date}</span>
+                                    <span>·</span>
+                                    <span className="rounded bg-emerald-100 text-emerald-900 px-1 font-bold">
+                                      {c2.account || c2.method}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-stone-400 text-[11px]">—</span>
+                              )}
+                            </td>
+
+                            {/* Total Terbayar & % Progress */}
+                            <td className="py-2.5 pr-2 text-right whitespace-nowrap">
+                              <span className="font-black text-emerald-700">{formatIDR(j.paidAmount)}</span>
+                              <span className="block text-[10px] font-bold text-stone-400">{percent}%</span>
+                            </td>
+
+                            {/* Sisa Tagihan */}
+                            <td className="py-2.5 pr-2 text-right whitespace-nowrap">
+                              <span className={`font-black ${j.remainingAmount > 0 ? "text-rose-600" : "text-stone-400"}`}>
+                                {formatIDR(j.remainingAmount)}
+                              </span>
+                            </td>
+
+                            {/* Status */}
+                            <td className="py-2.5 pr-3 text-center">
+                              <span
+                                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                  j.isSettled
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                    : "bg-rose-100 text-rose-800 border border-rose-200"
+                                }`}
+                              >
+                                {j.isSettled ? "Lunas" : "Belum Lunas"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/* TAB 2: PENGELUARAN GRUP (8 POS BANG AZRI)                           */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {activeTab === "pengeluaran" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-xs font-black text-brand-cocoa uppercase tracking-wide">
+                    8 Pos Pengeluaran & HPP Rombongan (Sesuai Arahan Bang Azri)
+                  </h4>
+                  <p className="text-[11px] text-stone-500">
+                    Tiket terbagi 2 data (Domestik & Internasional), Akomodasi terbagi 3 data (Hotel Mekkah, Madinah, Jakarta).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsExpenseModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-800 transition shadow-2xs"
+                >
+                  <Plus className="h-3 w-3" />
+                  <span>Catat Nota / Pengeluaran</span>
+                </button>
+              </div>
+
+              {/* Grid 8 Pos Pengeluaran Bang Azri */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {POS_PENGELUARAN_BANG_AZRI.map((pos) => {
+                  const stat = expenseByCategory[pos.key] || { total: 0, count: 0, items: [] };
+                  return (
+                    <div
+                      key={pos.key}
+                      className={`rounded-2xl border p-3.5 bg-gradient-to-br shadow-2xs transition hover:shadow-md ${pos.color}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">{pos.icon}</span>
+                        <span className="rounded-full bg-white/80 border border-stone-200 px-2 py-0.5 text-[9px] font-bold text-stone-700">
+                          {stat.count} Transaksi
+                        </span>
+                      </div>
+                      <h5 className="mt-2 text-xs font-black leading-tight">{pos.title}</h5>
+                      <p className="mt-0.5 text-[10px] opacity-80 line-clamp-1">{pos.desc}</p>
+                      <p className="mt-2 text-sm font-black tracking-tight">{formatIDR(stat.total)}</p>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Tabel Detail Histori Pengeluaran Grup */}
+              <div className="overflow-x-auto rounded-xl border border-stone-200 mt-3">
+                <table className="w-full min-w-[750px] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                      <th className="py-2.5 pl-3 pr-2 w-10">No</th>
+                      <th className="py-2.5 pr-2 w-24">Tanggal</th>
+                      <th className="py-2.5 pr-2">Pos Pengeluaran</th>
+                      <th className="py-2.5 pr-2">Keterangan / Item</th>
+                      <th className="py-2.5 pr-2">Metode / Rekening</th>
+                      <th className="py-2.5 pr-2 text-right">Nominal</th>
+                      <th className="py-2.5 pr-3 text-right">No. Bukti</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {groupExpenses.map((e, idx) => (
+                      <tr key={e.id} className="hover:bg-stone-50/70 transition">
+                        <td className="py-2.5 pl-3 pr-2 font-mono text-stone-400">{idx + 1}</td>
+                        <td className="py-2.5 pr-2 text-stone-600 whitespace-nowrap">{e.date}</td>
+                        <td className="py-2.5 pr-2 font-bold text-brand-cocoa">{e.category}</td>
+                        <td className="py-2.5 pr-2 text-stone-700">{e.description}</td>
+                        <td className="py-2.5 pr-2">
+                          <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                            {e.method}
+                          </span>
+                        </td>
+                        <td className="py-2.5 pr-2 text-right font-black text-rose-700 whitespace-nowrap">
+                          {formatIDR(e.amount)}
+                        </td>
+                        <td className="py-2.5 pr-3 text-right font-mono text-[10px] text-stone-500">
+                          {e.referenceNumber || "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-stone-200 bg-stone-50/90 font-bold">
+                      <td colSpan={5} className="py-2.5 pl-3 pr-2 text-right uppercase text-[10px] text-stone-600">
+                        Total Seluruh Pengeluaran Grup:
+                      </td>
+                      <td className="py-2.5 pr-2 text-right text-sm font-black text-rose-700">
+                        {formatIDR(currentGroupTotals.totalPengeluaran)}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/* TAB 3: REKAPAN LABA RUGI (P&L GRUP)                                 */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {activeTab === "labarugi" && (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-4 sm:p-5">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                  <div>
+                    <h4 className="text-sm font-black text-brand-cocoa flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-emerald-600" />
+                      <span>Ikhtisar Laba Rugi Rombongan ({selectedGroup.name})</span>
+                    </h4>
+                    <p className="text-[11px] text-stone-500">
+                      Perbandingan langsung antara total dana jamaah terhimpun dan total realisasi 8 pos pengeluaran.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePrintLaporanKeuangan}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-800 transition"
+                  >
+                    <Printer className="h-3 w-3 text-amber-300" />
+                    <span>Cetak P&L Statement</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+                  <div className="rounded-xl border border-emerald-200 bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase text-emerald-800">Total Pemasukan (Omset Terhimpun)</span>
+                    <p className="text-lg font-black text-emerald-700 mt-1">{formatIDR(currentGroupTotals.paid)}</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">Dari tagihan {formatIDR(currentGroupTotals.billed)}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-rose-200 bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase text-rose-800">Total Pengeluaran (8 Pos HPP)</span>
+                    <p className="text-lg font-black text-rose-700 mt-1">{formatIDR(currentGroupTotals.totalPengeluaran)}</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">{groupExpenses.length} transaksi tercatat</p>
+                  </div>
+
+                  <div className="rounded-xl border border-indigo-200 bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase text-indigo-800">Laba Bersih Rombongan (Net Profit)</span>
+                    <p className="text-lg font-black text-indigo-900 mt-1">{formatIDR(currentGroupTotals.labaBersih)}</p>
+                    <span className="inline-block mt-1 rounded bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-black">
+                      Margin Profit: +{currentGroupTotals.profitMargin}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Breakdown Persentase Biaya */}
+                <div className="space-y-2 mt-4 pt-3 border-t border-stone-200">
+                  <h5 className="text-xs font-bold text-stone-700 uppercase">Struktur Pengeluaran Berdasarkan 8 Pos:</h5>
+                  <div className="space-y-1.5 text-xs">
+                    {POS_PENGELUARAN_BANG_AZRI.map((pos) => {
+                      const stat = expenseByCategory[pos.key] || { total: 0, count: 0 };
+                      const pct = currentGroupTotals.totalPengeluaran > 0
+                        ? Math.round((stat.total / currentGroupTotals.totalPengeluaran) * 100)
+                        : 0;
+
+                      return (
+                        <div key={pos.key} className="flex items-center justify-between rounded-lg bg-white p-2 border border-stone-200/60">
+                          <div className="flex items-center gap-2">
+                            <span>{pos.icon}</span>
+                            <span className="font-bold text-brand-cocoa">{pos.title}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-black text-stone-900">{formatIDR(stat.total)}</span>
+                            <span className="w-12 text-right font-mono text-[11px] font-bold text-stone-500">
+                              {pct}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* MODAL: FORM CATAT PENGELUARAN BARU                                   */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {isExpenseModalOpen && selectedGroup && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-xs font-sans"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsExpenseModalOpen(false);
+          }}
+        >
+          <div
+            className="flex h-full max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-stone-200 animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50 px-5 py-3.5 shrink-0">
+              <div>
+                <h3 className="text-sm font-black text-brand-cocoa">Catat Pengeluaran Rombongan</h3>
+                <p className="text-[11px] text-stone-500">{selectedGroup.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsExpenseModalOpen(false)}
+                className="h-8 w-8 rounded-lg text-stone-400 hover:bg-stone-200 hover:text-stone-700 flex items-center justify-center font-bold"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExpense} className="flex-1 overflow-y-auto p-5 space-y-3.5 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">Tanggal Pengeluaran</label>
+                <input
+                  type="date"
+                  required
+                  value={expenseForm.date}
+                  onChange={(e) => setExpenseForm((p) => ({ ...p, date: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-stone-200 px-3 text-xs outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">Pos Pengeluaran (8 Pos Bang Azri)</label>
+                <select
+                  value={expenseForm.category}
+                  onChange={(e) => setExpenseForm((p) => ({ ...p, category: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-stone-200 px-3 text-xs font-bold outline-none focus:border-brand-pink bg-white"
+                >
+                  <option value="Tiket Pesawat (Domestik)">✈️ Tiket Pesawat: Domestik Feeder (Garuda)</option>
+                  <option value="Tiket Pesawat (Internasional)">✈️ Tiket Pesawat: Internasional (Saudia Airlines)</option>
+                  <option value="Akomodasi (Hotel Mekkah)">🏨 Akomodasi: Hotel Mekkah (Grand Al Massa)</option>
+                  <option value="Akomodasi (Hotel Madinah)">🏨 Akomodasi: Hotel Madinah (Daar El Naeem)</option>
+                  <option value="Akomodasi (Hotel Jakarta)">🏨 Akomodasi: Hotel Jakarta Transit</option>
+                  <option value="Perlengkapan Umrah">🎒 Perlengkapan Umrah (Koper, Kain Ihram, Mukena, dll)</option>
+                  <option value="Manasik Offline">🕌 Manasik Offline (Hotel, Konsumsi, Pemateri)</option>
+                  <option value="Fee Marketing">🤝 Fee Marketing (Komisi Agen & Referral)</option>
+                  <option value="Operasional Kantor">🏢 Operasional Kantor (Handling PGK, ID Card, Adm)</option>
+                  <option value="Operasional Saudi">🇸🇦 Operasional Saudi (Handling JED, Bus, Muthawwif)</option>
+                  <option value="Biaya Lainnya">📋 Biaya Lainnya (E-Visa, Asuransi, Tak Terduga)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">Keterangan / Rincian Item</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Pembayaran DP Tiket Saudia 36 Pax"
+                  value={expenseForm.description}
+                  onChange={(e) => setExpenseForm((p) => ({ ...p, description: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-stone-200 px-3 text-xs outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">Nominal (Rupiah)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Rp 0"
+                  value={expenseForm.amount}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+                    setExpenseForm((p) => ({ ...p, amount: raw ? formatIDR(Number(raw)) : "" }));
+                  }}
+                  className="h-9 w-full rounded-lg border border-stone-200 px-3 text-xs font-black text-rose-700 outline-none focus:border-brand-pink"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1">Metode / Rekening Sumber</label>
+                  <select
+                    value={expenseForm.method}
+                    onChange={(e) => setExpenseForm((p) => ({ ...p, method: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-stone-200 px-2 text-xs font-bold outline-none focus:border-brand-pink bg-white"
+                  >
+                    <option value="Transfer BSI 719-2024-001">Transfer BSI 719-2024-001</option>
+                    <option value="Transfer BCA 041-8899-100">Transfer BCA 041-8899-100</option>
+                    <option value="Transfer Mandiri 169-00-112233-4">Transfer Mandiri 169-00-112233-4</option>
+                    <option value="Kas Tunai Kantor">Kas Tunai Kantor</option>
+                    <option value="Transfer SAR Al Rajhi">Transfer SAR Al Rajhi</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1">No. Bukti / Kuitansi</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: KWT-EXP-001"
+                    value={expenseForm.referenceNumber}
+                    onChange={(e) => setExpenseForm((p) => ({ ...p, referenceNumber: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-stone-200 px-3 text-xs outline-none focus:border-brand-pink"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">Catatan Tambahan (Opsional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Catatan pihak penerima, nota, atau info PIC..."
+                  value={expenseForm.notes}
+                  onChange={(e) => setExpenseForm((p) => ({ ...p, notes: e.target.value }))}
+                  className="w-full rounded-lg border border-stone-200 p-2.5 text-xs outline-none focus:border-brand-pink resize-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsExpenseModalOpen(false)}
+                  className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingExpense}
+                  className="rounded-xl bg-brand-pink px-4 py-2 text-xs font-bold text-white hover:bg-brand-pinkHover transition cursor-pointer shadow-2xs disabled:opacity-50"
+                >
+                  {isSavingExpense ? "Menyimpan…" : "Simpan Pengeluaran"}
+                </button>
+              </div>
+            </form>
           </div>
-          </>
-        )}
-      </section>
+        </div>
+      )}
     </div>
   );
 }

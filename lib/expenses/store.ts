@@ -1,7 +1,7 @@
 import { getPool } from "@/lib/db/connection";
 
 /**
- * Pengeluaran, stored in `expenses` — the half of "pemasukan & pengeluaran"
+ * Pengeluaran, stored in `expenses` â€” the half of "pemasukan & pengeluaran"
  * that had no representation anywhere in the system before.
  *
  * Pemasukan is NOT stored here: it is summed from `payments`, the same rows
@@ -10,7 +10,18 @@ import { getPool } from "@/lib/db/connection";
  */
 
 export const EXPENSE_CATEGORIES = [
+  "Perlengkapan Umrah",
+  "Manasik Offline",
+  "Fee Marketing",
   "Operasional Kantor",
+  "Operasional Saudi",
+  "Tiket Pesawat (Domestik)",
+  "Tiket Pesawat (Internasional)",
+  "Akomodasi (Hotel Mekkah)",
+  "Akomodasi (Hotel Madinah)",
+  "Akomodasi (Hotel Jakarta)",
+  "Biaya Lainnya",
+  // Kategori warisan agar data lama tetap valid
   "Tiket & Transportasi",
   "Hotel & Akomodasi",
   "Visa & Dokumen",
@@ -58,7 +69,7 @@ function toRecord(row: Record<string, unknown>): ExpenseRecord {
   return { ...(row as unknown as ExpenseRecord), amount: Number(row.amount) };
 }
 
-export async function listExpenses(filter?: { from?: string; to?: string; category?: string }): Promise<ExpenseRecord[]> {
+export async function listExpenses(filter?: { from?: string; to?: string; category?: string; packageId?: string }): Promise<ExpenseRecord[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
 
@@ -73,6 +84,10 @@ export async function listExpenses(filter?: { from?: string; to?: string; catego
   if (filter?.category) {
     values.push(filter.category);
     conditions.push(`e.category = $${values.length}`);
+  }
+  if (filter?.packageId) {
+    values.push(filter.packageId);
+    conditions.push(`e.package_id = $${values.length}`);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
