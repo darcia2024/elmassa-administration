@@ -14,20 +14,26 @@ import {
   CircleDollarSign,
   Download,
   ExternalLink,
+  Eye,
+  FileCheck,
   FileSpreadsheet,
   FileText,
   Filter,
   Hotel,
+  Image as ImageIcon,
   Layers,
   MessageSquare,
   PieChart,
   Plane,
   Plus,
   Printer,
+  Receipt,
   RefreshCw,
   Search,
   Trash2,
   TrendingUp,
+  Upload,
+  UserCheck,
   Users,
   Wallet,
   X,
@@ -335,6 +341,12 @@ export function RekapGrup() {
   });
   const [isSavingExpense, setIsSavingExpense] = useState(false);
 
+  // Modal Cetak Invoice Terupdate & Cek Bukti Pembayaran
+  const [invoiceModalJamaah, setInvoiceModalJamaah] = useState<GroupPaymentRow | null>(null);
+  const [proofModalJamaah, setProofModalJamaah] = useState<GroupPaymentRow | null>(null);
+  const [selectedInstallmentIndex, setSelectedInstallmentIndex] = useState<number>(0);
+  const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
+
   // Load Departures & Grand Totals
   const loadDepartures = useCallback(async () => {
     setIsLoading(true);
@@ -560,6 +572,256 @@ export function RekapGrup() {
     } finally {
       setIsSavingExpense(false);
     }
+  };
+
+  // Handler Upload Bukti Pembayaran
+  const handleUploadProof = async (file: File, paymentId: string) => {
+    if (!file || !paymentId) return;
+    setIsUploadingProof(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
+          const res = await fetch(`/api/payments/${encodeURIComponent(paymentId)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ proofUrl: base64 }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Gagal mengunggah bukti pembayaran");
+          }
+
+          // Update local state in groupPayments and proofModalJamaah
+          setGroupPayments((prev) =>
+            prev.map((row) => ({
+              ...row,
+              installments: row.installments.map((inst) =>
+                inst.id === paymentId ? { ...inst, proofUrl: base64 } : inst,
+              ),
+            })),
+          );
+
+          setProofModalJamaah((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              installments: prev.installments.map((inst) =>
+                inst.id === paymentId ? { ...inst, proofUrl: base64 } : inst,
+              ),
+            };
+          });
+
+          alert("Bukti pembayaran berhasil disimpan!");
+        } catch (e) {
+          alert(e instanceof Error ? e.message : "Gagal menyimpan bukti pembayaran");
+        } finally {
+          setIsUploadingProof(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Gagal membaca file");
+      setIsUploadingProof(false);
+    }
+  };
+
+  // Handler Cetak Invoice Terupdate Jamaah (A4)
+  const handlePrintSingleInvoice = (j: GroupPaymentRow) => {
+    if (!selectedGroup) return;
+
+    const printWin = window.open("", "_blank", "width=880,height=950");
+    if (!printWin) {
+      alert("Izinkan pop-up untuk mencetak invoice.");
+      return;
+    }
+
+    const todayStr = new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "full",
+    }).format(new Date());
+
+    const invoiceNo = `INV/${(selectedGroup.name || "UMR").replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()}/${j.bookingCode}`;
+
+    const rowsHtml = j.installments
+      .map((inst, idx) => {
+        return `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 9px 10px; font-family: monospace; color: #64748b; font-size: 11px;">${idx + 1}</td>
+            <td style="padding: 9px 10px; font-weight: 700; color: #1e293b; font-size: 11px;">
+              ${inst.label}
+              <div style="font-size: 10px; color: #64748b; font-weight: 400; margin-top: 2px;">
+                No. Kuitansi: ${inst.receiptNumber || "—"} | Ref: ${inst.referenceNumber || "—"}
+              </div>
+            </td>
+            <td style="padding: 9px 10px; color: #334155; font-size: 11px;">${inst.date}</td>
+            <td style="padding: 9px 10px; color: #334155; font-size: 11px;">
+              <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${inst.account || inst.method}</span>
+            </td>
+            <td style="padding: 9px 10px; text-align: center; font-size: 11px;">
+              <span style="background: #dcfce7; color: #166534; font-weight: 700; padding: 2px 6px; border-radius: 4px;">${inst.status || "Terverifikasi"}</span>
+            </td>
+            <td style="padding: 9px 10px; text-align: right; font-weight: 800; color: #15803d; font-size: 11px;">
+              ${formatIDR(inst.amount)}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const remainingHtml =
+      j.remainingAmount > 0
+        ? `
+        <div style="background: #fffbeb; border: 2px solid #f59e0b; border-radius: 10px; padding: 14px 18px; margin: 20px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #92400e; letter-spacing: 0.5px;">Sisa Tagihan yang Harus Dilunasi</div>
+              <div style="font-size: 10px; color: #b45309; margin-top: 2px;">Jatuh Tempo: Maksimal H-30 Sebelum Keberangkatan Rombongan</div>
+            </div>
+            <div style="font-size: 20px; font-weight: 900; color: #b45309;">
+              ${formatIDR(j.remainingAmount)}
+            </div>
+          </div>
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #fcd34d; font-size: 10px; color: #78350f; line-height: 1.6;">
+            <strong>Rekening Resmi Pembayaran PT El Massa Tour & Travel:</strong><br/>
+            &bull; Bank Syariah Indonesia (BSI): <strong>719-2024-001</strong> a.n PT EL MASSA TOUR &amp; TRAVEL<br/>
+            &bull; Bank Central Asia (BCA): <strong>041-8899-100</strong> a.n PT EL MASSA TOUR &amp; TRAVEL<br/>
+            &bull; Bank Mandiri: <strong>169-00-112233-4</strong> a.n PT EL MASSA TOUR &amp; TRAVEL
+          </div>
+        </div>
+      `
+        : `
+        <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 14px 18px; margin: 20px 0; text-align: center;">
+          <div style="font-size: 13px; font-weight: 900; color: #166534; text-transform: uppercase;">
+            ✓ STATUS PEMBAYARAN: LUNAS 100%
+          </div>
+          <div style="font-size: 11px; color: #15803d; margin-top: 2px;">
+            Alhamdulillah, seluruh kewajiban biaya paket untuk jamaah ini telah diterima dengan lengkap. Tidak ada sisa tagihan tertunggak.
+          </div>
+        </div>
+      `;
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice Terupdate - ${j.customerName} - ${j.bookingCode}</title>
+        <meta charset="utf-8" />
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 15px; font-size: 12px; line-height: 1.4; }
+          .kop { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
+          .kop-left h1 { font-size: 18px; font-weight: 900; color: #be185d; margin: 0; letter-spacing: 0.5px; }
+          .kop-left p { font-size: 10px; color: #475569; margin: 2px 0 0 0; }
+          .kop-badge { text-align: right; font-size: 9px; font-weight: 800; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; padding: 4px 8px; border-radius: 6px; }
+          .title-bar { text-align: center; margin: 15px 0; }
+          .title-bar h2 { font-size: 15px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; }
+          .title-bar p { font-size: 11px; color: #64748b; margin: 2px 0 0 0; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 18px; }
+          .meta-group h4 { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin: 0 0 6px 0; letter-spacing: 0.5px; }
+          .meta-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+          .meta-label { color: #64748b; }
+          .meta-value { font-weight: 700; color: #0f172a; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f1f5f9; color: #475569; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; border-bottom: 2px solid #cbd5e1; }
+          .footer-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; page-break-inside: avoid; }
+          .sign-box { text-align: center; }
+          .sign-space { height: 60px; }
+          .sign-name { font-weight: 800; font-size: 11px; border-top: 1px solid #94a3b8; display: inline-block; padding-top: 4px; min-width: 170px; }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+          <button onclick="window.print()" style="background: #be185d; color: #fff; font-weight: 700; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cetak Sekarang (Print)</button>
+        </div>
+
+        <div class="kop">
+          <div class="kop-left">
+            <h1>PT EL MASSA TOUR &amp; TRAVEL</h1>
+            <p>Izin Umrah PPIU Kemenag RI No. U.419 Tahun 2021 | Akreditasi A</p>
+            <p>Jl. KH. Ahmad Dahlan No. 12, Pangkalpinang, Bangka Belitung | Telp: (0717) 910-8888 | WhatsApp: 0812-7890-1234</p>
+          </div>
+          <div class="kop-badge">
+            SISTEM KEUANGAN RESMI<br/>TERVERIFIKASI
+          </div>
+        </div>
+
+        <div class="title-bar">
+          <h2>INVOICE PEMBAYARAN JAMAAH (TERUPDATE)</h2>
+          <p>Nomor: <strong>${invoiceNo}</strong> &bull; Tanggal Terbit: ${todayStr}</p>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-group">
+            <h4>Data Jamaah &amp; Pendaftaran</h4>
+            <div class="meta-row"><span class="meta-label">Nama Jamaah:</span><span class="meta-value">${j.customerName}</span></div>
+            <div class="meta-row"><span class="meta-label">Kode Booking:</span><span class="meta-value" style="font-family: monospace;">${j.bookingCode}</span></div>
+            <div class="meta-row"><span class="meta-label">No. Telepon / WA:</span><span class="meta-value">${j.phone || "—"}</span></div>
+            <div class="meta-row"><span class="meta-label">Jumlah Peserta:</span><span class="meta-value">${j.participants} Orang</span></div>
+          </div>
+          <div class="meta-group">
+            <h4>Data Rombongan &amp; Keberangkatan</h4>
+            <div class="meta-row"><span class="meta-label">Nama Rombongan:</span><span class="meta-value">${selectedGroup.name}</span></div>
+            <div class="meta-row"><span class="meta-label">Tgl Keberangkatan:</span><span class="meta-value">${formatDateID(selectedGroup.departureDate)}</span></div>
+            <div class="meta-row"><span class="meta-label">Nilai Total Paket:</span><span class="meta-value" style="color: #be185d;">${formatIDR(j.totalAmount)}</span></div>
+            <div class="meta-row"><span class="meta-label">Status Pelunasan:</span><span class="meta-value" style="color: ${j.isSettled ? "#166534" : "#b45309"};">${j.isSettled ? "LUNAS (100%)" : "BELUM LUNAS"}</span></div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #334155; margin: 0 0 6px 0;">
+          Rincian Riwayat Pembayaran Masuk
+        </h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px; text-align: left;">No</th>
+              <th style="text-align: left;">Keterangan Pembayaran</th>
+              <th style="text-align: left;">Tanggal</th>
+              <th style="text-align: left;">Rekening / Metode</th>
+              <th style="text-align: center;">Status</th>
+              <th style="text-align: right;">Jumlah Diterima</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              rowsHtml ||
+              '<tr><td colspan="6" style="text-align: center; padding: 12px; color: #94a3b8;">Belum ada pembayaran yang tercatat.</td></tr>'
+            }
+            <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
+              <td colspan="5" style="padding: 10px; text-align: right; text-transform: uppercase; font-size: 11px;">Total Pembayaran Diterima:</td>
+              <td style="padding: 10px; text-align: right; color: #15803d; font-size: 12px;">${formatIDR(j.paidAmount)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        ${remainingHtml}
+
+        <div class="footer-sign">
+          <div class="sign-box">
+            <p style="margin: 0; color: #64748b; font-size: 11px;">Penerima / Jamaah</p>
+            <div class="sign-space"></div>
+            <div class="sign-name">${j.customerName}</div>
+          </div>
+          <div class="sign-box">
+            <p style="margin: 0; color: #64748b; font-size: 11px;">Bagian Keuangan &amp; Kasir PT El Massa</p>
+            <div class="sign-space" style="display: flex; align-items: center; justify-content: center;">
+              <span style="border: 2px solid #be185d; color: #be185d; font-weight: 900; font-size: 10px; padding: 3px 8px; border-radius: 4px; transform: rotate(-5deg); opacity: 0.85;">
+                PT EL MASSA TOUR<br/>FINANCE VERIFIED
+              </span>
+            </div>
+            <div class="sign-name">Azhar (Finance Master)</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
   };
 
   // Handler Print A4 Resmi
@@ -1298,7 +1560,7 @@ export function RekapGrup() {
 
               {/* Data Table Jamaah: DP & Cicilan berjenjang per rekening */}
               <div className="overflow-x-auto rounded-xl border border-stone-200">
-                <table className="w-full min-w-[950px] border-collapse text-left text-xs">
+                <table className="w-full min-w-[1080px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500">
                       <th className="py-2.5 pl-3 pr-2 w-10">No</th>
@@ -1309,13 +1571,14 @@ export function RekapGrup() {
                       <th className="py-2.5 pr-2">Pembayaran 3 (Pelunasan)</th>
                       <th className="py-2.5 pr-2 text-right">Terbayar</th>
                       <th className="py-2.5 pr-2 text-right">Sisa Tagihan</th>
-                      <th className="py-2.5 pr-3 text-center">Status</th>
+                      <th className="py-2.5 pr-2 text-center">Status</th>
+                      <th className="py-2.5 pr-3 text-center w-36">Aksi & Dokumen</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {filteredJamaah.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="py-8 text-center text-xs text-stone-400">
+                        <td colSpan={10} className="py-8 text-center text-xs text-stone-400">
                           Tidak ada jamaah yang cocok dengan filter pencarian.
                         </td>
                       </tr>
@@ -1419,7 +1682,7 @@ export function RekapGrup() {
                             </td>
 
                             {/* Status */}
-                            <td className="py-2.5 pr-3 text-center">
+                            <td className="py-2.5 pr-2 text-center">
                               <span
                                 className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-black ${
                                   j.isSettled
@@ -1429,6 +1692,33 @@ export function RekapGrup() {
                               >
                                 {j.isSettled ? "Lunas" : "Belum Lunas"}
                               </span>
+                            </td>
+
+                            {/* Aksi & Dokumen */}
+                            <td className="py-2.5 pr-3 text-center whitespace-nowrap">
+                              <div className="inline-flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setInvoiceModalJamaah(j)}
+                                  title="Cetak Invoice Terupdate Jamaah ini"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-pink-200 bg-pink-50/70 px-2 py-1 text-[11px] font-bold text-brand-pink hover:bg-pink-100 transition shadow-2xs active:scale-95 cursor-pointer"
+                                >
+                                  <Printer className="h-3 w-3" />
+                                  <span>Invoice</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProofModalJamaah(j);
+                                    setSelectedInstallmentIndex(0);
+                                  }}
+                                  title="Cek Bukti Pembayaran / Kuitansi Fisik"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2 py-1 text-[11px] font-bold text-stone-700 hover:bg-stone-50 transition shadow-2xs active:scale-95 cursor-pointer"
+                                >
+                                  <Eye className="h-3 w-3 text-indigo-600" />
+                                  <span>Bukti</span>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1762,6 +2052,504 @@ export function RekapGrup() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* MODAL: CETAK INVOICE TERUPDATE JAMAAH (FORMAT RESMI A4)              */}
+      {/* ════════════════════════════════════════════════════════════════════ */}
+      {invoiceModalJamaah && selectedGroup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="flex max-h-[92vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl border border-stone-200 overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50/80 px-5 py-3.5">
+              <div>
+                <span className="rounded bg-pink-100 px-2 py-0.5 text-[10px] font-black uppercase text-brand-pink">
+                  Dokumen Keuangan
+                </span>
+                <h3 className="text-sm font-extrabold text-brand-cocoa mt-0.5 flex items-center gap-2">
+                  <Printer className="h-4 w-4 text-brand-pink" />
+                  <span>Invoice Terupdate — {invoiceModalJamaah.customerName}</span>
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handlePrintSingleInvoice(invoiceModalJamaah)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-800 transition shadow-2xs active:scale-95 cursor-pointer"
+                >
+                  <Printer className="h-3.5 w-3.5 text-amber-300" />
+                  <span>Cetak A4 (Print)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInvoiceModalJamaah(null)}
+                  className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-200 hover:text-stone-700 transition cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body / Invoice Sheet Preview */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs font-sans bg-stone-50/40">
+              <div className="rounded-xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-5">
+                {/* Kop Surat PT El Massa */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-stone-900 pb-4">
+                  <div>
+                    <h1 className="text-lg font-black tracking-wide text-brand-pink">PT EL MASSA TOUR &amp; TRAVEL</h1>
+                    <p className="text-[11px] font-semibold text-stone-700 mt-0.5">
+                      Izin PPIU Kemenag RI No. U.419 Tahun 2021 &bull; Akreditasi A
+                    </p>
+                    <p className="text-[10px] text-stone-500">
+                      Jl. KH. Ahmad Dahlan No. 12, Pangkalpinang, Bangka Belitung &bull; Telp: (0717) 910-8888 &bull; WA: 0812-7890-1234
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-pink-200 bg-pink-50/70 p-2 text-right">
+                    <span className="block text-[9px] font-bold uppercase text-brand-pink tracking-wider">Status Invoice</span>
+                    <span className={`text-xs font-black ${invoiceModalJamaah.isSettled ? "text-emerald-700" : "text-amber-700"}`}>
+                      {invoiceModalJamaah.isSettled ? "LUNAS 100%" : "BELUM LUNAS"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Title & Nomor Invoice */}
+                <div className="text-center">
+                  <h2 className="text-sm font-black uppercase tracking-wider text-stone-900">
+                    INVOICE PEMBAYARAN JAMAAH (TERUPDATE)
+                  </h2>
+                  <p className="text-[11px] text-stone-500 font-mono mt-0.5">
+                    No: INV/{(selectedGroup.name || "UMR").replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()}/{invoiceModalJamaah.bookingCode} &bull; Tgl Terbit: {new Intl.DateTimeFormat("id-ID", { dateStyle: "long" }).format(new Date())}
+                  </p>
+                </div>
+
+                {/* 2-Column Metadata Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-stone-200 bg-stone-50/70 p-3.5 text-[11px]">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase text-stone-400">Data Jamaah</p>
+                    <div className="flex justify-between"><span className="text-stone-500">Nama Jamaah:</span><span className="font-bold text-stone-900">{invoiceModalJamaah.customerName}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Kode Booking:</span><span className="font-mono font-bold text-stone-800">{invoiceModalJamaah.bookingCode}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">No. Kontak / WA:</span><span className="font-medium text-stone-800">{invoiceModalJamaah.phone || "—"}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Jumlah Peserta:</span><span className="font-bold text-stone-900">{invoiceModalJamaah.participants} Jamaah</span></div>
+                  </div>
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-stone-200 pt-2 sm:pt-0 sm:pl-3">
+                    <p className="text-[10px] font-bold uppercase text-stone-400">Rombongan &amp; Paket</p>
+                    <div className="flex justify-between"><span className="text-stone-500">Rombongan:</span><span className="font-bold text-stone-900 truncate max-w-[180px]">{selectedGroup.name}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Keberangkatan:</span><span className="font-medium text-stone-800">{formatDateID(selectedGroup.departureDate)}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Total Biaya Paket:</span><span className="font-black text-brand-pink">{formatIDR(invoiceModalJamaah.totalAmount)}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Status Pembayaran:</span><span className={`font-black ${invoiceModalJamaah.isSettled ? "text-emerald-700" : "text-amber-700"}`}>{invoiceModalJamaah.isSettled ? "Lunas" : "Belum Lunas"}</span></div>
+                  </div>
+                </div>
+
+                {/* Tabel Riwayat Pembayaran Masuk */}
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                    Riwayat Pembayaran yang Diterima
+                  </h4>
+                  <div className="overflow-x-auto rounded-lg border border-stone-200">
+                    <table className="w-full border-collapse text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                          <th className="py-2 pl-3 pr-2 w-10">No</th>
+                          <th className="py-2 pr-2">Keterangan</th>
+                          <th className="py-2 pr-2">Tanggal</th>
+                          <th className="py-2 pr-2">Rekening / Metode</th>
+                          <th className="py-2 pr-2 text-center">Status</th>
+                          <th className="py-2 pr-3 text-right">Nominal</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {invoiceModalJamaah.installments.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-4 text-center text-xs text-stone-400">
+                              Belum ada pembayaran yang tercatat.
+                            </td>
+                          </tr>
+                        ) : (
+                          invoiceModalJamaah.installments.map((inst, i) => (
+                            <tr key={inst.id || i} className="hover:bg-stone-50/50">
+                              <td className="py-2 pl-3 pr-2 font-mono text-stone-400">{i + 1}</td>
+                              <td className="py-2 pr-2">
+                                <span className="font-bold text-stone-800 block">{inst.label}</span>
+                                <span className="text-[10px] text-stone-400 font-mono">
+                                  {inst.receiptNumber ? `Kuitansi: ${inst.receiptNumber}` : inst.referenceNumber ? `Ref: ${inst.referenceNumber}` : ""}
+                                </span>
+                              </td>
+                              <td className="py-2 pr-2 text-stone-600">{inst.date}</td>
+                              <td className="py-2 pr-2">
+                                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                                  {inst.account || inst.method}
+                                </span>
+                              </td>
+                              <td className="py-2 pr-2 text-center">
+                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-800">
+                                  {inst.status || "Terverifikasi"}
+                                </span>
+                              </td>
+                              <td className="py-2 pr-3 text-right font-black text-emerald-700">
+                                {formatIDR(inst.amount)}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                        <tr className="border-t-2 border-stone-200 bg-stone-50 font-black">
+                          <td colSpan={5} className="py-2 pl-3 pr-2 text-right uppercase text-[10px] text-stone-600">
+                            Total Dana Diterima:
+                          </td>
+                          <td className="py-2 pr-3 text-right text-emerald-700 font-black">
+                            {formatIDR(invoiceModalJamaah.paidAmount)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Highlight Sisa Tagihan Terupdate */}
+                {invoiceModalJamaah.remainingAmount > 0 ? (
+                  <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/60 p-4 shadow-2xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block">
+                          Sisa Tagihan yang Harus Dilunasi
+                        </span>
+                        <p className="text-[11px] text-amber-800 mt-0.5">
+                          Jatuh tempo pelunasan: <strong>Maksimal H-30 Sebelum Keberangkatan</strong>
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <span className="text-xl sm:text-2xl font-black text-amber-950">
+                          {formatIDR(invoiceModalJamaah.remainingAmount)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-amber-200/80 text-[10px] text-amber-900/90 space-y-0.5">
+                      <p className="font-bold">Rekening Resmi Pembayaran PT El Massa Tour &amp; Travel:</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1">
+                        <div className="rounded bg-white/80 p-1.5 border border-amber-200">
+                          <span className="font-bold block">Bank Syariah Indonesia (BSI)</span>
+                          <span className="font-mono text-[11px] font-black text-brand-cocoa">719-2024-001</span>
+                        </div>
+                        <div className="rounded bg-white/80 p-1.5 border border-amber-200">
+                          <span className="font-bold block">Bank Central Asia (BCA)</span>
+                          <span className="font-mono text-[11px] font-black text-brand-cocoa">041-8899-100</span>
+                        </div>
+                        <div className="rounded bg-white/80 p-1.5 border border-amber-200">
+                          <span className="font-bold block">Bank Mandiri</span>
+                          <span className="font-mono text-[11px] font-black text-brand-cocoa">169-00-112233-4</span>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-stone-500 pt-1">Semua rekening atas nama: <strong>PT EL MASSA TOUR &amp; TRAVEL</strong></p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/70 p-4 text-center">
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
+                    <p className="text-xs font-black uppercase text-emerald-900">Pembayaran Telah Lunas 100%</p>
+                    <p className="text-[11px] text-emerald-800 mt-0.5">
+                      Alhamdulillah, seluruh kewajiban biaya paket untuk jamaah ini telah diterima dengan lengkap. Tidak ada sisa tagihan.
+                    </p>
+                  </div>
+                )}
+
+                {/* Bagian Tanda Tangan */}
+                <div className="grid grid-cols-2 gap-8 pt-4 border-t border-stone-200 text-center">
+                  <div>
+                    <p className="text-[11px] text-stone-500">Jamaah / Pendaftar</p>
+                    <div className="h-12" />
+                    <p className="font-bold text-xs text-stone-900 border-t border-stone-300 pt-1 inline-block min-w-[140px]">
+                      {invoiceModalJamaah.customerName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-stone-500">Finance &amp; Kasir PT El Massa</p>
+                    <div className="h-12 flex items-center justify-center">
+                      <span className="rounded border border-brand-pink/50 bg-pink-50 px-2 py-0.5 text-[9px] font-black text-brand-pink rotate-[-4deg]">
+                        PT EL MASSA FINANCE
+                      </span>
+                    </div>
+                    <p className="font-bold text-xs text-stone-900 border-t border-stone-300 pt-1 inline-block min-w-[140px]">
+                      Azhar (Finance Master)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-2 border-t border-stone-200 bg-stone-50 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setInvoiceModalJamaah(null)}
+                className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePrintSingleInvoice(invoiceModalJamaah)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand-pink px-4 py-2 text-xs font-bold text-white hover:bg-brand-pinkHover transition shadow-2xs cursor-pointer active:scale-95"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                <span>Cetak Invoice Sekarang</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* MODAL: CEK BUKTI PEMBAYARAN & KUITANSI KASIR                         */}
+      {/* ════════════════════════════════════════════════════════════════════ */}
+      {proofModalJamaah && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl border border-stone-200 overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-5 py-3.5">
+              <div>
+                <span className="rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase text-indigo-800">
+                  Audit Bukti Transaksi
+                </span>
+                <h3 className="text-sm font-extrabold text-brand-cocoa mt-0.5 flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-indigo-600" />
+                  <span>Bukti Pembayaran — {proofModalJamaah.customerName}</span>
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProofModalJamaah(null)}
+                className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-200 hover:text-stone-700 transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-sans">
+              {proofModalJamaah.installments.length === 0 ? (
+                <div className="py-8 text-center text-stone-400">
+                  <Receipt className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="font-bold">Belum Ada Transaksi Pembayaran</p>
+                  <p className="text-[11px] mt-0.5">Jamaah ini belum memiliki catatan pembayaran DP atau cicilan.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Installment Selector Pills */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-500 mb-1.5">Pilih Tahap Pembayaran:</label>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {proofModalJamaah.installments.map((inst, idx) => (
+                        <button
+                          key={inst.id || idx}
+                          type="button"
+                          onClick={() => setSelectedInstallmentIndex(idx)}
+                          className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                            selectedInstallmentIndex === idx
+                              ? "bg-stone-900 text-white shadow-2xs"
+                              : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                          }`}
+                        >
+                          <span>{inst.label}</span>
+                          <span className={`rounded px-1.5 py-0.2 text-[10px] font-mono ${
+                            selectedInstallmentIndex === idx ? "bg-white/20 text-white" : "bg-stone-200 text-stone-800"
+                          }`}>
+                            {formatIDR(inst.amount)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Active Installment Details */}
+                  {(() => {
+                    const inst = proofModalJamaah.installments[Math.min(selectedInstallmentIndex, proofModalJamaah.installments.length - 1)];
+                    if (!inst) return null;
+
+                    const hasProofImg = inst.proofUrl && (inst.proofUrl.startsWith("http") || inst.proofUrl.startsWith("data:image"));
+                    const isCash = (inst.method || "").toUpperCase().includes("TUNAI") || (inst.method || "").toUpperCase().includes("CASH");
+
+                    return (
+                      <div className="space-y-4">
+                        {/* Summary Card */}
+                        <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-3.5 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-stone-900 text-sm">{inst.label}</span>
+                            <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-black border border-emerald-200">
+                              {inst.status || "Terverifikasi"}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-stone-200/70 text-[11px]">
+                            <div>
+                              <span className="text-[10px] text-stone-400 block font-medium">Nominal</span>
+                              <span className="font-black text-emerald-700">{formatIDR(inst.amount)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-stone-400 block font-medium">Tanggal Bayar</span>
+                              <span className="font-bold text-stone-800">{inst.date}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-stone-400 block font-medium">Rekening Tujuan</span>
+                              <span className="font-bold text-stone-800 truncate block" title={inst.account || inst.method}>
+                                {inst.account || inst.method}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-stone-400 block font-medium">Diverifikasi oleh</span>
+                              <span className="font-bold text-indigo-900 truncate block">
+                                {inst.receivedBy || "Staff Keuangan"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bukti Pembayaran Box */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+                              <ImageIcon className="h-3.5 w-3.5 text-stone-500" />
+                              <span>Lampiran Bukti Transfer / Kuitansi Fisik:</span>
+                            </label>
+                            {hasProofImg && (
+                              <a
+                                href={inst.proofUrl!}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-pink hover:underline"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                <span>Buka Gambar Asli</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {hasProofImg ? (
+                            <div className="rounded-xl border border-stone-200 bg-stone-100 p-2 text-center">
+                              <img
+                                src={inst.proofUrl!}
+                                alt={`Bukti pembayaran ${inst.label}`}
+                                className="max-h-72 w-auto mx-auto rounded-lg shadow-2xs border border-stone-200 object-contain bg-white"
+                              />
+                            </div>
+                          ) : isCash ? (
+                            /* Offline Cash Receipt Slip Graphic */
+                            <div className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/60 p-4 space-y-3">
+                              <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                                <div>
+                                  <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">
+                                    Kuitansi Pembayaran Tunai Kasir
+                                  </span>
+                                  <p className="text-[11px] font-bold text-stone-800">PT EL MASSA TOUR &amp; TRAVEL</p>
+                                </div>
+                                <span className="rounded bg-amber-100 text-amber-900 px-2 py-0.5 font-mono text-[10px] font-bold">
+                                  {inst.receiptNumber || "KW-KASIR-OFFLINE"}
+                                </span>
+                              </div>
+
+                              <div className="space-y-1 text-[11px] text-stone-700">
+                                <div className="flex justify-between">
+                                  <span>Telah Diterima Dari:</span>
+                                  <span className="font-bold">{proofModalJamaah.customerName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Jumlah Pembayaran:</span>
+                                  <span className="font-black text-emerald-700 text-sm">{formatIDR(inst.amount)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Untuk Keperluan:</span>
+                                  <span className="font-medium">{inst.label} ({proofModalJamaah.bookingCode})</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Kasir Penerima:</span>
+                                  <span className="font-bold text-stone-900">{inst.receivedBy || "Kasir Kantor PT El Massa"}</span>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-amber-200 flex items-center justify-between text-[10px] text-amber-800 font-semibold">
+                                <span>Penerimaan Fisik di Kantor</span>
+                                <span className="rounded border border-amber-400 bg-white px-2 py-0.5 text-amber-900 font-bold">
+                                  ✓ KAS TUNAI VALID
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            /* Bank Transfer Confirmation Slip Graphic */
+                            <div className="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 p-4 space-y-3">
+                              <div className="flex items-center justify-between border-b border-indigo-100 pb-2">
+                                <div>
+                                  <span className="text-[10px] font-black uppercase text-indigo-900 tracking-wider">
+                                    Slip Konfirmasi Bank Transfer
+                                  </span>
+                                  <p className="text-[11px] font-bold text-stone-800">{inst.account || inst.method}</p>
+                                </div>
+                                <span className="rounded bg-indigo-100 text-indigo-900 px-2 py-0.5 font-mono text-[10px] font-bold">
+                                  {inst.referenceNumber || "TRX-VALID-SYSTEM"}
+                                </span>
+                              </div>
+
+                              <div className="space-y-1 text-[11px] text-stone-700">
+                                <div className="flex justify-between">
+                                  <span>Pengirim:</span>
+                                  <span className="font-bold">{proofModalJamaah.customerName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Nominal Terbayar:</span>
+                                  <span className="font-black text-emerald-700 text-sm">{formatIDR(inst.amount)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Tanggal Transaksi:</span>
+                                  <span className="font-medium text-stone-800">{inst.date}</span>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-indigo-100 flex items-center justify-between text-[10px] text-indigo-800 font-semibold">
+                                <span>Status Mutasi Rekening</span>
+                                <span className="rounded border border-emerald-400 bg-emerald-50 px-2 py-0.5 text-emerald-800 font-bold">
+                                  ✓ DANA MASUK TERVERIFIKASI
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Upload / Ganti Bukti File */}
+                          <div className="mt-3 rounded-xl border border-stone-200 bg-white p-3 space-y-1.5">
+                            <label className="block text-[11px] font-bold text-stone-700">
+                              Unggah / Ganti Bukti Transfer/Kuitansi Fisik:
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={isUploadingProof}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleUploadProof(file, inst.id);
+                              }}
+                              className="block w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-900 file:text-white hover:file:bg-stone-800 cursor-pointer"
+                            />
+                            <p className="text-[10px] text-stone-400">
+                              Format didukung: JPG, PNG, WebP (Maks 5 MB). File langsung tersimpan ke sistem database.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end border-t border-stone-200 bg-stone-50 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setProofModalJamaah(null)}
+                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-bold text-white hover:bg-stone-800 transition cursor-pointer"
+              >
+                Selesai &amp; Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -82,6 +82,9 @@ export type GroupPaymentInstallment = {
   status: string;
   receiptNumber: string | null;
   notes?: string;
+  proofUrl?: string | null;
+  receivedBy?: string | null;
+  referenceNumber?: string | null;
 };
 
 export type GroupPaymentRow = {
@@ -143,6 +146,8 @@ export async function listGroupPayments(packageId: string): Promise<GroupPayment
        p.method,
        p.status,
        p.reference_number AS "referenceNumber",
+       p.proof_url AS "proofUrl",
+       p.received_by AS "receivedBy",
        p.notes,
        r.receipt_number AS "receiptNumber"
      FROM payments p
@@ -200,6 +205,9 @@ export async function listGroupPayments(packageId: string): Promise<GroupPayment
           status: p.status,
           receiptNumber: p.receiptNumber,
           notes: p.notes,
+          proofUrl: p.proofUrl || "",
+          receivedBy: p.receivedBy || "",
+          referenceNumber: p.referenceNumber || "",
         };
       }),
     };

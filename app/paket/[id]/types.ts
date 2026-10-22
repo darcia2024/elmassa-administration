@@ -60,8 +60,13 @@ export type GroupPaymentInstallment = {
   date: string;
   amount: number;
   method: string;
+  account?: string;
   status: string;
   receiptNumber: string | null;
+  notes?: string;
+  proofUrl?: string | null;
+  receivedBy?: string | null;
+  referenceNumber?: string | null;
 };
 
 export type GroupPaymentRow = {
