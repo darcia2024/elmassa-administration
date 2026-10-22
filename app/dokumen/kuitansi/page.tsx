@@ -147,7 +147,7 @@ export default function ReceiptPage() {
             <div className="grid grid-cols-[38%_62%] border border-black">
               <div className="flex items-center justify-center p-3 border-r border-black">
                 <img
-                  src="/logo-el-massa-horizontal.png?v=2"
+                  src="/logo-el-massa-horizontal.png?v=3"
                   alt="El Massa Tour & Travel"
                   className="h-16 w-auto object-contain shrink-0"
                 />

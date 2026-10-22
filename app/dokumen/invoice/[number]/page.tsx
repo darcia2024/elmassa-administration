@@ -189,7 +189,7 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
           <div className="flex items-start justify-between gap-4 pb-4 border-b border-stone-300">
             <div className="flex items-center">
               <img
-                src="/logo-el-massa-horizontal.png?v=2"
+                src="/logo-el-massa-horizontal.png?v=3"
                 alt="El Massa Tour & Travel"
                 className="h-16 w-auto object-contain shrink-0"
               />
