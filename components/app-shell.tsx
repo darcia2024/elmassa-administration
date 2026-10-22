@@ -637,7 +637,7 @@ export function AppShell({ children }: AppShellProps) {
                                   }`}
                                   title={pkg.name}
                                 >
-                                  <span className="text-[11px] shrink-0">ðŸ•‹</span>
+                                  <span className="text-xs shrink-0 leading-none">{"\uD83D\uDD4B"}</span>
                                   <span className="truncate">{pkg.name}</span>
                                 </Link>
                               );
