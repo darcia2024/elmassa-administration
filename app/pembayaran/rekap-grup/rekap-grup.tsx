@@ -1570,26 +1570,26 @@ export function RekapGrup() {
               </div>
 
               {/* Data Table Jamaah: DP & Cicilan berjenjang per rekening */}
-              <div className="overflow-x-auto rounded-xl border border-stone-200">
-                <table className="w-full min-w-[1080px] border-collapse text-left text-xs">
+              <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white shadow-2xs">
+                <table className="w-full min-w-[1440px] border-collapse text-left text-xs">
                   <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500">
-                      <th className="py-2.5 pl-3 pr-2 w-10">No</th>
-                      <th className="py-2.5 pr-2">Nama Jamaah & Kontak</th>
-                      <th className="py-2.5 pr-2 text-right">Nilai Paket</th>
-                      <th className="py-2.5 pr-2">Pembayaran 1 (DP Awal)</th>
-                      <th className="py-2.5 pr-2">Pembayaran 2 (Cicilan)</th>
-                      <th className="py-2.5 pr-2">Pembayaran 3 &amp; Seterusnya</th>
-                      <th className="py-2.5 pr-2 text-right">Terbayar</th>
-                      <th className="py-2.5 pr-2 text-right">Sisa Tagihan</th>
-                      <th className="py-2.5 pr-2 text-center">Status</th>
-                      <th className="py-2.5 pr-3 text-center w-36">Aksi & Dokumen</th>
+                    <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-600">
+                      <th className="py-3 px-3 w-12 text-center">No</th>
+                      <th className="py-3 px-4 min-w-[220px]">Nama Jamaah & Kontak</th>
+                      <th className="py-3 px-4 min-w-[130px] text-right">Nilai Paket</th>
+                      <th className="py-3 px-4 min-w-[190px]">Pembayaran 1 (DP Awal)</th>
+                      <th className="py-3 px-4 min-w-[190px]">Pembayaran 2 (Cicilan)</th>
+                      <th className="py-3 px-4 min-w-[210px]">Pembayaran 3 &amp; Seterusnya</th>
+                      <th className="py-3 px-4 min-w-[130px] text-right">Terbayar</th>
+                      <th className="py-3 px-4 min-w-[130px] text-right">Sisa Tagihan</th>
+                      <th className="py-3 px-4 min-w-[110px] text-center">Status</th>
+                      <th className="py-3 px-4 min-w-[180px] text-center">Aksi & Dokumen</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {filteredJamaah.length === 0 ? (
                       <tr>
-                        <td colSpan={10} className="py-8 text-center text-xs text-stone-400">
+                        <td colSpan={10} className="py-12 text-center text-xs text-stone-400">
                           Tidak ada jamaah yang cocok dengan filter pencarian.
                         </td>
                       </tr>
@@ -1602,107 +1602,114 @@ export function RekapGrup() {
                         const cleanPhone = (j.phone || "").replace(/\D/g, "");
 
                         return (
-                          <tr key={j.bookingCode} className="hover:bg-stone-50/70 transition">
-                            <td className="py-2.5 pl-3 pr-2 font-mono text-stone-400">{idx + 1}</td>
-                            <td className="py-2.5 pr-2">
-                              <p className="font-extrabold text-brand-cocoa leading-tight">{j.customerName}</p>
-                              <div className="flex items-center gap-2 text-[11px] text-stone-400 mt-0.5">
-                                <span className="font-mono">Booking: {j.bookingCode}</span>
+                          <tr key={j.bookingCode} className="hover:bg-stone-50/80 transition">
+                            <td className="py-3.5 px-3 text-center font-mono text-stone-400">{idx + 1}</td>
+                            <td className="py-3.5 px-4 min-w-[220px]">
+                              <p className="font-extrabold text-stone-900 leading-snug">{j.customerName}</p>
+                              <div className="flex flex-wrap items-center gap-1.5 text-[11px] mt-1">
+                                <span className="font-mono bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded border border-stone-200/60 whitespace-nowrap">
+                                  Booking: <strong className="text-stone-800">{j.bookingCode}</strong>
+                                </span>
                                 {j.phone && (
                                   <a
                                     href={`https://wa.me/${cleanPhone}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-0.5 font-bold text-emerald-600 hover:underline"
+                                    className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 hover:bg-emerald-100 transition whitespace-nowrap"
                                   >
-                                    <MessageSquare className="h-2.5 w-2.5" />
+                                    <MessageSquare className="h-3 w-3" />
                                     <span>{j.phone}</span>
                                   </a>
                                 )}
                               </div>
                             </td>
-                            <td className="py-2.5 pr-2 text-right font-semibold text-stone-800 whitespace-nowrap">
+                            <td className="py-3.5 px-4 text-right font-bold text-stone-900 whitespace-nowrap">
                               {formatIDR(j.totalAmount)}
                             </td>
 
                             {/* Pembayaran 1: DP Awal */}
-                            <td className="py-2.5 pr-2">
+                            <td className="py-3.5 px-4 min-w-[190px]">
                               {dp ? (
-                                <div className="space-y-0.5">
-                                  <p className="font-black text-stone-900 leading-tight">{formatIDR(dp.amount)}</p>
-                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
-                                    <span>{dp.date}</span>
-                                    <span>·</span>
-                                    <span className="rounded bg-amber-100 text-amber-900 px-1 font-bold">
+                                <div className="space-y-1">
+                                  <p className="font-extrabold text-stone-900 text-xs leading-tight whitespace-nowrap">{formatIDR(dp.amount)}</p>
+                                  <div className="flex flex-col gap-0.5 text-[10px]">
+                                    <span className="font-mono text-stone-500 whitespace-nowrap">{dp.date}</span>
+                                    <span className="inline-block max-w-fit rounded bg-amber-50 text-amber-900 px-1.5 py-0.5 font-semibold text-[10px] border border-amber-200/80 whitespace-nowrap">
                                       {dp.account || dp.method}
                                     </span>
                                   </div>
-                                  {renderPaymentProofButton(j, 0)}
+                                  <div className="pt-0.5">
+                                    {renderPaymentProofButton(j, 0)}
+                                  </div>
                                 </div>
                               ) : (
-                                <span className="text-stone-400 text-[11px]">—</span>
+                                <span className="text-stone-400 text-xs">—</span>
                               )}
                             </td>
 
                             {/* Pembayaran 2: Cicilan 1 */}
-                            <td className="py-2.5 pr-2">
+                            <td className="py-3.5 px-4 min-w-[190px]">
                               {c1 ? (
-                                <div className="space-y-0.5">
-                                  <p className="font-black text-stone-900 leading-tight">{formatIDR(c1.amount)}</p>
-                                  <div className="flex items-center gap-1 text-[10px] text-stone-500">
-                                    <span>{c1.date}</span>
-                                    <span>·</span>
-                                    <span className="rounded bg-indigo-100 text-indigo-900 px-1 font-bold">
+                                <div className="space-y-1">
+                                  <p className="font-extrabold text-stone-900 text-xs leading-tight whitespace-nowrap">{formatIDR(c1.amount)}</p>
+                                  <div className="flex flex-col gap-0.5 text-[10px]">
+                                    <span className="font-mono text-stone-500 whitespace-nowrap">{c1.date}</span>
+                                    <span className="inline-block max-w-fit rounded bg-indigo-50 text-indigo-900 px-1.5 py-0.5 font-semibold text-[10px] border border-indigo-200/80 whitespace-nowrap">
                                       {c1.account || c1.method}
                                     </span>
                                   </div>
-                                  {renderPaymentProofButton(j, 1)}
+                                  <div className="pt-0.5">
+                                    {renderPaymentProofButton(j, 1)}
+                                  </div>
                                 </div>
                               ) : (
-                                <span className="text-stone-400 text-[11px]">—</span>
+                                <span className="text-stone-400 text-xs">—</span>
                               )}
                             </td>
 
                             {/* Every later payment keeps its own proof and upload target. */}
-                            <td className="py-2.5 pr-2">
+                            <td className="py-3.5 px-4 min-w-[210px]">
                               {laterPayments.length ? (
                                 <div className="space-y-2">
                                   {laterPayments.map((payment, paymentIndex) => (
-                                    <div key={payment.id} className="space-y-0.5 border-b border-stone-100 pb-2 last:border-0">
+                                    <div key={payment.id} className="space-y-1 border-b border-stone-100 pb-2 last:border-0 last:pb-0">
                                       <p className="text-[10px] font-bold text-stone-500">Pembayaran {paymentIndex + 3} · {payment.label}</p>
-                                      <p className="font-black text-emerald-700 leading-tight">{formatIDR(payment.amount)}</p>
-                                      <div className="flex items-center gap-1 text-[10px] text-stone-500">
-                                        <span>{payment.date}</span>
-                                        <span>·</span>
-                                        <span className="rounded bg-emerald-100 text-emerald-900 px-1 font-bold">{payment.account || payment.method}</span>
+                                      <p className="font-extrabold text-emerald-700 text-xs leading-tight whitespace-nowrap">{formatIDR(payment.amount)}</p>
+                                      <div className="flex flex-col gap-0.5 text-[10px]">
+                                        <span className="font-mono text-stone-500 whitespace-nowrap">{payment.date}</span>
+                                        <span className="inline-block max-w-fit rounded bg-emerald-50 text-emerald-900 px-1.5 py-0.5 font-semibold text-[10px] border border-emerald-200/80 whitespace-nowrap">
+                                          {payment.account || payment.method}
+                                        </span>
                                       </div>
-                                      {renderPaymentProofButton(j, paymentIndex + 2)}
+                                      <div className="pt-0.5">
+                                        {renderPaymentProofButton(j, paymentIndex + 2)}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
-                              ) : <span className="text-stone-400 text-[11px]">—</span>}
+                              ) : <span className="text-stone-400 text-xs">—</span>}
                             </td>
 
                             {/* Total Terbayar & % Progress */}
-                            <td className="py-2.5 pr-2 text-right whitespace-nowrap">
-                              <span className="font-black text-emerald-700">{formatIDR(j.paidAmount)}</span>
-                              <span className="block text-[10px] font-bold text-stone-400">{percent}%</span>
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap min-w-[130px]">
+                              <span className="font-extrabold text-emerald-700 text-xs block">{formatIDR(j.paidAmount)}</span>
+                              <span className="inline-block rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[10px] font-bold border border-emerald-200/50 mt-0.5">{percent}%</span>
                             </td>
 
                             {/* Sisa Tagihan */}
-                            <td className="py-2.5 pr-2 text-right whitespace-nowrap">
-                              <span className={`font-black ${j.remainingAmount > 0 ? "text-rose-600" : "text-stone-400"}`}>
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap min-w-[130px]">
+                              <span className={`font-extrabold text-xs ${j.remainingAmount > 0 ? "text-rose-600" : "text-stone-400"}`}>
                                 {formatIDR(j.remainingAmount)}
                               </span>
                             </td>
 
                             {/* Status */}
-                            <td className="py-2.5 pr-2 text-center">
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap min-w-[110px]">
                               <span
-                                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${
                                   j.isSettled
-                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                    : "bg-rose-100 text-rose-800 border border-rose-200"
+                                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                    : "bg-rose-50 text-rose-800 border border-rose-200"
                                 }`}
                               >
                                 {j.isSettled ? "Lunas" : "Belum Lunas"}
@@ -1710,13 +1717,13 @@ export function RekapGrup() {
                             </td>
 
                             {/* Aksi & Dokumen */}
-                            <td className="py-2.5 pr-3 text-center whitespace-nowrap">
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap min-w-[180px]">
                               <div className="inline-flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={() => setInvoiceModalJamaah(j)}
                                   title="Cetak Invoice Terupdate Jamaah ini"
-                                  className="inline-flex items-center gap-1 rounded-lg border border-pink-200 bg-pink-50/70 px-2 py-1 text-[11px] font-bold text-brand-pink hover:bg-pink-100 transition shadow-2xs active:scale-95 cursor-pointer"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-pink-200 bg-pink-50/70 px-2.5 py-1 text-[11px] font-bold text-brand-pink hover:bg-pink-100 transition shadow-2xs active:scale-95 cursor-pointer"
                                 >
                                   <Printer className="h-3 w-3" />
                                   <span>Invoice</span>
