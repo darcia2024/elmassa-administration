@@ -466,18 +466,25 @@ export default function MyElMassaPage() {
   // ----------------------------------------------------
   if (!agent) {
     return (
-      <div className="flex min-h-screen flex-col bg-linear-to-b from-stone-100 via-stone-50 to-pink-50/40">
+      <div className="flex min-h-screen flex-col bg-stone-100 bg-gradient-to-b from-stone-100 via-stone-50 to-pink-50/40">
         {/* Top Header */}
         <header className="border-b border-stone-200/80 bg-white/80 backdrop-blur-md px-4 py-3">
           <div className="mx-auto flex max-w-5xl items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-linear-to-br from-brand-pink to-rose-600 flex items-center justify-center text-white shadow-sm font-black text-sm">
-                EM
+              <div className="relative h-9 w-28 shrink-0">
+                <Image
+                  src="/logo-el-massa-horizontal.png"
+                  alt="El Massa Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
               </div>
-              <div>
-                <span className="font-extrabold text-stone-800 tracking-tight text-sm">MY EL MASSA</span>
-                <span className="ml-2 rounded-md bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-brand-pink uppercase tracking-wider">
-                  Portal Agen & Mitra
+              <div className="h-5 w-px bg-stone-200" />
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-stone-800 tracking-tight text-xs sm:text-sm">MY EL MASSA</span>
+                <span className="rounded-md bg-pink-100 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-brand-pink uppercase tracking-wider">
+                  Portal Mitra
                 </span>
               </div>
             </div>
@@ -497,6 +504,15 @@ export default function MyElMassaPage() {
             <div className="overflow-hidden rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xl shadow-stone-200/50">
               {/* Badge & Title */}
               <div className="text-center space-y-2 mb-6">
+                <div className="relative mx-auto h-10 w-36 mb-1">
+                  <Image
+                    src="/logo-el-massa-horizontal.png"
+                    alt="El Massa Tour & Travel"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-brand-pink/20 px-3 py-1 text-xs font-bold text-brand-pink">
                   <Handshake className="h-3.5 w-3.5" />
                   <span>Sistem Mitra Terintegrasi</span>
@@ -541,7 +557,7 @@ export default function MyElMassaPage() {
                 <button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full rounded-xl bg-linear-to-r from-brand-pink to-rose-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-brand-pink/20 hover:from-rose-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-brand-pink/40 disabled:opacity-50 transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full rounded-xl bg-brand-pink bg-gradient-to-r from-brand-pink to-rose-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-brand-pink/20 hover:from-rose-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-brand-pink/40 disabled:opacity-50 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isLoggingIn ? (
                     <>
@@ -603,17 +619,24 @@ export default function MyElMassaPage() {
       <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur-md px-4 py-3 shadow-2xs">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-brand-pink to-rose-600 flex items-center justify-center text-white font-black text-sm shadow-sm">
-              EM
+            <div className="relative h-9 w-28 sm:w-32 shrink-0">
+              <Image
+                src="/logo-el-massa-horizontal.png"
+                alt="El Massa Logo"
+                fill
+                className="object-contain object-left"
+                priority
+              />
             </div>
+            <div className="h-5 w-px bg-stone-200 hidden sm:block" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-stone-900 tracking-tight text-sm">MY EL MASSA</span>
+                <span className="font-black text-stone-900 tracking-tight text-xs sm:text-sm">MY EL MASSA</span>
                 <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.2 text-[9px] font-black uppercase tracking-wider">
                   Mitra Aktif 🟢
                 </span>
               </div>
-              <p className="text-[10px] text-stone-400 font-medium">Portal Agen & Pendaftaran Terpadu</p>
+              <p className="text-[10px] text-stone-400 font-medium hidden sm:block">Portal Agen & Pendaftaran Terpadu</p>
             </div>
           </div>
 
@@ -637,18 +660,18 @@ export default function MyElMassaPage() {
       {/* Main Container */}
       <main className="mx-auto max-w-6xl px-4 py-6 space-y-6">
         {/* Welcome & Agent Profile Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-brand-cocoa via-stone-900 to-brand-cocoa p-6 text-white shadow-lg">
-          <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-brand-pink/15 blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl bg-[#2e1f1c] bg-gradient-to-r from-[#271912] via-[#3c2920] to-[#271912] p-6 sm:p-7 text-white shadow-xl border border-stone-800">
+          <div className="absolute right-0 top-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-brand-pink/20 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm text-stone-200">
                 <Award className="h-3.5 w-3.5 text-pink-400" />
                 <span>Mitra Wilayah: {agent.city || "Indonesia"}</span>
                 <span className="text-white/40">•</span>
                 <span className="font-mono text-pink-300 font-bold">{agent.agentCode}</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white drop-shadow-xs">
                 Assalamu&apos;alaikum, {agent.name}! 👋
               </h1>
               <p className="text-xs text-stone-300 max-w-xl leading-relaxed">
@@ -656,8 +679,8 @@ export default function MyElMassaPage() {
               </p>
 
               <div className="pt-2 flex flex-wrap items-center gap-3 text-xs">
-                <span className="inline-flex items-center gap-1 rounded-lg bg-pink-500/20 px-2.5 py-1 text-pink-200 font-bold">
-                  <CreditCard className="h-3 w-3" />
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-pink-500/25 border border-pink-400/30 px-3 py-1 text-pink-200 font-bold">
+                  <CreditCard className="h-3.5 w-3.5 text-pink-300" />
                   <span>
                     Skema Komisi:{" "}
                     {agent.commissionType === "persen"
@@ -666,18 +689,19 @@ export default function MyElMassaPage() {
                   </span>
                 </span>
                 {agent.bankAccount && (
-                  <span className="text-stone-300 text-[11px]">
-                    Rekening: {agent.bankName} {agent.bankAccount}
+                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1 text-stone-300 text-xs">
+                    <Building2 className="h-3.5 w-3.5 text-stone-400" />
+                    <span>Rekening: {agent.bankName} {agent.bankAccount}</span>
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => openRegisterModal()}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-brand-pink to-rose-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-brand-pink/30 hover:brightness-110 active:scale-98 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-pink bg-gradient-to-r from-brand-pink to-rose-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-brand-pink/30 hover:brightness-110 active:scale-98 transition cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>+ Daftarkan Jamaah Baru</span>
@@ -686,7 +710,7 @@ export default function MyElMassaPage() {
                 type="button"
                 onClick={() => loadDashboard(agent.agentCode)}
                 disabled={isDataLoading}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-xs sm:text-sm font-semibold text-white hover:bg-white/20 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-xs sm:text-sm font-semibold text-white hover:bg-white/20 transition cursor-pointer"
               >
                 <RefreshCw className={`h-4 w-4 ${isDataLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh Data</span>
@@ -1116,7 +1140,7 @@ export default function MyElMassaPage() {
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
                         <div
-                          className="h-full bg-linear-to-r from-brand-pink to-rose-600 rounded-full transition-all duration-500"
+                          className="h-full bg-brand-pink bg-gradient-to-r from-brand-pink to-rose-600 rounded-full transition-all duration-500"
                           style={{
                             width: `${Math.min(
                               100,
@@ -1468,7 +1492,7 @@ export default function MyElMassaPage() {
               </div>
 
               {/* Price & Commission Summary Banner */}
-              <div className="rounded-2xl bg-linear-to-r from-stone-900 to-stone-800 p-4 text-white flex items-center justify-between">
+              <div className="rounded-2xl bg-stone-900 bg-gradient-to-r from-stone-900 to-stone-800 p-4 text-white flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                     Total Biaya Paket ({jamaahList.length} Jamaah)
@@ -1498,7 +1522,7 @@ export default function MyElMassaPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-xl bg-linear-to-r from-brand-pink to-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-pink/20 hover:from-rose-600 hover:to-rose-700 disabled:opacity-50 transition cursor-pointer flex items-center gap-2"
+                  className="rounded-xl bg-brand-pink bg-gradient-to-r from-brand-pink to-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-pink/20 hover:from-rose-600 hover:to-rose-700 disabled:opacity-50 transition cursor-pointer flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
