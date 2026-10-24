@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
@@ -26,6 +26,7 @@ type InvoiceDetail = {
 
 type PaymentRow = {
   id: string;
+  receiptNumber?: string | null;
   date: string;
   amount: number;
   method: string;
@@ -34,11 +35,14 @@ type PaymentRow = {
 };
 
 type HistoryLog = {
+  paymentId?: string;
+  receiptNumber?: string | null;
   date: string;
   description: string;
   nominal: string;
   notes: string;
   remainingTotal: string;
+  isInitialIssued?: boolean;
 };
 
 type PrimaryAccount = {
@@ -108,11 +112,14 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
               runningPaid += Number(p.amount);
               const remaining = Math.max(data.total - runningPaid, 0);
               return {
+                paymentId: p.id,
+                receiptNumber: p.receiptNumber || null,
                 date: p.date,
                 description: `Pembayaran (${p.method})`,
                 nominal: `Rp ${Number(p.amount).toLocaleString("id-ID")}`,
                 notes: p.notes || "-",
                 remainingTotal: remaining <= 0 ? "Rp 0 (LUNAS)" : `Rp ${remaining.toLocaleString("id-ID")}`,
+                isInitialIssued: false,
               };
             });
 
@@ -126,6 +133,7 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
                       nominal: "Rp 0",
                       notes: "Belum ada pembayaran",
                       remainingTotal: `Rp ${data.total.toLocaleString("id-ID")}`,
+                      isInitialIssued: true,
                     },
                   ],
             );
@@ -173,32 +181,38 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
             <span>Kembali ke Daftar Invoice</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-black transition cursor-pointer"
-          >
-            <Printer className="h-4 w-4" strokeWidth={1.5} />
-            <span>Cetak Invoice</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dokumen/kuitansi?bookingCode=${encodeURIComponent(invoice.bookingCode)}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50 px-3.5 text-xs font-semibold text-brand-pink hover:bg-pink-100 transition shadow-2xs"
+            >
+              <ReceiptText className="h-4 w-4" strokeWidth={1.5} />
+              <span>Buka Kuitansi</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-black transition cursor-pointer"
+            >
+              <Printer className="h-4 w-4" strokeWidth={1.5} />
+              <span>Cetak Invoice</span>
+            </button>
+          </div>
         </div>
 
         {/* 📄 FORMAT RESMI INVOICE EL MASSA TOUR & TRAVEL */}
         <section className="mx-auto max-w-[800px] border border-stone-300 bg-white p-8 sm:p-10 text-stone-900 shadow-md space-y-6 font-sans print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
-          {/* Header Surat */}
-          <div className="flex items-center justify-between gap-4 pb-4 border-b border-stone-300">
-            <div className="flex items-center">
-              <img
-                src="/logo-el-massa-horizontal.png?v=5"
-                alt="El Massa Tour & Travel"
-                className="h-14 sm:h-16 w-auto object-contain shrink-0"
-              />
-            </div>
-            <div className="text-right text-[10px] leading-tight text-stone-700 font-sans space-y-0.5">
-              <p className="font-semibold text-stone-800">Ruko Bes Cinema, Jl Jendral sudirman, selindung Baru,</p>
-              <p className="font-semibold text-stone-800">Pangkalpinang</p>
-              <p className="font-medium text-stone-600">No Telp : 081249476768 - Email : elmassatour@gmail.com</p>
-              <p className="text-[9px] text-stone-500 font-medium">SK Kemenkumham &#123;AHU-0112355.AH.01.01.&#125; No Izin PPIU 10032300465890002</p>
+          {/* 🏢 KOP SURAT RESMI PT AL MASSA AZKA WISATA (DENGAN KOTAK-KOTAK PINK & COKLAT) */}
+          <div className="w-full pb-2 border-b-2 border-stone-800">
+            <img
+              src="/kop-surat-el-massa.png"
+              alt="Kop Surat Resmi PT Al Massa Azka Wisata"
+              className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
+            />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
+              <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+              <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
             </div>
           </div>
 
@@ -292,7 +306,42 @@ export default function MinimalistEditorialInvoicePage({ params }: InvoiceDetail
                       <span className="float-left">Rp</span>
                       <span>{log.nominal.replace(/Rp\s*/g, "")}</span>
                     </td>
-                    <td className="border-r border-black p-1.5 text-center font-bold uppercase">{log.description.toUpperCase().includes("TUNAI") ? "TUNAI" : "TRANSFER"}</td>
+                    <td className="border-r border-black p-1.5 text-center">
+                      {log.isInitialIssued ? (
+                        <span className="text-[10px] text-stone-500 font-bold italic">BELUM ADA PEMBAYARAN</span>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span className="font-bold uppercase text-[11px]">
+                            {log.description.toUpperCase().includes("TUNAI") ? "TUNAI" : "TRANSFER"}
+                          </span>
+                          {log.receiptNumber ? (
+                            <>
+                              <Link
+                                href={`/dokumen/kuitansi?number=${encodeURIComponent(log.receiptNumber)}`}
+                                target="_blank"
+                                title={`Buka Kuitansi ${log.receiptNumber}`}
+                                className="print:hidden inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-pink-100/80 text-brand-pink border border-pink-300 hover:bg-pink-200 text-[10px] font-bold transition shadow-2xs"
+                              >
+                                <ReceiptText className="h-3 w-3 text-brand-pink" />
+                                <span>{log.receiptNumber}</span>
+                              </Link>
+                              <span className="hidden print:inline text-[9px] text-stone-700 font-mono font-bold">
+                                Kwitansi: {log.receiptNumber}
+                              </span>
+                            </>
+                          ) : (
+                            <Link
+                              href={`/dokumen/kuitansi?bookingCode=${encodeURIComponent(invoice.bookingCode)}`}
+                              target="_blank"
+                              className="print:hidden inline-flex items-center gap-0.5 text-[9px] text-brand-pink font-semibold hover:underline"
+                            >
+                              <ReceiptText className="h-2.5 w-2.5" />
+                              <span>Lihat Kuitansi</span>
+                            </Link>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="p-1.5 text-right font-mono font-bold">
                       <span className="float-left">Rp</span>
                       <span>{log.nominal.replace(/Rp\s*/g, "")}</span>

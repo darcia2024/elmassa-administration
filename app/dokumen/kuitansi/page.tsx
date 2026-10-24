@@ -36,12 +36,29 @@ export default function ReceiptPage() {
   const [companyAddress, setCompanyAddress] = useState("");
 
   useEffect(() => {
-    fetch("/api/receipts")
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(search);
+    const targetBooking = params.get("bookingCode");
+    const targetNumber = params.get("number");
+    const targetPaymentId = params.get("paymentId");
+
+    const url = targetBooking
+      ? `/api/receipts?bookingCode=${encodeURIComponent(targetBooking)}`
+      : "/api/receipts";
+
+    fetch(url)
       .then((res) => res.json())
       .then((json) => {
         const data = (json.data ?? []) as ReceiptDetail[];
         setReceipts(data);
-        if (data.length > 0) setSelectedReceiptNumber(data[0].receipt.number);
+        if (data.length > 0) {
+          const found = data.find(
+            (r) =>
+              (targetNumber && r.receipt.number.toLowerCase() === targetNumber.toLowerCase()) ||
+              (targetPaymentId && r.payment.id === targetPaymentId)
+          );
+          setSelectedReceiptNumber(found ? found.receipt.number : data[0].receipt.number);
+        }
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
@@ -75,6 +92,15 @@ export default function ReceiptPage() {
               <p className="text-xs text-stone-500">Pilih kuitansi pembayaran untuk dicetak atau diunduh ke PDF.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {payment?.bookingCode && (
+                <Link
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50 px-3.5 text-xs font-semibold text-brand-pink hover:bg-pink-100 transition shadow-2xs"
+                  href={`/dokumen/invoice/${encodeURIComponent(payment.bookingCode)}`}
+                >
+                  <ReceiptText className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <span>Invoice ({payment.bookingCode})</span>
+                </Link>
+              )}
               <Link className="inline-flex h-9 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 px-3.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition" href="/pembayaran">
                 Kembali
               </Link>
@@ -143,6 +169,19 @@ export default function ReceiptPage() {
 
           {/* 📄 FORMAT RESMI KWITANSI EL MASSA TOUR & TRAVEL */}
           <article className="receipt-print mx-auto w-full max-w-[920px] border border-black bg-white p-6 sm:p-8 text-black shadow-sm font-sans space-y-3 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none">
+            {/* 🏢 KOP SURAT RESMI PT AL MASSA AZKA WISATA (DENGAN KOTAK-KOTAK PINK & COKLAT) */}
+            <div className="w-full pb-2 border-b-2 border-stone-800 mb-2">
+              <img
+                src="/kop-surat-el-massa.png"
+                alt="Kop Surat Resmi PT Al Massa Azka Wisata"
+                className="w-full max-w-full h-auto object-contain block mx-auto rounded-none"
+              />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-stone-600 pt-1.5 font-medium">
+                <span>Email: <strong className="text-stone-900">elmassatour@gmail.com</strong></span>
+                <span>No. Admin Kantor: <strong className="text-stone-900">+62 811-7171-5125</strong></span>
+              </div>
+            </div>
+
             {/* Box Atas: Logo Kiri & Kotak Penerima Kanan */}
             <div className="grid grid-cols-[38%_62%] border border-black">
               <div className="flex items-center justify-center p-3 border-r border-black">

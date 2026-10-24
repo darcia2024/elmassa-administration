@@ -37,6 +37,7 @@ export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
 
   const logoBase64 = getBase64Image("logo-el-massa-horizontal.png");
   const stampBase64 = getBase64Image("stempel-ttd-el-massa.png");
+  const kopBase64 = getBase64Image("kop-surat-el-massa.png");
 
   const participants = data.payment.participants || 1;
   const isCash = data.receipt.paymentMethod.toUpperCase().includes("TUNAI");
@@ -215,6 +216,14 @@ export async function GET(_: Request, { params }: ReceiptPdfRouteProps) {
 </head>
 <body>
   <div class="wrapper">
+    <div style="border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 10px;">
+      <img src="${kopBase64}" style="width: 100%; height: auto; display: block;" alt="Kop Surat Resmi" />
+      <div style="display: flex; justify-content: space-between; font-size: 9px; color: #444; padding-top: 3px; font-weight: bold;">
+        <span>Email: elmassatour@gmail.com</span>
+        <span>No. Admin Kantor: +62 811-7171-5125</span>
+      </div>
+    </div>
+
     <div class="top-box">
       <div class="logo-container">
         <img src="${logoBase64}" alt="El Massa Tour & Travel">
