@@ -412,6 +412,7 @@ export function AppShell({ children }: AppShellProps) {
   // Active groups under Dashboard
   const [activePackages, setActivePackages] = useState<Array<{ id: string; name: string }>>([]);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+  const [isJadwalOpen, setIsJadwalOpen] = useState(false);
 
   useEffect(() => {
     let canceled = false;
@@ -647,7 +648,12 @@ export function AppShell({ children }: AppShellProps) {
                               : "text-stone-600 hover:bg-stone-100/70 hover:text-brand-cocoa font-medium"
                           }`}
                           href={item.href}
-                          onClick={onNavigate}
+                          onClick={() => {
+                            if (item.label === "Jadwal Keberangkatan") {
+                              setIsJadwalOpen((prev) => !prev);
+                            }
+                            if (onNavigate) onNavigate();
+                          }}
                         >
                           <item.icon
                             className={`h-4 w-4 shrink-0 ${isActive ? "text-brand-pink" : "text-stone-400"}`}
@@ -655,11 +661,24 @@ export function AppShell({ children }: AppShellProps) {
                             aria-hidden="true"
                           />
                           <span className="truncate">{item.label}</span>
+                          {item.label === "Jadwal Keberangkatan" && (
+                            <ChevronRight
+                              className={`ml-auto h-3.5 w-3.5 text-stone-400 transition-transform duration-200 ${
+                                isJadwalOpen ? "rotate-90 text-brand-pink" : ""
+                              }`}
+                            />
+                          )}
                         </Link>
 
-                        {/* Submenu Group Aktif right below Dashboard */}
+                        {/* Submenu Group Aktif right below Jadwal Keberangkatan */}
                         {item.label === "Jadwal Keberangkatan" && (
-                          <div className="ml-3 my-1.5 pl-3 border-l-2 border-pink-200/70 space-y-1">
+                          <div
+                            className={`ml-3 pl-3 border-l-2 border-pink-200/70 space-y-1 transition-all duration-300 ease-in-out overflow-hidden ${
+                              isJadwalOpen
+                                ? "max-h-96 opacity-100 my-1.5"
+                                : "max-h-0 opacity-0 my-0 pointer-events-none"
+                            }`}
+                          >
                             <div className="flex items-center justify-between px-1 py-0.5">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1">
                                 <Layers className="h-3 w-3 text-brand-pink" />
