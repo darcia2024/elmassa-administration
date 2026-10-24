@@ -10,6 +10,8 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
+  ChevronLeft,
+  ChevronRight,
   CircleDollarSign,
   ClipboardList,
   Contact,
@@ -25,6 +27,9 @@ import {
   LogOut,
   Mails,
   Menu,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plane,
   Plus,
   ReceiptText,
@@ -247,6 +252,39 @@ export function AppShell({ children }: AppShellProps) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+
+  // Collapsible Desktop Sidebar State & Persistence
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("elmassa_sidebar_collapsed");
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === "true");
+      }
+    } catch {}
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("elmassa_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [toggleSidebar]);
 
   // ðŸ” Global Live Search Engine States
   const [searchQuery, setSearchQuery] = useState("");
@@ -551,16 +589,29 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex h-full flex-col justify-between">
       <div>
         {/* Brand Header */}
-        <div className="mb-6 flex items-center gap-3 px-1 pt-1">
-          <img
-            src="/logo-el-massa.png"
-            alt="El Massa Tour & Travel Logo"
-            className="h-10 w-auto object-contain shrink-0"
-          />
-          <div className="h-10 flex flex-col justify-center">
-            <h1 className="text-sm font-bold text-brand-cocoa leading-tight">El Massa Travel</h1>
-            <p className="text-[11px] font-normal text-stone-500 leading-tight">Sistem Operasional Staf</p>
+        <div className="mb-6 flex items-center justify-between gap-2 px-1 pt-1">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src="/logo-el-massa.png"
+              alt="El Massa Tour & Travel Logo"
+              className="h-10 w-auto object-contain shrink-0"
+            />
+            <div className="h-10 flex flex-col justify-center min-w-0">
+              <h1 className="text-sm font-bold text-brand-cocoa leading-tight truncate">El Massa Travel</h1>
+              <p className="text-[11px] font-normal text-stone-500 leading-tight truncate">Sistem Operasional Staf</p>
+            </div>
           </div>
+
+          {/* Desktop Collapse Button with Hover Animation */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            title="Sembunyikan Sidebar (Ctrl+B)"
+            aria-label="Sembunyikan Sidebar"
+            className="group hidden lg:grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-stone-200/80 bg-stone-50/80 text-stone-500 hover:bg-pink-50 hover:text-brand-pink hover:border-pink-200 transition-all duration-200 active:scale-90 cursor-pointer shadow-2xs"
+          >
+            <ChevronLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2} />
+          </button>
         </div>
 
         {/* Navigation Items - Thin Minimal Pill */}
@@ -682,10 +733,39 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <main className="min-h-screen bg-[#fafafa] text-stone-800 font-sans lg:flex">
       
-      {/* Light Thin Clean Sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r border-stone-200/70 bg-white px-4 py-5 lg:block">
-        {renderSidebarContent()}
+      {/* Light Thin Clean Collapsible Sidebar */}
+      <aside
+        className={`hidden shrink-0 border-r border-stone-200/70 bg-white transition-all duration-300 ease-in-out lg:block ${
+          isSidebarCollapsed
+            ? "w-0 opacity-0 -translate-x-full border-r-0 overflow-hidden px-0 py-0 pointer-events-none"
+            : "w-60 opacity-100 translate-x-0 px-4 py-5 overflow-y-auto"
+        }`}
+      >
+        <div className="w-52">
+          {renderSidebarContent()}
+        </div>
       </aside>
+
+      {/* Floating Animated Expand Button when Sidebar is Collapsed (Tablet & Desktop) */}
+      <div
+        className={`fixed left-0 top-20 z-40 transition-all duration-300 ease-out hidden lg:block ${
+          isSidebarCollapsed
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          title="Tampilkan Sidebar (Ctrl+B)"
+          className="group flex items-center gap-1.5 rounded-r-xl border-y border-r border-stone-200/90 bg-white/95 px-2.5 py-2 text-xs font-bold text-stone-700 shadow-md backdrop-blur-md hover:bg-pink-50 hover:text-brand-pink hover:border-pink-300 hover:pr-3.5 transition-all duration-200 active:scale-95 cursor-pointer"
+        >
+          <ChevronRight className="h-4 w-4 text-brand-pink transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
+          <span className="text-[11px] font-semibold text-stone-600 group-hover:text-brand-pink transition-colors">
+            Menu
+          </span>
+        </button>
+      </div>
 
       {/* Mobile Nav Drawer */}
       {isMobileNavOpen ? (
@@ -718,6 +798,7 @@ export function AppShell({ children }: AppShellProps) {
         {/* Sleek Light Top Header */}
         <header className="sticky top-0 z-30 border-b border-stone-200/60 bg-white/95 backdrop-blur-md px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 font-sans">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            {/* Mobile Hamburger */}
             <button
               className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 lg:hidden active:scale-95 transition"
               type="button"
@@ -725,6 +806,26 @@ export function AppShell({ children }: AppShellProps) {
               aria-label="Buka menu sidebar"
             >
               <Menu className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+
+            {/* Desktop Sidebar Toggle Button with Animation */}
+            <button
+              className={`hidden lg:grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition-all duration-300 active:scale-95 cursor-pointer ${
+                isSidebarCollapsed
+                  ? "border-brand-pink/40 bg-pink-50 text-brand-pink hover:bg-pink-100 shadow-xs ring-2 ring-brand-pink/20"
+                  : "border-stone-200/80 bg-white text-stone-600 hover:bg-stone-50 hover:text-stone-900 shadow-2xs"
+              }`}
+              type="button"
+              onClick={toggleSidebar}
+              title={isSidebarCollapsed ? "Tampilkan Sidebar (Ctrl+B)" : "Sembunyikan Sidebar (Ctrl+B)"}
+              aria-label={isSidebarCollapsed ? "Tampilkan Sidebar" : "Sembunyikan Sidebar"}
+            >
+              <PanelLeft
+                className={`h-4 w-4 transition-all duration-300 ${
+                  isSidebarCollapsed ? "scale-110 text-brand-pink" : "text-stone-600"
+                }`}
+                strokeWidth={1.75}
+              />
             </button>
 
             <div className="min-w-0">
