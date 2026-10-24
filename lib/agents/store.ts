@@ -182,3 +182,67 @@ export async function deleteAgent(id: string): Promise<boolean> {
   const res = await getPool().query(`DELETE FROM agents WHERE id = $1;`, [id]);
   return (res.rowCount ?? 0) > 0;
 }
+
+
+export async function findAgentByCode(agentCode: string): Promise<AgentRecord | null> {
+  const code = (agentCode ?? "").trim();
+  if (!code) return null;
+  const res = await getPool().query(
+    `SELECT ${SELECT_COLUMNS} ${FROM_CLAUSE} WHERE UPPER(TRIM(a.agent_code)) = UPPER($1) LIMIT 1;`,
+    [code],
+  );
+  return res.rows[0] ? toRecord(res.rows[0]) : null;
+}
+
+export async function findAgentByPhone(phone: string): Promise<AgentRecord | null> {
+  const cleanPhone = (phone ?? "").replace(/\D/g, "");
+  if (!cleanPhone) return null;
+  const res = await getPool().query(
+    `SELECT ${SELECT_COLUMNS} ${FROM_CLAUSE} WHERE regexp_replace(a.phone, '\\D', '', 'g') = $1 LIMIT 1;`,
+    [cleanPhone],
+  );
+  return res.rows[0] ? toRecord(res.rows[0]) : null;
+}
+
+export async function findAgentByCodeOrPhone(identifier: string): Promise<AgentRecord | null> {
+  const raw = (identifier ?? "").trim();
+  if (!raw) return null;
+  const cleanPhone = raw.replace(/\D/g, "");
+
+  const res = await getPool().query(
+    `SELECT ${SELECT_COLUMNS} ${FROM_CLAUSE} 
+     WHERE (UPPER(TRIM(a.agent_code)) = UPPER($1) OR ($2 <> '' AND regexp_replace(a.phone, '\\D', '', 'g') = $2))
+     LIMIT 1;`,
+    [raw, cleanPhone],
+  );
+  return res.rows[0] ? toRecord(res.rows[0]) : null;
+}
+
+export async function listBookingsForAgent(agentCode: string) {
+  const code = (agentCode ?? "").trim();
+  if (!code) return [];
+  const res = await getPool().query(
+    `SELECT 
+       b.code,
+       b.customer_name as "customerName",
+       b.phone,
+       b.nik,
+       b.package_id as "packageId",
+       b.package_name as "packageName",
+       b.departure,
+       b.room_type as "roomType",
+       b.participants,
+       b.total_amount as "totalAmount",
+       b.paid_amount as "paidAmount",
+       b.remaining_amount as "remainingAmount",
+       b.status,
+       b.umrah_me_status as "umrahMeStatus",
+       b.created_at as "createdAt",
+       b.agent_code as "agentCode"
+     FROM real_bookings b
+     WHERE UPPER(TRIM(b.agent_code)) = UPPER($1)
+     ORDER BY b.created_at DESC;`,
+    [code],
+  );
+  return res.rows;
+}

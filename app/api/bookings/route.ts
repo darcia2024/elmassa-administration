@@ -56,7 +56,8 @@ export async function GET() {
         remaining_amount as "remainingAmount",
         status,
         umrah_me_status as "umrahMeStatus",
-        created_at as "createdAt"
+        created_at as "createdAt",
+        COALESCE(agent_code, '') as "agentCode"
       FROM real_bookings 
       ORDER BY created_at DESC;
     `);
@@ -85,11 +86,13 @@ export async function POST(req: Request) {
       const totalAmount = Number(b.totalAmount) || 33500000;
       const requestedDp = Math.max(0, Number(b.paidAmount) || 0);
 
+      const agentCode = String(b.agentCode || b.agent_code || "").trim();
+
       const res = await client.query(
         `INSERT INTO real_bookings (
-          code, customer_name, phone, nik, package_id, package_name, departure, room_type, participants, total_amount, paid_amount, remaining_amount, status, umrah_me_status
+          code, customer_name, phone, nik, package_id, package_name, departure, room_type, participants, total_amount, paid_amount, remaining_amount, status, umrah_me_status, agent_code
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $10, 'Belum Bayar', $11)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $10, 'Belum Bayar', $11, $12)
         ON CONFLICT (code) DO UPDATE SET
           customer_name = EXCLUDED.customer_name,
           phone = EXCLUDED.phone,
@@ -100,7 +103,8 @@ export async function POST(req: Request) {
           room_type = EXCLUDED.room_type,
           participants = EXCLUDED.participants,
           total_amount = EXCLUDED.total_amount,
-          umrah_me_status = EXCLUDED.umrah_me_status
+          umrah_me_status = EXCLUDED.umrah_me_status,
+          agent_code = CASE WHEN EXCLUDED.agent_code <> '' THEN EXCLUDED.agent_code ELSE real_bookings.agent_code END
         RETURNING (xmax = 0) AS inserted;`,
         [
           code,
@@ -114,6 +118,7 @@ export async function POST(req: Request) {
           Number(b.participants) || 1,
           totalAmount,
           b.umrahMeStatus || "Aktif 🟢",
+          agentCode,
         ]
       );
 

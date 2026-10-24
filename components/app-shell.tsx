@@ -93,6 +93,7 @@ const navGroups = [
     items: [
       { label: "Data Karyawan", icon: UserCog, href: "/operasional/karyawan" },
       { label: "Data Agen", icon: Handshake, href: "/operasional/agen" },
+      { label: "Portal My El Massa", icon: Sparkles, href: "/my-elmassa" },
       { label: "Data Stok Perlengkapan", icon: Boxes, href: "/operasional/stok" },
     ],
   },
@@ -131,6 +132,7 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/keuangan": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/operasional/karyawan": ["CEO / Admin Master", "Admin Master"],
   "/operasional/agen": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],
+  "/my-elmassa": ["CEO / Admin Master", "Sub-User Sales & CRM", "Sub-User Operasional", "Admin Master"],
   "/operasional/stok": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Lapangan", "Admin Master"],
 };
 

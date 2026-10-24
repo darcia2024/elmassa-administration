@@ -36,6 +36,7 @@ type BookingItem = {
   status: "Lunas" | "DP" | "Belum Bayar";
   paymentProgress: number;
   createdDate: string;
+  agentCode?: string;
 };
 
 const initialBookings: BookingItem[] = [];
@@ -411,7 +412,14 @@ export default function BookingsPage() {
                           {b.code}
                         </span>
                         <h4 className="font-bold text-sm text-stone-900">{b.customer}</h4>
-                        <p className="text-[11px] text-stone-500 font-medium">{b.phone}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-[11px] text-stone-500 font-medium">{b.phone}</p>
+                          {b.agentCode && (
+                            <span className="rounded bg-pink-100 text-brand-pink px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider">
+                              Mitra: {b.agentCode}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <StatusBadge status={b.status} />
                     </div>
@@ -502,7 +510,14 @@ export default function BookingsPage() {
                           <p className="font-bold text-brand-cocoa group-hover:text-brand-pink transition">
                             {b.customer}
                           </p>
-                          <p className="font-mono text-[10px] font-semibold text-stone-400">{b.code}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-[10px] font-semibold text-stone-400">{b.code}</span>
+                            {b.agentCode && (
+                              <span className="rounded bg-pink-100 text-brand-pink px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider">
+                                Mitra: {b.agentCode}
+                              </span>
+                            )}
+                          </div>
                         </Link>
                       </td>
 

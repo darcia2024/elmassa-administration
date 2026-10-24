@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Handshake, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { ExternalLink, Handshake, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import Link from "next/link";
 
 type Agent = {
   id: string;
@@ -190,6 +191,15 @@ export function AgenManager() {
                 className="h-9 w-56 rounded-xl border border-stone-200 bg-stone-50/50 pl-8 pr-3 text-xs font-medium text-brand-cocoa placeholder:text-stone-400 outline-none focus:border-brand-pink focus:bg-white transition"
               />
             </div>
+
+            <Link
+              href="/my-elmassa"
+              target="_blank"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50 px-3.5 text-xs font-bold text-brand-pink hover:bg-pink-100 transition shadow-2xs"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Buka Portal My El Massa</span>
+            </Link>
 
             <button
               type="button"

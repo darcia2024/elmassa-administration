@@ -24,6 +24,7 @@ export type BookingRecord = {
   status: string;
   umrahMeStatus: string;
   createdAt: string;
+  agentCode?: string;
 };
 
 const SELECT_COLUMNS = `
@@ -42,7 +43,8 @@ const SELECT_COLUMNS = `
   remaining_amount as "remainingAmount",
   status,
   umrah_me_status as "umrahMeStatus",
-  created_at as "createdAt"
+  created_at as "createdAt",
+  COALESCE(agent_code, '') as "agentCode"
 `;
 
 export async function listBookings(): Promise<BookingRecord[]> {

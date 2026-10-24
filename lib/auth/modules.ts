@@ -75,6 +75,7 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "invoices", module: "dokumen" },
   { prefix: "jamaah", module: "jamaah" },
   { prefix: "manifest", module: "manifest" },
+  { prefix: "my-elmassa", module: null },
   // Pusat notifikasi memotong banyak modul sekaligus, jadi tidak bisa dikunci
   // ke satu modul: mengunci ke "laporan" akan membuat kasir kehilangan
   // peringatan pembayaran. Penyaringannya dikerjakan per-peringatan di
