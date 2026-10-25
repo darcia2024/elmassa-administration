@@ -1895,37 +1895,108 @@ export default function PitchPresentationPage() {
           </div>
         </header>
 
-        {/* SECTION 1: KEBUTUHAN NYATA EL MASSA */}
+        {/* SECTION 1: TANTANGAN & SASARAN OPERASIONAL */}
         <section className="pitch-panel" id="kebutuhan">
           <div className="split-head">
             <div className="panel-head" style={{ margin: 0 }}>
-              <p className="eyebrow">Kebutuhan Nyata El Massa</p>
-              <h2>Satu sistem terpadu yang menyatukan seluruh kegiatan kantor, kasir, mitra, dan jamaah.</h2>
+              <p className="eyebrow">Tantangan &amp; Sasaran Operasional</p>
+              <h2>Mengapa Sistem Ini Dibuat: Mengakhiri Catatan Tercecer Menjadi Satu Kendali Terpadu.</h2>
             </div>
-            <p className="lead" style={{ maxWidth: "34ch" }}>
-              Ukuran keberhasilannya sederhana: Owner bisa memantau omset dari HP, kasir tertib kuitansi, dan agen bisa mendaftarkan jamaah tanpa repot.
+            <p className="lead" style={{ maxWidth: "38ch" }}>
+              Ukuran keberhasilannya konkret: Hari Senin besok staf kantor langsung input data riil, kasir tertib kuitansi resmi, dokumen paspor selesai 1-klik, dan Owner memantau omset dari HP.
             </p>
           </div>
+
+          {/* 4 METRIK RUANG LINGKUP & KESIAPAN SISTEM */}
           <div className="stats-grid">
             <div className="stat-card">
-              <p className="eyebrow">Risiko Selisih Uang Kasir</p>
-              <b>0% (Anti-Bocor)</b>
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Kwitansi terbit otomatis saat uang masuk</span>
+              <p className="eyebrow">Modul Kantor Siap Pakai</p>
+              <b>6 Modul</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Paket, Booking, Kasir, Dokumen, Stok, &amp; Laba</span>
             </div>
             <div className="stat-card">
-              <p className="eyebrow">Pintu Masuk Terpadu</p>
-              <b>3 Gerbang</b>
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Kantor (Web), Agen (My El Massa), Jamaah (UmrahMe)</span>
+              <p className="eyebrow">Pengguna Terhubung</p>
+              <b>3 Jalur</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Kantor Pusat (Web), Agen Daerah (HP), &amp; Jamaah (UmrahMe)</span>
             </div>
             <div className="stat-card">
-              <p className="eyebrow">Ketik Ulang di Word</p>
-              <b>0 Kali</b>
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Surat Kemenag &amp; invoice otomatis ber-kop surat resmi</span>
+              <p className="eyebrow">Jadwal Go-Live</p>
+              <b>Senin Besok</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Staf kantor mulai mencatat pendaftaran jamaah &amp; kuitansi riil</span>
             </div>
             <div className="stat-card">
-              <p className="eyebrow">Kepastian Sisa Kursi</p>
-              <b>Real-Time</b>
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Seat berkurang otomatis saat booking dicatat</span>
+              <p className="eyebrow">Penyimpanan Data</p>
+              <b>100% Cloud</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Database Supabase terpusat, aman, &amp; nol risiko berkas hilang</span>
+            </div>
+          </div>
+
+          {/* KOMPARASI 6 MASALAH LAMA VS SOLUSI SISTEM BARU */}
+          <div className="mt-8 pt-8 border-t border-stone-200">
+            <div className="mb-4">
+              <p className="eyebrow text-stone-500">Transformasi Kerja Harian</p>
+              <h3 className="text-lg sm:text-xl font-bold text-stone-900 mt-1">Perubahan Nyata Dari Cara Kerja Manual ke Sistem Terpadu</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">1. Pendaftaran Jamaah</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Data tercecer di chat WA &amp; buku manual, rawan lupa diinput.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> Terpusat di menu Booking dengan Kode Booking unik otomatis.
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">2. Pembayaran Kasir</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Nota kuitansi manual kertas, rawan selisih uang di kasir.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> Kwitansi resmi KW berstempel &amp; terbilang rupiah otomatis.
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">3. Dokumen Paspor Kemenag</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Ketik ulang NIK &amp; nama jamaah di Word, sering salah ketik.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> 1-Klik cetak PDF surat Kemenag resmi ber-kop pink-coklat asli.
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">4. Kuota Kursi Paket</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Agen tanya sisa kursi bolak-balik via chat WA admin kantor.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> Sisa kursi paket terpantau real-time langsung di smartphone agen.
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">5. Komisi Mitra Daerah</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Hitung manual di Excel, rawan selisih &amp; saling curiga.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> Dompet komisi agen Rp 1.500.000/pax tercatat otomatis &amp; transparan.
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">6. Pantauan Owner</span>
+                <div className="text-xs text-rose-700 bg-rose-50/70 p-2 rounded-lg border border-rose-100">
+                  <strong>Sebelum:</strong> Owner harus tunggu rombongan pulang baru tahu margin laba.
+                </div>
+                <div className="text-xs text-emerald-800 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                  <strong>Sekarang:</strong> Rekap margin laba kotor grup terlihat otomatis sebelum terbang.
+                </div>
+              </div>
             </div>
           </div>
         </section>
