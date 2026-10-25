@@ -4,8 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  AlertCircle,
-  ArrowLeft,
   ArrowRight,
   Award,
   BarChart3,
@@ -13,123 +11,747 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
-  ChevronLeft,
   ChevronRight,
-  Clock,
-  Compass,
   CreditCard,
   ExternalLink,
-  Eye,
-  FileCheck2,
   FileSpreadsheet,
   FileText,
-  FolderOpen,
   Handshake,
-  HelpCircle,
   Layers,
   Lock,
   Mails,
   Monitor,
   Plane,
-  Play,
   Plus,
-  Receipt,
   ReceiptText,
-  RefreshCw,
   Search,
-  ShieldAlert,
   ShieldCheck,
   Smartphone,
   Sparkles,
   TrendingUp,
   UserCheck,
   UserCog,
-  UserPlus,
   Users,
   Wallet,
   Zap,
 } from "lucide-react";
 
+// Data skenario uji interaktif (mirip dengan var D di referensi)
+const SCENARIOS = [
+  {
+    q: "1. Agen daftarkan jamaah dari HP, apa yang terjadi di kantor?",
+    title: "Pendaftaran Otomatis Terikat Kode Agen",
+    sum: "Data jamaah langsung masuk ke menu Booking kantor dengan status 'Belum Bayar'. Komisi agen otomatis dihitung di sistem (Rp 1.500.000/pax), dan kuota seat paket langsung berkurang.",
+    type: "bars",
+    bars: [
+      { label: "Sisa Kuota Paket", val: 14, max: 45, unit: "Seat", isLow: true },
+      { label: "Pax Didaftarkan Agen", val: 2, max: 10, unit: "Pax", isLow: false },
+      { label: "Estimasi Komisi Agen", val: 3000000, max: 5000000, unit: "Rp 3.000.000", isLow: false },
+    ],
+    src: "Sumber: real_bookings.agent_code ➔ agents (Tersinkron Real-Time)",
+    rec: {
+      found: "Booking baru masuk dari agen AG-ELMASSA-01 (Ustadz H. Ahmad Sobri) untuk 2 jamaah paket Oktober.",
+      evidence: "Kode Booking BK-MYE-XXXXXX tercatat di tabel real_bookings dengan status 'Belum Bayar'.",
+      action: "Bagian kasir kantor menunggu transfer DP dari jamaah/agen sebelum mengonfirmasi pembayaran.",
+      confidence: "Terkunci Aman: Akun UmrahMe jamaah belum aktif sampai kasir mengonfirmasi DP.",
+    },
+  },
+  {
+    q: "2. Kasir menerima transfer DP, bagaimana status kuitansi & UmrahMe?",
+    title: "Verifikasi Kasir & Aktivasi Otomatis UmrahMe",
+    sum: "Saat kasir menginput DP, sistem otomatis menerbitkan Kuitansi resmi (KW-XXXXXX) lengkap dengan terbilang rupiah dan stempel. Seketika itu juga, akun aplikasi UmrahMe milik jamaah otomatis DIAKTIFKAN.",
+    type: "kpis",
+    kpis: [
+      { num: "KW-2610-0012", label: "Nomor Kwitansi Resmi Otomatis Terbit" },
+      { num: "Rp 10.000.000", label: "DP Terverifikasi Masuk Kasir" },
+      { num: "Aktif 🟢", label: "Status Akun Digital UmrahMe Jamaah" },
+      { num: "100% Sinkron", label: "Kuitansi Terhubung Langsung ke Invoice" },
+    ],
+    src: "Sumber: payments ➔ receipts ➔ real_bookings.umrah_me_status",
+    rec: {
+      found: "Pembayaran DP berhasil dicocokkan dengan rekening bank resmi PT El Massa Tour & Travel.",
+      evidence: "Tersimpan di tabel payments dan otomatis membuat baris bukti sah di tabel receipts.",
+      action: "Kirim PDF kuitansi ke jamaah via WhatsApp dan instruksikan jamaah login ke aplikasi UmrahMe.",
+      confidence: "Anti-Bocor: Kwitansi tidak bisa dibuat tanpa transaksi uang masuk di kasir.",
+    },
+  },
+  {
+    q: "3. Bagaimana cara menerbitkan Surat Rekomendasi Paspor Kemenag?",
+    title: "Otomasi Dokumen Resmi Ber-Kop Surat Asli",
+    sum: "Staf kantor cukup memilih nama jamaah dari database. Sistem otomatis mengisi Nama, NIK, Tempat/Tgl Lahir, dan Paket Keberangkatan ke dalam format surat resmi Kemenag dengan kop motif pink-coklat asli.",
+    type: "bars",
+    bars: [
+      { label: "Surat Rekomendasi Paspor Baru", val: 100, max: 100, unit: "Siap Cetak PDF", isLow: false },
+      { label: "Surat Penambahan Nama (3 Kata)", val: 100, max: 100, unit: "Format Baku Imigrasi", isLow: false },
+      { label: "Surat Izin Cuti Kerja Jamaah", val: 100, max: 100, unit: "Otomatis Tanggal", isLow: false },
+    ],
+    src: "Sumber: jamaah_profiles ➔ letters (Arsip Resmi Surat Menyurat)",
+    rec: {
+      found: "Jamaah membutuhkan surat rekomendasi ke kantor imigrasi untuk pembuatan paspor umrah.",
+      evidence: "Data NIK dan nama jamaah sudah ditarik otomatis dari formulir booking/jamaah.",
+      action: "Klik tombol 'Cetak PDF' di menu Surat Menyurat. Surat langsung bertanda tangan & stempel resmi.",
+      confidence: "Nol Ketik Ulang: 100% bebas dari kesalahan ketik nama atau NIK di Word.",
+    },
+  },
+  {
+    q: "4. Bagaimana Owner melihat laba kotor per rombongan keberangkatan?",
+    title: "Rekapitulasi Keuangan & Margin Laba Grup",
+    sum: "Di menu Rekap Keuangan Grup, Owner dapat melihat total uang masuk dari jamaah rombongan dikurangi seluruh realisasi biaya (tiket penerbangan, hotel Makkah-Madinah, visa, muthawwif, & perlengkapan).",
+    type: "kpis",
+    kpis: [
+      { num: "Rp 1.346.543.000", label: "Total Nilai Booking Grup (45 Pax)" },
+      { num: "Rp 1.189.200.000", label: "Realisasi Biaya Tiket, Hotel & Handling" },
+      { num: "Rp 157.343.000", label: "Estimasi Margin Laba Kotor Rombongan" },
+      { num: "11.7%", label: "Persentase Margin Keuntungan" },
+    ],
+    src: "Sumber: real_bookings + published_packages.costing_data ➔ /pembayaran/rekap-grup",
+    rec: {
+      found: "Owner membutuhkan kepastian kesehatan finansial sebelum rombongan terbang ke Saudi.",
+      evidence: "Data terintegrasi antara penerimaan kasir dengan simulator HPP paket yang sudah ditetapkan.",
+      action: "Owner dapat memantau sisa piutang jamaah yang belum lunas menjelang batas akhir pelunasan.",
+      confidence: "Akurat: Angka dihitung dari data transaksi riil, bukan estimasi kasar.",
+    },
+  },
+];
+
 export default function PitchPresentationPage() {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [presentationMode, setPresentationMode] = useState<"slides" | "scroll">("slides");
-
-  const slides = [
-    {
-      id: "intro",
-      tag: "Visi & Transformasi Digital",
-      title: "El Massa Integrated Ecosystem",
-      subtitle: "Transformasi Operasional Travel Umrah: Dari Manual Tercecer Menjadi Satu Ekosistem Digital Terpadu",
-      content: "overview",
-    },
-    {
-      id: "triple-engine",
-      tag: "Arsitektur Solusi",
-      title: "The Triple-Engine Ecosystem",
-      subtitle: "3 Sudut Sinergis: Kantor Pusat (Web) ↔ Mitra/Agen (My El Massa) ↔ Jamaah (UmrahMe)",
-      content: "architecture",
-    },
-    {
-      id: "finance",
-      tag: "Pilar Keuangan & Kasir",
-      title: "Sistem Kasir Anti-Bocor & Verifikasi Berjenjang",
-      subtitle: "Arus Kas Terpusat, Invoice Terintegrasi, Kwitansi Otomatis & Rekap Margin Laba Grup",
-      content: "finance",
-    },
-    {
-      id: "administrasi",
-      tag: "Pilar Dokumen & Kemenag",
-      title: "Otomasi Administrasi & Surat Kemenag Resmi",
-      subtitle: "Kop Surat Resmi Motif Pink-Coklat, Surat Rekomendasi Paspor, Tambah Nama, & Izin Cuti Sekali Klik",
-      content: "administrasi",
-    },
-    {
-      id: "my-elmassa",
-      tag: "Pilar Agen & Mitra",
-      title: "Portal Mitra 'My El Massa' (Live & Teruji)",
-      subtitle: "Pemberdayaan Agen Daerah: Pantau Sisa Seat Real-Time, Daftarkan Jamaah dari HP, & Komisi Transparan",
-      content: "my-elmassa",
-    },
-    {
-      id: "umrahme",
-      tag: "Pilar Jamaah Digital",
-      title: "Aplikasi Jamaah 'UmrahMe' & Self-Service Data",
-      subtitle: "Aktivasi Terkunci Otomatis Pasca-Bayar, Form Mandiri Paspor, Live Itinerary, & Muthawwif",
-      content: "umrahme",
-    },
-    {
-      id: "operations",
-      tag: "Pilar Operasional & Logistik",
-      title: "Manajemen Karyawan, Inventaris Stok & Manifest",
-      subtitle: "Pengendalian Fisik Koper, Kain Ihram & Mukena (FIFO) serta Manifest Penerbangan Makkah-Madinah",
-      content: "operations",
-    },
-    {
-      id: "roadmap",
-      tag: "Eksekusi & Action Plan",
-      title: "Roadmap Kesiapan Input Data Hari Senin",
-      subtitle: "Rencana Bertahap Kick-Off Tim Kantor, Sosialisasi Agen, dan Go-Live Keberangkatan",
-      content: "roadmap",
-    },
-  ];
-
-  const totalSlides = slides.length;
-
-  const nextSlide = () => {
-    if (activeSlide < totalSlides - 1) setActiveSlide((prev) => prev + 1);
-  };
-
-  const prevSlide = () => {
-    if (activeSlide > 0) setActiveSlide((prev) => prev - 1);
-  };
+  const [activeScenarioIdx, setActiveScenarioIdx] = useState(0);
+  const activeScenario = SCENARIOS[activeScenarioIdx];
 
   return (
-    <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col font-sans selection:bg-brand-pink selection:text-white">
-      {/* Top Presentation Bar */}
-      <header className="sticky top-0 z-40 border-b border-stone-800 bg-stone-950/90 backdrop-blur-md px-4 py-3">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative h-9 w-28 sm:w-32 shrink-0">
+    <>
+      {/* SCOPED CSS IDENTIK DENGAN ARTIFACT-DAR: Tumpukan panel bersudut bulat di atas latar abu hangat */}
+      <style jsx global>{`
+        :root {
+          --page: #dad8d3;
+          --surface: #f5f4ef;
+          --card: #ffffff;
+          --ink: #141414;
+          --muted: #64635d;
+          --line: #e2e0da;
+          --accent: #d83b7d;
+          --accent-soft: #fdf2f8;
+          --brand-cocoa: #3c2920;
+          --hero-a: #2e1f1c;
+          --hero-b: #5b3d34;
+          --track: #eeede8;
+          --bad: #b3402e;
+          --success: #15803d;
+          --font: "Inter Tight", "Segoe UI", system-ui, -apple-system, sans-serif;
+          color-scheme: light;
+        }
+
+        body {
+          background: var(--page);
+          color: var(--ink);
+          font: 400 17px/1.55 var(--font);
+          padding-block: 16px 40px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px));
+          padding-right: max(16px, env(safe-area-inset-right, 0px));
+          margin: 0;
+        }
+
+        .pitch-container {
+          max-width: 1240px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .pitch-nav {
+          background: var(--card);
+          border-radius: 14px;
+          padding: 10px 14px 10px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .pitch-nav .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-weight: 700;
+          font-size: 1.05rem;
+          color: var(--ink);
+          text-decoration: none;
+          letter-spacing: -0.02em;
+        }
+
+        .pitch-nav .links {
+          display: flex;
+          gap: 24px;
+        }
+
+        .pitch-nav .links a {
+          color: var(--muted);
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: color 0.15s;
+        }
+
+        .pitch-nav .links a:hover {
+          color: var(--ink);
+        }
+
+        @media (max-width: 860px) {
+          .pitch-nav .links {
+            display: none;
+          }
+        }
+
+        .pitch-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 42px;
+          padding: 0 18px;
+          border-radius: 10px;
+          font: 600 0.9rem/1 var(--font);
+          text-decoration: none;
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .pitch-btn-accent {
+          background: var(--accent);
+          color: #ffffff;
+          box-shadow: 0 2px 8px rgba(216, 59, 125, 0.25);
+        }
+
+        .pitch-btn-accent:hover {
+          background: #c22c6c;
+          color: #ffffff;
+        }
+
+        .pitch-btn-ghost {
+          border-color: rgba(255, 255, 255, 0.4);
+          color: #ffffff;
+        }
+
+        .pitch-btn-ghost:hover {
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        .pitch-hero {
+          border-radius: 20px;
+          background: linear-gradient(125deg, var(--hero-a), var(--hero-b));
+          color: #ffffff;
+          padding: clamp(32px, 6vw, 68px) clamp(24px, 5vw, 48px);
+          display: grid;
+          grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+          gap: 40px;
+          align-items: center;
+          overflow: hidden;
+        }
+
+        @media (max-width: 920px) {
+          .pitch-hero {
+            grid-template-columns: minmax(0, 1fr);
+          }
+        }
+
+        .pitch-hero h1 {
+          font-weight: 500;
+          letter-spacing: -0.035em;
+          font-size: clamp(2.4rem, 5vw, 4.1rem);
+          line-height: 1.06;
+          margin: 0;
+          text-wrap: balance;
+        }
+
+        .pitch-hero p.sub {
+          color: rgba(255, 255, 255, 0.88);
+          max-width: 48ch;
+          margin-top: 20px;
+          font-size: 1.05rem;
+          line-height: 1.5;
+        }
+
+        .pitch-hero .ctas {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 28px;
+        }
+
+        .pitch-trust {
+          margin-top: 36px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 0.86rem;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .pitch-trust b {
+          display: inline-grid;
+          place-items: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: var(--ink);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 0.85rem;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .pitch-device {
+          background: var(--card);
+          color: var(--ink);
+          border-radius: 22px;
+          padding: 22px;
+          box-shadow: 0 30px 60px -20px rgba(20, 20, 20, 0.35);
+          border: 8px solid #231916;
+        }
+
+        .pitch-device .q {
+          background: var(--surface);
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 0.88rem;
+          font-weight: 600;
+        }
+
+        .pitch-device .t {
+          font-size: 0.78rem;
+          color: var(--muted);
+          margin: 16px 0 10px;
+        }
+
+        .pitch-mini {
+          display: grid;
+          grid-template-columns: minmax(80px, auto) minmax(0, 1fr) 40px;
+          gap: 7px 10px;
+          align-items: center;
+          font-size: 0.78rem;
+        }
+
+        .pitch-mini .tr {
+          height: 10px;
+          background: var(--track);
+          border-radius: 3px;
+          position: relative;
+        }
+
+        .pitch-mini .tr i {
+          position: absolute;
+          inset: 0 auto 0 0;
+          background: var(--accent);
+          border-radius: 3px;
+        }
+
+        .pitch-mini .tr s {
+          position: absolute;
+          top: -4px;
+          bottom: -4px;
+          left: 69%;
+          width: 2px;
+          background: var(--bad);
+        }
+
+        .pitch-device .rec {
+          margin-top: 16px;
+          background: var(--accent-soft);
+          border: 1px solid #fbcfe8;
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 0.82rem;
+          color: #831843;
+        }
+
+        .pitch-device .rec span {
+          display: block;
+          font-size: 0.66rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          font-weight: 700;
+          margin-bottom: 4px;
+          color: var(--accent);
+        }
+
+        .pitch-panel {
+          background: var(--surface);
+          border-radius: 20px;
+          padding: clamp(28px, 5vw, 56px);
+        }
+
+        .panel-head {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 32px;
+        }
+
+        .split-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 24px;
+          flex-wrap: wrap;
+        }
+
+        .eyebrow {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--muted);
+          margin: 0;
+        }
+
+        h2 {
+          font-size: clamp(1.65rem, 3vw, 2.45rem);
+          font-weight: 500;
+          line-height: 1.16;
+          letter-spacing: -0.025em;
+          margin: 0;
+          text-wrap: balance;
+        }
+
+        .lead {
+          color: var(--muted);
+          max-width: 58ch;
+          font-size: 1.05rem;
+          margin: 0;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 14px;
+          margin-top: 40px;
+        }
+
+        .stat-card {
+          background: var(--card);
+          border-radius: 14px;
+          padding: 22px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          gap: 36px;
+          min-height: 170px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card b {
+          font-size: 2.3rem;
+          font-weight: 500;
+          letter-spacing: -0.03em;
+          line-height: 1;
+          color: var(--ink);
+        }
+
+        .grid-3 {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .grid-4 {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        @media (max-width: 900px) {
+          .grid-3, .grid-4 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 600px) {
+          .grid-3, .grid-4, .stats-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .card {
+          background: var(--card);
+          border-radius: 14px;
+          padding: 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .card h3 {
+          font-size: 1.15rem;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          margin: 0;
+          line-height: 1.3;
+        }
+
+        .card p {
+          color: var(--muted);
+          font-size: 0.92rem;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .card .ic {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: var(--surface);
+          color: var(--accent);
+          display: grid;
+          place-items: center;
+          margin-bottom: 6px;
+        }
+
+        /* Interactive Simulator (Section #contoh) */
+        .demo-box {
+          display: grid;
+          grid-template-columns: 320px minmax(0, 1fr);
+          gap: 16px;
+          margin-top: 10px;
+        }
+
+        @media (max-width: 860px) {
+          .demo-box {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .qs-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .qs-btn {
+          background: var(--card);
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          padding: 14px 16px;
+          text-align: left;
+          font: 500 0.88rem/1.4 var(--font);
+          color: var(--ink);
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .qs-btn[aria-pressed="true"] {
+          background: var(--ink);
+          color: #ffffff;
+          border-color: var(--ink);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .ans-card {
+          background: var(--card);
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .ans-card h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0 0 6px 0;
+        }
+
+        .ans-card p.sum {
+          color: var(--muted);
+          font-size: 0.92rem;
+          margin: 0 0 16px 0;
+          line-height: 1.5;
+        }
+
+        .kpi-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 12px;
+          margin: 14px 0;
+        }
+
+        .kpi-card {
+          background: var(--surface);
+          border-radius: 12px;
+          padding: 14px;
+        }
+
+        .kpi-card b {
+          display: block;
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--ink);
+        }
+
+        .kpi-card span {
+          font-size: 0.76rem;
+          color: var(--muted);
+        }
+
+        .rec-box {
+          background: #fff8f5;
+          border-left: 4px solid var(--accent);
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .rec-box .tag {
+          font-size: 0.68rem;
+          text-transform: uppercase;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: var(--accent);
+        }
+
+        .rec-box dl {
+          display: grid;
+          grid-template-columns: 140px minmax(0, 1fr);
+          gap: 6px 12px;
+          font-size: 0.85rem;
+          margin: 0;
+        }
+
+        @media (max-width: 600px) {
+          .rec-box dl {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .rec-box dt {
+          color: var(--muted);
+          font-weight: 500;
+        }
+
+        .rec-box dd {
+          color: var(--ink);
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .steps-row {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        @media (max-width: 960px) {
+          .steps-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 540px) {
+          .steps-row {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .step-card {
+          background: var(--card);
+          border-radius: 14px;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .step-card .n {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--accent);
+        }
+
+        .step-card h3 {
+          font-size: 1.05rem;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .step-card p {
+          font-size: 0.82rem;
+          color: var(--muted);
+          margin: 0;
+          line-height: 1.45;
+        }
+
+        .tablewrap {
+          overflow-x: auto;
+          background: var(--card);
+          border-radius: 14px;
+          padding: 6px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.88rem;
+          text-align: left;
+        }
+
+        th {
+          padding: 12px 16px;
+          font-weight: 600;
+          color: var(--muted);
+          border-bottom: 1px solid var(--line);
+          font-size: 0.78rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        td {
+          padding: 14px 16px;
+          border-bottom: 1px solid var(--line);
+          color: var(--ink);
+        }
+
+        tr:last-child td {
+          border-bottom: none;
+        }
+
+        .closing-banner {
+          border-radius: 20px;
+          background: linear-gradient(135deg, #1c1917, #292524);
+          color: #ffffff;
+          padding: clamp(36px, 6vw, 64px) clamp(24px, 5vw, 48px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 16px;
+        }
+
+        .closing-banner h2 {
+          color: #ffffff;
+          font-size: clamp(2rem, 4vw, 3rem);
+          max-width: 24ch;
+        }
+
+        .closing-banner p {
+          color: rgba(255, 255, 255, 0.8);
+          max-width: 50ch;
+          margin: 0;
+          font-size: 1rem;
+        }
+      `}</style>
+
+      <div className="pitch-container">
+        {/* TOP NAVIGATION BAR */}
+        <nav className="pitch-nav" aria-label="Navigasi">
+          <Link className="logo" href="#atas">
+            <div className="relative h-8 w-28 shrink-0">
               <Image
                 src="/logo-el-massa-horizontal.png"
                 alt="El Massa Logo"
@@ -138,781 +760,444 @@ export default function PitchPresentationPage() {
                 priority
               />
             </div>
-            <div className="h-5 w-px bg-stone-800 hidden sm:block" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-white tracking-tight text-xs sm:text-sm">EXECUTIVE PITCH</span>
-                <span className="rounded-full bg-brand-pink/20 text-pink-300 border border-brand-pink/30 px-2 py-0.2 text-[9px] font-black uppercase tracking-wider">
-                  Owner & Manajemen
-                </span>
+            <span>Transformasi Digital</span>
+          </Link>
+          <div className="links">
+            <a href="#kebutuhan">Kebutuhan</a>
+            <a href="#prinsip">Prinsip</a>
+            <a href="#ekosistem">Ekosistem</a>
+            <a href="#contoh">Coba Alur</a>
+            <a href="#cara">Cara Kerja</a>
+            <a href="#jadwal">Kesiapan Senin</a>
+            <a href="#akses">Hak Akses</a>
+          </div>
+          <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
+            Buka Sistem Kantor
+          </Link>
+        </nav>
+
+        {/* HERO SECTION DENGAN INTERACTIVE DEVICE PREVIEW */}
+        <header className="pitch-hero" id="atas">
+          <div>
+            <h1>
+              Bang Azri & Tim Bertanya.
+              <br />
+              Sistem El Massa Menjawab.
+            </h1>
+            <p className="sub">
+              Satu ekosistem terpadu tempat Owner, Admin Kantor, Kasir Keuangan, Agen/Mitra Daerah, dan Jamaah terhubung real-time. Tanpa nota tercecer di WA, tanpa hitung komisi manual, dan tanpa selisih kas.
+            </p>
+            <div className="ctas">
+              <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
+                Buka Sistem Kantor
+              </Link>
+              <Link className="pitch-btn pitch-btn-ghost" href="/my-elmassa" target="_blank">
+                Tes Portal Agen My El Massa
+              </Link>
+              <a className="pitch-btn pitch-btn-ghost" href="#contoh">
+                Coba Contoh Skenario
+              </a>
+            </div>
+            <div className="pitch-trust">
+              <b>100%</b>
+              <span>Cloud Database Supabase • Seluruh Modul Siap Input Data Hari Senin</span>
+            </div>
+          </div>
+
+          {/* SIMULATED DEVICE PREVIEW DI SISI KANAN */}
+          <div className="pitch-device" aria-label="Contoh tampilan di tablet pimpinan">
+            <p className="q">Berapa sisa kuota seat Paket Umrah 01 Oktober 2026 dan status kasir?</p>
+            <p className="t">Paket Umrah 01 Oktober 2026 — Kuota Target 45 Pax</p>
+            <div className="pitch-mini">
+              <span>Terisi Seat</span>
+              <span className="tr">
+                <i style={{ width: "69%" }}></i>
+                <s></s>
+              </span>
+              <span>31 Pax</span>
+              <span>Sisa Kursi</span>
+              <span className="tr">
+                <i style={{ width: "31%", background: "var(--bad)" }}></i>
+              </span>
+              <span style={{ color: "var(--bad)", fontWeight: 700 }}>14 Seat</span>
+              <span>Kasir (DP)</span>
+              <span className="tr">
+                <i style={{ width: "100%", background: "var(--success)" }}></i>
+              </span>
+              <span>Lunas</span>
+            </div>
+            <div className="rec">
+              <span>Saran Sistem Otomatis</span>
+              Kasir mengonfirmasi pembayaran DP, 31 Akun UmrahMe jamaah aktif otomatis. 14 Seat tersisa siap ditawarkan oleh mitra via My El Massa.
+            </div>
+          </div>
+        </header>
+
+        {/* SECTION 1: KEBUTUHAN NYATA EL MASSA */}
+        <section className="pitch-panel" id="kebutuhan">
+          <div className="split-head">
+            <div className="panel-head" style={{ margin: 0 }}>
+              <p className="eyebrow">Kebutuhan Nyata El Massa</p>
+              <h2>Satu sistem terpadu yang menyatukan seluruh kegiatan kantor, kasir, mitra, dan jamaah.</h2>
+            </div>
+            <p className="lead" style={{ maxWidth: "34ch" }}>
+              Ukuran keberhasilannya sederhana: Owner bisa memantau omset dari HP, kasir tertib kuitansi, dan agen bisa mendaftarkan jamaah tanpa repot.
+            </p>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <p className="eyebrow">Risiko Selisih Uang Kasir</p>
+              <b>0% (Anti-Bocor)</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Kwitansi terbit otomatis saat uang masuk</span>
+            </div>
+            <div className="stat-card">
+              <p className="eyebrow">Pintu Masuk Terpadu</p>
+              <b>3 Gerbang</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Kantor (Web), Agen (My El Massa), Jamaah (UmrahMe)</span>
+            </div>
+            <div className="stat-card">
+              <p className="eyebrow">Ketik Ulang di Word</p>
+              <b>0 Kali</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Surat Kemenag & invoice otomatis ber-kop surat resmi</span>
+            </div>
+            <div className="stat-card">
+              <p className="eyebrow">Kepastian Sisa Kursi</p>
+              <b>Real-Time</b>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Seat berkurang otomatis saat booking dicatat</span>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 2: ENAM PRINSIP OPERASIONAL */}
+        <section className="pitch-panel" id="prinsip">
+          <div className="panel-head">
+            <p className="eyebrow">Yang Kami Pegang</p>
+            <h2>Enam prinsip agar sistem aman, transparan & anti-bocor</h2>
+          </div>
+          <div className="grid-3">
+            <div className="card">
+              <span className="ic">
+                <CreditCard className="h-5 w-5" />
+              </span>
+              <h3>1. Kasir Anti-Bocor (Zero Leakage)</h3>
+              <p>Kwitansi hanya terbit jika pembayaran dicatat kasir, berformat nomor unik KW-XXXXXX dan kalimat terbilang rupiah otomatis.</p>
+            </div>
+            <div className="card">
+              <span className="ic">
+                <Handshake className="h-5 w-5" />
+              </span>
+              <h3>2. Transparansi Komisi Agen</h3>
+              <p>Mitra melihat rekrutan dan komisi (Rp 1.500.000 / pax) secara transparan di HP mereka, tanpa perlu curiga atau hitung manual.</p>
+            </div>
+            <div className="card">
+              <span className="ic">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <h3>3. Jamaah Terverifikasi Aman</h3>
+              <p>Akun UmrahMe jamaah terkunci otomatis sebelum DP diverifikasi kasir kantor. Mencegah jamaah tanpa komitmen masuk ke fasilitas manasik.</p>
+            </div>
+            <div className="card">
+              <span className="ic">
+                <FileText className="h-5 w-5" />
+              </span>
+              <h3>4. Dokumen Kemenag Resmi</h3>
+              <p>Kop surat resmi motif kotak pink-coklat asli otomatis terpasang pada Invoice, Kwitansi, Surat Rekomendasi Paspor, dan Izin Cuti.</p>
+            </div>
+            <div className="card">
+              <span className="ic">
+                <Boxes className="h-5 w-5" />
+              </span>
+              <h3>5. Kontrol Fisik Stok (FIFO)</h3>
+              <p>Koper bagasi, kain ihram, mukena, dan batik dihitung dari mutasi riil kartu stok gudang masuk/keluar, bukan tebakan angka.</p>
+            </div>
+            <div className="card">
+              <span className="ic">
+                <Zap className="h-5 w-5" />
+              </span>
+              <h3>6. Efisiensi Kerja Staf Kantor</h3>
+              <p>Tidak ada lagi ketik ulang nama atau NIK di Word. Sekali pendaftaran masuk, kuitansi, manifest, dan surat izin langsung siap cetak.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 3: THE TRIPLE ENGINE ARCHITECTURE */}
+        <section className="pitch-panel" id="ekosistem">
+          <div className="split-head" style={{ marginBottom: "28px" }}>
+            <div className="panel-head" style={{ margin: 0 }}>
+              <p className="eyebrow">Arsitektur Ekosistem 3 Sudut</p>
+              <h2>The Triple-Engine: Tiga gerbang saling mengunci secara sinergis</h2>
+            </div>
+            <p className="lead" style={{ maxWidth: "38ch" }}>
+              Memastikan data mengalir lancar dari calon jamaah di daerah, diproses kantor pusat, hingga terbang ke tanah suci.
+            </p>
+          </div>
+          <div className="grid-3">
+            <div className="card" style={{ border: "1px solid #fbcfe8", background: "#fffafc" }}>
+              <span className="eyebrow" style={{ color: "var(--accent)" }}>Gerbang 1 • Mobile Mitra</span>
+              <h3>My El Massa (Portal Agen)</h3>
+              <p>Diakses agen/mitra di mana saja lewat smartphone. Melihat katalog paket aktif, sisa kuota seat, dan mendaftarkan jamaah mandiri.</p>
+              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
+                <Link href="/my-elmassa" target="_blank" className="pitch-btn pitch-btn-accent" style={{ minHeight: "36px", fontSize: "0.82rem" }}>
+                  Buka Portal Agen ↗
+                </Link>
               </div>
-              <p className="text-[10px] text-stone-400 font-medium hidden sm:block">
-                Presentasi Transformasi Sistem El Massa
-              </p>
-            </div>
-          </div>
-
-          {/* Mode Switcher & Navigation */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="inline-flex rounded-xl bg-stone-800/80 p-0.5 border border-stone-700/60 text-xs">
-              <button
-                type="button"
-                onClick={() => setPresentationMode("slides")}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-bold transition cursor-pointer ${
-                  presentationMode === "slides"
-                    ? "bg-brand-pink text-white shadow-xs"
-                    : "text-stone-400 hover:text-white"
-                }`}
-              >
-                <Monitor className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Slide Mode</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPresentationMode("scroll")}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-bold transition cursor-pointer ${
-                  presentationMode === "scroll"
-                    ? "bg-brand-pink text-white shadow-xs"
-                    : "text-stone-400 hover:text-white"
-                }`}
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Executive Doc</span>
-              </button>
             </div>
 
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-700 bg-stone-800 px-3 py-1.5 text-xs font-semibold text-stone-300 hover:bg-stone-700 hover:text-white transition"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Buka Sistem Kantor</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+            <div className="card" style={{ border: "1px solid #fed7aa", background: "#fffdf9" }}>
+              <span className="eyebrow" style={{ color: "#c2410c" }}>Gerbang 2 • Command Center</span>
+              <h3>El Massa Web (Kantor Pusat)</h3>
+              <p>Pusat kendali staf admin, kasir keuangan, dan operasional. Verifikasi DP, terbitkan invoice & kuitansi, cetak surat Kemenag, dan atur stok.</p>
+              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
+                <Link href="/dashboard" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "var(--ink)", color: "#fff" }}>
+                  Buka Web Kantor
+                </Link>
+              </div>
+            </div>
 
-      {/* ------------------------------------------------------------------- */}
-      {/* MODE A: INTERACTIVE SLIDES FOR PROJECTOR / SCREENCAST PRESENTATION */}
-      {/* ------------------------------------------------------------------- */}
-      {presentationMode === "slides" ? (
-        <div className="flex-1 flex flex-col justify-between max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-          {/* Slide Indicator Bar */}
-          <div className="flex items-center justify-between pb-4 border-b border-stone-800/80">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-              {slides.map((s, idx) => (
+            <div className="card" style={{ border: "1px solid #e9d5ff", background: "#faf5ff" }}>
+              <span className="eyebrow" style={{ color: "#7e22ce" }}>Gerbang 3 • Mobile Jamaah</span>
+              <h3>UmrahMe (Aplikasi Jamaah)</h3>
+              <p>Aplikasi mobile jamaah resmi. Login mandiri pasca-DP untuk memantau jadwal manasik, hotel, muthawwif, dan upload paspor sendiri.</p>
+              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
+                <Link href="/umrahme" target="_blank" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "#7e22ce", color: "#fff" }}>
+                  Buka Menu UmrahMe ↗
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 4: COBA SENDIRI (INTERACTIVE SIMULATOR) */}
+        <section className="pitch-panel" id="contoh">
+          <div className="panel-head">
+            <p className="eyebrow">Coba Sendiri Alur Operasional</p>
+            <h2>Klik salah satu skenario operasional berikut</h2>
+            <p className="lead">
+              Empat skenario ini mewakili alur bisnis nyata yang dibahas bersama Bang Azri. Klik untuk melihat bagaimana sistem merespons secara otomatis dan aman.
+            </p>
+          </div>
+
+          <div className="demo-box">
+            {/* Sisi Kiri: Tombol Pilihan Skenario */}
+            <div className="qs-list" role="tablist">
+              {SCENARIOS.map((sc, idx) => (
                 <button
-                  key={s.id}
-                  onClick={() => setActiveSlide(idx)}
-                  className={`h-2 rounded-full transition-all cursor-pointer ${
-                    activeSlide === idx
-                      ? "w-8 bg-brand-pink"
-                      : "w-2 bg-stone-700 hover:bg-stone-500"
-                  }`}
-                  title={`${idx + 1}. ${s.title}`}
-                />
+                  key={sc.q}
+                  type="button"
+                  role="tab"
+                  aria-pressed={activeScenarioIdx === idx}
+                  onClick={() => setActiveScenarioIdx(idx)}
+                  className="qs-btn"
+                >
+                  {sc.q}
+                </button>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
-              <span>SLIDE {activeSlide + 1} OF {totalSlides}</span>
-            </div>
-          </div>
+            {/* Sisi Kanan: Jawaban Dinamis & Visualisasi Status */}
+            <div className="ans-card" aria-live="polite">
+              <div>
+                <h3>{activeScenario.title}</h3>
+                <p className="sum">{activeScenario.sum}</p>
 
-          {/* Slide Main Stage */}
-          <div className="my-auto py-6 sm:py-8 space-y-6">
-            {/* Slide Header */}
-            <div className="space-y-2 max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-pink-500/10 border border-brand-pink/30 px-3 py-1 text-xs font-bold text-pink-300">
-                <Sparkles className="h-3.5 w-3.5 text-brand-pink" />
-                <span>{slides[activeSlide].tag}</span>
+                {/* Render KPI Grid jika tipe skenario KPI */}
+                {activeScenario.type === "kpis" && activeScenario.kpis && (
+                  <div className="kpi-row">
+                    {activeScenario.kpis.map((k) => (
+                      <div key={k.label} className="kpi-card">
+                        <b>{k.num}</b>
+                        <span>{k.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Render Bar Chart jika tipe skenario BARS */}
+                {activeScenario.type === "bars" && activeScenario.bars && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "16px 0" }}>
+                    {activeScenario.bars.map((b) => (
+                      <div key={b.label} style={{ display: "grid", gridTemplateColumns: "180px minmax(0, 1fr) 110px", gap: "10px", alignItems: "center", fontSize: "0.82rem" }}>
+                        <span style={{ fontWeight: 600 }}>{b.label}</span>
+                        <div style={{ height: "10px", background: "var(--track)", borderRadius: "4px", position: "relative", overflow: "hidden" }}>
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: "0 auto 0 0",
+                              width: `${Math.min(100, Math.round((b.val / b.max) * 100))}%`,
+                              background: b.isLow ? "var(--bad)" : "var(--accent)",
+                              borderRadius: "4px",
+                            }}
+                          />
+                        </div>
+                        <span style={{ fontWeight: 700, color: b.isLow ? "var(--bad)" : "var(--ink)", textAlign: "right" }}>{b.unit}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p style={{ fontSize: "0.78rem", color: "var(--muted)", margin: "12px 0 0 0" }}>
+                  {activeScenario.src}
+                </p>
               </div>
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                {slides[activeSlide].title}
-              </h1>
-              <p className="text-sm sm:text-base text-stone-300 leading-relaxed font-medium">
-                {slides[activeSlide].subtitle}
-              </p>
-            </div>
 
-            {/* Slide Content Dynamic Renderer */}
-            <div className="pt-2">
-              {/* SLIDE 1: OVERVIEW */}
-              {slides[activeSlide].content === "overview" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="rounded-3xl border border-rose-500/20 bg-linear-to-b from-rose-950/20 to-stone-900/60 p-5 space-y-3">
-                    <div className="h-10 w-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                      <ShieldAlert className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Tantangan Lama</h3>
-                    <ul className="text-xs text-stone-400 space-y-2 leading-relaxed">
-                      <li>• Rekap booking & manifest tercecer di chat WA & Excel.</li>
-                      <li>• Kwitansi & invoice diketik manual di Word, rawan selisih angka.</li>
-                      <li>• Agen kesulitan tahu sisa kuota seat yang pasti.</li>
-                      <li>• Jamaah belum bayar tapi sudah masuk grup manasik.</li>
-                    </ul>
-                  </div>
-
-                  <div className="rounded-3xl border border-brand-pink/40 bg-linear-to-b from-brand-pink/15 to-stone-900/60 p-5 space-y-3 shadow-lg shadow-brand-pink/10">
-                    <div className="h-10 w-10 rounded-2xl bg-brand-pink/30 border border-brand-pink/40 flex items-center justify-center text-pink-200">
-                      <Zap className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Solusi Ekosistem El Massa</h3>
-                    <ul className="text-xs text-stone-300 space-y-2 leading-relaxed">
-                      <li>• <strong>1 Database Terpusat</strong> di Cloud Supabase yang real-time.</li>
-                      <li>• <strong>Kasir Terverifikasi</strong>: DP/Lunas otomatis cetak kuitansi ber-QR/nomor resmi.</li>
-                      <li>• <strong>Portal Mitra 'My El Massa'</strong> di smartphone agen.</li>
-                      <li>• <strong>Aplikasi Jamaah 'UmrahMe'</strong> aktif otomatis pasca-DP.</li>
-                    </ul>
-                  </div>
-
-                  <div className="rounded-3xl border border-emerald-500/30 bg-linear-to-b from-emerald-950/20 to-stone-900/60 p-5 space-y-3">
-                    <div className="h-10 w-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                      <TrendingUp className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Nilai Bisnis untuk Owner</h3>
-                    <ul className="text-xs text-stone-400 space-y-2 leading-relaxed">
-                      <li>• <strong>Zero Cash Leakage</strong>: uang kasir selalu cocok dengan kuitansi & invoice.</li>
-                      <li>• <strong>Scale Up Mitra</strong>: agen daerah bisa jual paket tanpa tanya admin kantor berulang kali.</li>
-                      <li>• <strong>Brand Value Premium</strong>: kop surat resmi, slip kuitansi, & app jamaah berstandar modern.</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 2: TRIPLE ENGINE ARCHITECTURE */}
-              {slides[activeSlide].content === "architecture" && (
-                <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
-                    {/* Engine 1: My El Massa */}
-                    <div className="rounded-2xl border border-pink-500/30 bg-stone-900/80 p-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-300 uppercase">
-                          Front-End Mitra
-                        </span>
-                        <Smartphone className="h-4 w-4 text-brand-pink" />
-                      </div>
-                      <h4 className="text-base font-black text-white">1. My El Massa (Agen)</h4>
-                      <p className="text-xs text-stone-400 leading-relaxed">
-                        Diakses oleh agen/mitra lewat HP di mana saja. Melihat katalog paket aktif, sisa kuota seat, dan mendaftarkan calon jamaah langsung ke sistem.
-                      </p>
-                      <div className="pt-2 border-t border-stone-800 text-[11px] text-pink-300 font-semibold">
-                        ➜ Output: Booking berkode agen & estimasi komisi otomatis.
-                      </div>
-                    </div>
-
-                    {/* Engine 2: El Massa Web Central */}
-                    <div className="rounded-2xl border border-amber-500/30 bg-stone-900/80 p-5 space-y-3 shadow-md">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 uppercase">
-                          Central Command
-                        </span>
-                        <Monitor className="h-4 w-4 text-amber-400" />
-                      </div>
-                      <h4 className="text-base font-black text-white">2. El Massa Web (Kantor)</h4>
-                      <p className="text-xs text-stone-400 leading-relaxed">
-                        Pusat kendali operasional staf, admin, dan keuangan. Verifikasi pembayaran kasir, terbitkan invoice & kuitansi resmi, mutasi stok, serta manifest.
-                      </p>
-                      <div className="pt-2 border-t border-stone-800 text-[11px] text-amber-300 font-semibold">
-                        ➜ Output: Verifikasi pembayaran DP / Lunas & validasi berkas.
-                      </div>
-                    </div>
-
-                    {/* Engine 3: UmrahMe App */}
-                    <div className="rounded-2xl border border-purple-500/30 bg-stone-900/80 p-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-300 uppercase">
-                          Digital Jamaah
-                        </span>
-                        <Sparkles className="h-4 w-4 text-purple-400" />
-                      </div>
-                      <h4 className="text-base font-black text-white">3. UmrahMe (Jamaah)</h4>
-                      <p className="text-xs text-stone-400 leading-relaxed">
-                        Aplikasi mobile jamaah resmi. Jamaah login mandiri setelah DP diverifikasi kantor untuk melihat jadwal manasik, hotel, muthawwif, & live itinerary.
-                      </p>
-                      <div className="pt-2 border-t border-stone-800 text-[11px] text-purple-300 font-semibold">
-                        ➜ Output: Jamaah mandiri lengkapi paspor & dokumen.
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                    <span className="text-stone-300">
-                      💡 <strong>Harmonisasi Keamanan Data:</strong> Jamaah tidak bisa login ke UmrahMe sebelum kantor memverifikasi pembayaran. Tidak ada jamaah &quot;bodong&quot; masuk ke manifes.
-                    </span>
-                    <Link
-                      href="/my-elmassa"
-                      target="_blank"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-brand-pink px-3.5 py-1.5 font-bold text-white shadow-xs hover:bg-rose-600 transition shrink-0"
-                    >
-                      <span>Tes Portal Agen</span>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 3: KEUANGAN & KASIR */}
-              {slides[activeSlide].content === "finance" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-5 space-y-4">
-                    <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                      <Wallet className="h-4 w-4 text-emerald-400" />
-                      <span>Alur Kasir Berjenjang (Audit-Ready)</span>
-                    </h3>
-                    <div className="space-y-2.5 text-xs">
-                      <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px]">
-                          1
-                        </span>
-                        <div>
-                          <strong className="text-stone-200 block">Pencatatan Tagihan Lahir Otomatis</strong>
-                          <span className="text-stone-400">Total amount dihitung dari harga paket × jumlah pax (+ surcharge kamar Quad/Triple/Double).</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px]">
-                          2
-                        </span>
-                        <div>
-                          <strong className="text-stone-200 block">Verifikasi Pembayaran Kasir</strong>
-                          <span className="text-stone-400">Staf mencatat DP atau pelunasan dengan metode transfer bank atau tunai. Status booking berubah otomatis.</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-900 border border-stone-800">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px]">
-                          3
-                        </span>
-                        <div>
-                          <strong className="text-stone-200 block">Penerbitan Kwitansi Otomatis</strong>
-                          <span className="text-stone-400">Nomor KW otomatis unik (KW-XXXXXX) lengkap dengan kalimat terbilang rupiah, kop surat, dan stempel digital.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-5 space-y-4">
-                    <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-brand-pink" />
-                      <span>Rekap Keuangan Grup Keberangkatan</span>
-                    </h3>
-                    <p className="text-xs text-stone-400 leading-relaxed">
-                      Sistem menghitung laba-rugi kotor per rombongan (Total Penerimaan Jamaah minus Biaya Tiket, Hotel Saudi, Handling, & Perlengkapan).
-                    </p>
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-stone-400">Contoh Grup:</span>
-                        <span className="font-bold text-white">UMRAH 01 OKTOBER 2026</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-stone-400">Total Tagihan Bruto:</span>
-                        <span className="font-bold text-emerald-400">Rp 1.346.543.000</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-stone-400">Status Pembayaran:</span>
-                        <span className="rounded bg-blue-500/20 text-blue-300 px-1.5 py-0.2 text-[10px] font-bold">Terpantau Real-Time</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-1 flex gap-2">
-                      <Link
-                        href="/dokumen/invoice"
-                        target="_blank"
-                        className="flex-1 text-center py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold transition"
-                      >
-                        Lihat Invoice
-                      </Link>
-                      <Link
-                        href="/dokumen/kuitansi"
-                        target="_blank"
-                        className="flex-1 text-center py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold transition"
-                      >
-                        Lihat Kwitansi
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 4: ADMINISTRASI & SURAT */}
-              {slides[activeSlide].content === "administrasi" && (
-                <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-6 space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-brand-pink uppercase">Kop Surat Resmi</div>
-                      <h4 className="text-sm font-bold text-white">Motif Kotak Pink & Coklat</h4>
-                      <p className="text-xs text-stone-400">
-                        Kop surat resmi El Massa otomatis menempel pada Invoice, Kwitansi, dan Surat Rekomendasi tanpa perlu edit manual di Word.
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-amber-400 uppercase">Surat Kemenag & Paspor</div>
-                      <h4 className="text-sm font-bold text-white">4 Varian Surat Resmi</h4>
-                      <p className="text-xs text-stone-400">
-                        Surat Rekomendasi Pembuatan Paspor Baru, Penambahan Nama (3 kata), Penggantian Paspor Habis Masa Berlaku, dan Izin Cuti Kerja.
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-emerald-400 uppercase">Arsip Otomatis</div>
-                      <h4 className="text-sm font-bold text-white">Nomor Surat Urut Sistem</h4>
-                      <p className="text-xs text-stone-400">
-                        Setiap surat yang diterbitkan memiliki nomor urut resmi dan tersimpan permanen di basis data arsip kantor.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-stone-900/90 p-4 border border-stone-800 flex items-center justify-between text-xs">
-                    <span className="text-stone-300">
-                      📄 Dokumen resmi siap cetak dan ekspor PDF langsung dari browser dengan stempel & tanda tangan pimpinan resmi.
-                    </span>
-                    <Link
-                      href="/administrasi/surat"
-                      target="_blank"
-                      className="inline-flex items-center gap-1 text-brand-pink font-bold hover:underline shrink-0"
-                    >
-                      <span>Buka Modul Surat</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 5: MY EL MASSA */}
-              {slides[activeSlide].content === "my-elmassa" && (
-                <div className="rounded-3xl border border-brand-pink/30 bg-linear-to-b from-stone-950 via-stone-900 to-stone-950 p-6 space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-3">
-                      <span className="rounded-md bg-brand-pink/20 text-brand-pink px-2.5 py-0.5 text-xs font-bold uppercase">
-                        Kesiapan 100% Live
-                      </span>
-                      <h3 className="text-xl font-black text-white">Pemberdayaan Mitra di Ujung Jari</h3>
-                      <p className="text-xs text-stone-300 leading-relaxed">
-                        Mitra dan agen tidak perlu lagi menelepon kantor hanya untuk menanyakan: <em>&quot;Seat paket Oktober masih ada berapa?&quot;</em> atau <em>&quot;Komisi saya bulan ini berapa?&quot;</em>.
-                      </p>
-                      <ul className="text-xs text-stone-400 space-y-2">
-                        <li>• <strong>Katalog Kuota Seat</strong>: Sisa kursi terhitung otomatis dari total kapasitas dikurangi jamaah terdaftar.</li>
-                        <li>• <strong>Form Pendaftaran Multi-Pax</strong>: Agen bisa mendaftarkan satu keluarga sekaligus langsung dari HP.</li>
-                        <li>• <strong>Transparansi Finansial</strong>: Agen melihat komisi per booking (Rp 1.500.000 / pax atau persentase).</li>
-                      </ul>
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-900/90 p-5 border border-stone-800 space-y-3">
-                      <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">
-                        Akun Uji Coba Mitra Aktif
-                      </span>
-                      <div className="rounded-xl bg-stone-950 p-3 border border-stone-800 text-xs font-mono space-y-1">
-                        <div>Kode Agen: <span className="text-brand-pink font-bold">AG-ELMASSA-01</span></div>
-                        <div>WhatsApp : <span className="text-stone-300">081298765432</span></div>
-                        <div>Nama     : <span className="text-white">Ustadz H. Ahmad Sobri (Pangkal Pinang)</span></div>
-                        <div>Komisi   : <span className="text-emerald-400 font-bold">Rp 1.500.000 / jamaah</span></div>
-                      </div>
-
-                      <Link
-                        href="/my-elmassa"
-                        target="_blank"
-                        className="w-full py-2.5 rounded-xl bg-brand-pink hover:bg-rose-600 text-white font-bold text-xs transition flex items-center justify-center gap-2"
-                      >
-                        <span>Buka & Simulasikan Pendaftaran</span>
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 6: UMRAHME INTEGRATION */}
-              {slides[activeSlide].content === "umrahme" && (
-                <div className="rounded-3xl border border-purple-500/30 bg-stone-950/60 p-6 space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-purple-400 uppercase">Gerbang Pembayaran</div>
-                      <h4 className="text-sm font-bold text-white">Aktivasi Terkunci Otomatis</h4>
-                      <p className="text-xs text-stone-400">
-                        Akun jamaah di UmrahMe hanya berstatus aktif setelah kasir kantor menerima pembayaran DP. Mencegah jamaah tanpa komitmen masuk ke fasilitas manasik.
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-purple-400 uppercase">Self-Service Data</div>
-                      <h4 className="text-sm font-bold text-white">Token Pendataan Mandiri</h4>
-                      <p className="text-xs text-stone-400">
-                        Jamaah mendapatkan link token pribadi untuk melengkapi foto paspor, KTP, dan buku nikah sendiri dari HP tanpa membebani staf kantor.
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 space-y-2">
-                      <div className="text-[10px] font-bold text-purple-400 uppercase">Live Itinerary</div>
-                      <h4 className="text-sm font-bold text-white">Sinkronisasi Jadwal Perjalanan</h4>
-                      <p className="text-xs text-stone-400">
-                        Agenda manasik, bus, muthawwif, dan hotel Makkah-Madinah di sistem kantor langsung tampil di aplikasi jamaah.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-stone-900 p-4 border border-stone-800 flex items-center justify-between text-xs">
-                    <span className="text-stone-300">
-                      📱 Menggunakan basis integrasi API /api/pendataan dan sinkronisasi batch paket di database Supabase.
-                    </span>
-                    <Link
-                      href="/umrahme"
-                      target="_blank"
-                      className="inline-flex items-center gap-1 text-purple-400 font-bold hover:underline shrink-0"
-                    >
-                      <span>Buka Akun Digital UmrahMe</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 7: OPERASIONAL & LOGISTIK */}
-              {slides[activeSlide].content === "operations" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-5 space-y-3">
-                    <div className="h-9 w-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                      <UserCog className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Data Karyawan & Tim</h3>
-                    <p className="text-xs text-stone-400 leading-relaxed">
-                      Pencatatan data staf kantor, muthawwif pembimbing ibadah, dan tour leader. Terpisah aman dari akun login sistem.
-                    </p>
-                    <Link
-                      href="/operasional/karyawan"
-                      target="_blank"
-                      className="text-[11px] font-bold text-blue-400 hover:underline inline-flex items-center gap-1"
-                    >
-                      <span>Buka Data Karyawan</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-
-                  <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-5 space-y-3">
-                    <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                      <Boxes className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Stok Perlengkapan (FIFO)</h3>
-                    <p className="text-xs text-stone-400 leading-relaxed">
-                      Inventaris koper bagasi, kain ihram pria, mukena wanita, seragam batik, dan buku doa. Saldo dihitung dari mutasi riil keluar-masuk.
-                    </p>
-                    <Link
-                      href="/operasional/stok"
-                      target="_blank"
-                      className="text-[11px] font-bold text-amber-400 hover:underline inline-flex items-center gap-1"
-                    >
-                      <span>Buka Manajemen Stok</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-
-                  <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-5 space-y-3">
-                    <div className="h-9 w-9 rounded-xl bg-brand-pink/20 text-pink-400 flex items-center justify-center">
-                      <Plane className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-white">Manifest & Rooming Hotel</h3>
-                    <p className="text-xs text-stone-400 leading-relaxed">
-                      Roomlist Jakarta transit, Makkah, dan Madinah. Data visa dan nomor paspor terkoneksi langsung ke database profil jamaah.
-                    </p>
-                    <Link
-                      href="/manifest"
-                      target="_blank"
-                      className="text-[11px] font-bold text-brand-pink hover:underline inline-flex items-center gap-1"
-                    >
-                      <span>Buka Manifest Peserta</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* SLIDE 8: ROADMAP */}
-              {slides[activeSlide].content === "roadmap" && (
-                <div className="rounded-3xl border border-stone-800 bg-stone-950/60 p-6 space-y-5">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-brand-pink text-white font-black text-xs">
-                        1
-                      </div>
-                      <div>
-                        <strong className="text-sm font-bold text-white block">
-                          Hari Senin: Kick-Off Input Data Administrasi & Keuangan
-                        </strong>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Anak-anak kantor mulai input data jamaah riil, riwayat pembayaran di kasir, dan penerbitan kwitansi untuk memverifikasi alur harian tanpa hambatan.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-stone-950 font-black text-xs">
-                        2
-                      </div>
-                      <div>
-                        <strong className="text-sm font-bold text-white block">
-                          Minggu Ini: Finalisasi UmrahMe & Stok Perlengkapan
-                        </strong>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Uji coba penerbitan akun UmrahMe untuk jamaah yang lunas, pengisian saldo stok awal koper/ihram di gudang, dan sinkronisasi jadwal manasik.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-stone-950 font-black text-xs">
-                        3
-                      </div>
-                      <div>
-                        <strong className="text-sm font-bold text-white block">
-                          Fase Lanjutan: Peluncuran Resmi Portal Mitra &quot;My El Massa&quot;
-                        </strong>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Sosialisasi link <code className="text-pink-300">/my-elmassa</code> dan pembagian ID agen ke seluruh mitra perwakilan daerah.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 text-center text-xs text-emerald-400 font-bold">
-                    🚀 Seluruh fondasi teknis, database, dan antarmuka saat ini telah 100% lulus audit dan siap jalan!
-                  </div>
-                </div>
-              )}
+              {/* Rekomendasi & Mekanisme Pengamanan */}
+              <div className="rec-box">
+                <span className="tag">Saran Sistem &amp; Mekanisme Pengamanan</span>
+                <dl>
+                  <dt>Yang Ditemukan</dt>
+                  <dd>{activeScenario.rec.found}</dd>
+                  <dt>Buktinya</dt>
+                  <dd>{activeScenario.rec.evidence}</dd>
+                  <dt>Tindakan Staf</dt>
+                  <dd>{activeScenario.rec.action}</dd>
+                  <dt>Jaminan Sistem</dt>
+                  <dd>{activeScenario.rec.confidence}</dd>
+                </dl>
+              </div>
             </div>
           </div>
+        </section>
 
-          {/* Slide Navigation Controls */}
-          <div className="pt-6 border-t border-stone-800/80 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={prevSlide}
-              disabled={activeSlide === 0}
-              className="inline-flex items-center gap-2 rounded-2xl border border-stone-700 bg-stone-800 px-4 py-2.5 text-xs font-bold text-stone-200 hover:bg-stone-700 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Slide Sebelumnya</span>
-            </button>
-
-            {/* Quick Slide Jump Dropdown */}
-            <div className="hidden sm:flex items-center gap-2 text-xs text-stone-400">
-              <span className="font-semibold">Navigasi:</span>
-              <select
-                value={activeSlide}
-                onChange={(e) => setActiveSlide(Number(e.target.value))}
-                className="rounded-xl border border-stone-700 bg-stone-800 px-3 py-1.5 text-xs font-bold text-stone-200 focus:outline-none focus:border-brand-pink"
-              >
-                {slides.map((s, idx) => (
-                  <option key={s.id} value={idx}>
-                    {idx + 1}. {s.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {activeSlide < totalSlides - 1 ? (
-              <button
-                type="button"
-                onClick={nextSlide}
-                className="inline-flex items-center gap-2 rounded-2xl bg-brand-pink bg-gradient-to-r from-brand-pink to-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-pink/20 hover:brightness-110 active:scale-98 transition cursor-pointer"
-              >
-                <span>Slide Selanjutnya</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            ) : (
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-500 transition cursor-pointer"
-              >
-                <span>Masuk ke Dashboard Sistem</span>
-                <CheckCircle2 className="h-4 w-4" />
-              </Link>
-            )}
+        {/* SECTION 5: CARA KERJANYA (5 LANGKAH OPERASIONAL) */}
+        <section className="pitch-panel" id="cara">
+          <div className="panel-head">
+            <p className="eyebrow">Cara Kerjanya</p>
+            <h2>Dari pendaftaran calon jamaah sampai kepulangan, dalam lima langkah</h2>
           </div>
-        </div>
-      ) : (
-        /* ------------------------------------------------------------------- */
-        /* MODE B: COMPREHENSIVE EXECUTIVE DOCUMENT FOR READING / SCREENING    */
-        /* ------------------------------------------------------------------- */
-        <div className="max-w-5xl mx-auto w-full p-4 sm:p-8 space-y-12">
-          {/* Executive Header */}
-          <div className="space-y-4 text-center border-b border-stone-800 pb-8">
-            <div className="inline-flex items-center gap-2 rounded-full bg-brand-pink/20 border border-brand-pink/30 px-3 py-1 text-xs font-bold text-pink-300">
-              <ShieldCheck className="h-3.5 w-3.5 text-brand-pink" />
-              <span>Executive Brief & Blueprint Operasional</span>
+          <div className="steps-row">
+            <div className="step-card">
+              <span className="n">Langkah 1</span>
+              <h3>Pendaftaran Agen</h3>
+              <p>Agen daerah login via My El Massa di HP, cek sisa seat paket, dan input data calon jamaah binaannya.</p>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-              Transformasi Sistem Operasional Terpadu El Massa
-            </h1>
-            <p className="text-sm sm:text-base text-stone-400 max-w-2xl mx-auto leading-relaxed">
-              Panduan lengkap implementasi sistem bagi Owner (Bang Azri), Dewan Direksi, dan seluruh staf operasional PT El Massa Tour & Travel.
+            <div className="step-card">
+              <span className="n">Langkah 2</span>
+              <h3>Verifikasi Kasir</h3>
+              <p>Data masuk ke kantor. Kasir mencocokkan transfer DP jamaah dan menekan tombol verifikasi.</p>
+            </div>
+            <div className="step-card">
+              <span className="n">Langkah 3</span>
+              <h3>Kwitansi &amp; UmrahMe</h3>
+              <p>Kwitansi resmi terbit otomatis. Saat itu juga, akun aplikasi UmrahMe jamaah aktif untuk persiapan.</p>
+            </div>
+            <div className="step-card">
+              <span className="n">Langkah 4</span>
+              <h3>Surat &amp; Perlengkapan</h3>
+              <p>Staf cetak rekomendasi paspor Kemenag sekali klik, dan gudang mencatat serah-terima koper/ihram.</p>
+            </div>
+            <div className="step-card">
+              <span className="n">Langkah 5</span>
+              <h3>Manifest &amp; Terbang</h3>
+              <p>Data visa &amp; rooming hotel Makkah-Madinah terkunci di manifest. Jamaah berangkat dengan tenang.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 6: KESIAPAN HARI SENIN & ROADMAP */}
+        <section className="pitch-panel" id="jadwal">
+          <div className="split-head" style={{ marginBottom: "28px" }}>
+            <div className="panel-head" style={{ margin: 0 }}>
+              <p className="eyebrow">Kesiapan Hari Senin &amp; Roadmap</p>
+              <h2>Hari Senin anak-anak kantor mulai input data. Hasilnya langsung terlihat.</h2>
+            </div>
+            <p className="lead" style={{ maxWidth: "38ch" }}>
+              Sesuai arahan Bang Azri, kita dampingi staf kantor menguji alur kasir dan administrasi secara riil.
             </p>
           </div>
 
-          {/* Section 1: Executive Summary */}
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-white flex items-center gap-2 border-l-4 border-brand-pink pl-3">
-              1. Ringkasan Eksekutif & Latar Belakang
-            </h2>
-            <div className="rounded-3xl border border-stone-800 bg-stone-950 p-6 space-y-4 text-xs sm:text-sm text-stone-300 leading-relaxed">
-              <p>
-                Sebelumnya, operasional harian travel umrah menghadapi tantangan umum di industri: <strong>data tercecer di file Excel, koordinasi pendaftaran via WhatsApp, penghitungan komisi agen yang rawan selisih, serta risiko kebocoran kasir karena invoice dan kwitansi dibuat manual di Word</strong>.
-              </p>
-              <p>
-                Melalui ekosistem digital baru ini, seluruh kegiatan operasional disatukan ke dalam <strong>1 Database Cloud Terpadu</strong> dengan 3 gerbang akses yang saling mengunci:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                <div className="p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                  <strong className="text-brand-pink block mb-1">🏢 Kantor Pusat (El Massa Web)</strong>
-                  <span className="text-xs text-stone-400">Verifikasi kasir, cetak invoice & kuitansi resmi, logistik, dan manifest.</span>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                  <strong className="text-amber-400 block mb-1">📱 Mitra & Agen (My El Massa)</strong>
-                  <span className="text-xs text-stone-400">Cek kuota seat real-time & daftarkan jamaah langsung dari HP.</span>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-stone-900 border border-stone-800">
-                  <strong className="text-purple-400 block mb-1">✨ Aplikasi Jamaah (UmrahMe)</strong>
-                  <span className="text-xs text-stone-400">Jadwal manasik, live itinerary, & pengisian berkas mandiri.</span>
-                </div>
+          <div className="grid-3">
+            <div className="card" style={{ borderTop: "4px solid var(--accent)" }}>
+              <span className="eyebrow" style={{ color: "var(--accent)" }}>Fase 1 • Hari Senin Besok</span>
+              <h3>Input Data Administrasi &amp; Kasir</h3>
+              <p>Staf kantor mulai memasukkan data jamaah riil, mencatat transaksi pembayaran di kasir, dan menerbitkan kwitansi serta invoice resmi.</p>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--success)", marginTop: "auto" }}>
+                ✓ Sistem 100% Siap Dipakai
               </div>
             </div>
-          </section>
 
-          {/* Section 2: Audit Integrity Report */}
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-white flex items-center gap-2 border-l-4 border-emerald-500 pl-3">
-              2. Hasil Audit Teknis & Kesiapan Sistem
-            </h2>
-            <div className="rounded-3xl border border-stone-800 bg-stone-950 p-6 space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                  <span className="text-xs text-stone-400 block">Kompilasi TypeScript</span>
-                  <span className="text-base font-black text-emerald-400">0 Error (Pass)</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                  <span className="text-xs text-stone-400 block">Next.js Production Build</span>
-                  <span className="text-base font-black text-emerald-400">103 Routes OK</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                  <span className="text-xs text-stone-400 block">Integrasi Database</span>
-                  <span className="text-base font-black text-emerald-400">Supabase Cloud</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                  <span className="text-xs text-stone-400 block">Uji Coba End-to-End</span>
-                  <span className="text-base font-black text-emerald-400">100% Lulus</span>
-                </div>
-              </div>
-
-              <div className="text-xs text-stone-400 space-y-1.5 pt-2">
-                <p>✓ <strong>Relasi Kolom Agen:</strong> <code className="text-pink-300">real_bookings.agent_code</code> aktif dan mengaitkan setiap pendaftaran agen ke rekap komisi otomatis.</p>
-                <p>✓ <strong>Kop Surat & Kwitansi:</strong> Format PDF dan cetak fisik menggunakan motif kotak pink-coklat resmi El Massa.</p>
-                <p>✓ <strong>Sidebar Dinamis:</strong> Mendukung pengecilan ruang kerja dengan shortcut <code className="text-stone-200">Ctrl + B</code>.</p>
+            <div className="card" style={{ borderTop: "4px solid #d97706" }}>
+              <span className="eyebrow" style={{ color: "#d97706" }}>Fase 2 • Minggu Berjalan</span>
+              <h3>Finalisasi UmrahMe &amp; Stok</h3>
+              <p>Menguji coba penerbitan akun UmrahMe untuk jamaah yang lunas dan memasukkan saldo stok awal koper, mukena, dan ihram ke sistem gudang.</p>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#d97706", marginTop: "auto" }}>
+                ⏳ Pendampingan Tim Lapangan
               </div>
             </div>
-          </section>
 
-          {/* Section 3: Live Quick Launcher */}
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-white flex items-center gap-2 border-l-4 border-amber-500 pl-3">
-              3. Akses Langsung Seluruh Modul (Live Tour)
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              <Link
-                href="/my-elmassa"
-                target="_blank"
-                className="p-4 rounded-2xl border border-pink-500/30 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-brand-pink">
-                  <Smartphone className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Portal My El Massa</strong>
-                <span className="text-[11px] text-stone-400 block">Portal mandiri pendaftaran mitra & agen.</span>
-              </Link>
-
-              <Link
-                href="/booking"
-                target="_blank"
-                className="p-4 rounded-2xl border border-stone-800 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-amber-400">
-                  <CreditCard className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Manajemen Booking</strong>
-                <span className="text-[11px] text-stone-400 block">Daftar registrasi calon jamaah & status bayar.</span>
-              </Link>
-
-              <Link
-                href="/dokumen/invoice"
-                target="_blank"
-                className="p-4 rounded-2xl border border-stone-800 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-blue-400">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Invoice & Kwitansi</strong>
-                <span className="text-[11px] text-stone-400 block">Cetak bukti bayar resmi ber-kop surat.</span>
-              </Link>
-
-              <Link
-                href="/pembayaran/rekap-grup"
-                target="_blank"
-                className="p-4 rounded-2xl border border-stone-800 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-emerald-400">
-                  <BarChart3 className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Rekap Keuangan Grup</strong>
-                <span className="text-[11px] text-stone-400 block">Laporan laba-rugi kotor per rombongan.</span>
-              </Link>
-
-              <Link
-                href="/administrasi/surat"
-                target="_blank"
-                className="p-4 rounded-2xl border border-stone-800 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-rose-400">
-                  <Mails className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Surat Menyurat Resmi</strong>
-                <span className="text-[11px] text-stone-400 block">Surat rekomendasi paspor Kemenag & cuti.</span>
-              </Link>
-
-              <Link
-                href="/operasional/stok"
-                target="_blank"
-                className="p-4 rounded-2xl border border-stone-800 bg-stone-950 hover:bg-stone-900 transition space-y-1 group"
-              >
-                <div className="flex items-center justify-between text-purple-400">
-                  <Boxes className="h-4 w-4" />
-                  <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
-                </div>
-                <strong className="text-sm font-bold text-white block">Stok Perlengkapan</strong>
-                <span className="text-[11px] text-stone-400 block">Inventaris koper, ihram, mukena & batik.</span>
-              </Link>
+            <div className="card" style={{ borderTop: "4px solid #16a34a" }}>
+              <span className="eyebrow" style={{ color: "#16a34a" }}>Fase 3 • Skalabilitas Mitra</span>
+              <h3>Distribusi Akun &quot;My El Massa&quot;</h3>
+              <p>Membagikan kode agen resmi ke seluruh perwakilan mitra daerah agar mereka bisa mulai mendaftarkan jamaah mandiri dari smartphone.</p>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--muted)", marginTop: "auto" }}>
+                🚀 Pertumbuhan Omset Travel
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Section 4: Concluding Note */}
-          <div className="text-center pt-8 border-t border-stone-800 space-y-2">
-            <p className="text-xs text-stone-400">
-              Disiapkan untuk Owner & Manajemen PT El Massa Tour & Travel • Siap Kick-Off Senin
-            </p>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-2xl bg-brand-pink px-6 py-3 text-xs font-bold text-white shadow-lg hover:bg-rose-600 transition"
-            >
-              <span>Mulai Bekerja di Dashboard Kantor</span>
-              <ArrowRight className="h-4 w-4" />
+        {/* SECTION 7: MATRIKS HAK AKSES SISTEM */}
+        <section className="pitch-panel" id="akses">
+          <div className="panel-head">
+            <p className="eyebrow">Tata Kelola &amp; Hak Akses</p>
+            <h2>Setiap peran memiliki akses yang aman sesuai tugas dan tanggung jawabnya</h2>
+          </div>
+          <div className="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Peran Pengguna</th>
+                  <th>Yang Dikerjakan</th>
+                  <th>Hak Akses di Sistem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Owner / CEO (Bang Azri)</strong></td>
+                  <td>Memantau seluruh omset, rekap margin laba grup, dan kinerja mitra</td>
+                  <td>Akses Penuh Semua Modul &amp; Laporan Eksekutif</td>
+                </tr>
+                <tr>
+                  <td><strong>Kasir / Keuangan</strong></td>
+                  <td>Verifikasi pembayaran DP/cicilan, cetak kwitansi, dan arus kas</td>
+                  <td>Modul Pembayaran, Invoice, Kuitansi, &amp; Rekap Grup</td>
+                </tr>
+                <tr>
+                  <td><strong>Staf Operasional</strong></td>
+                  <td>Manajemen booking, cetak surat rekomendasi paspor Kemenag, dan manifest</td>
+                  <td>Modul Paket, Booking, Dokumen Surat, &amp; Manifest</td>
+                </tr>
+                <tr>
+                  <td><strong>Tim Gudang / Logistik</strong></td>
+                  <td>Mencatat serah terima koper, kain ihram, mukena, dan seragam batik</td>
+                  <td>Modul Manajemen Stok Perlengkapan (FIFO)</td>
+                </tr>
+                <tr>
+                  <td><strong>Mitra / Agen Resmi</strong></td>
+                  <td>Melihat sisa kursi paket umrah dan mendaftarkan calon jamaah binaan</td>
+                  <td>Portal Khusus Mandiri My El Massa di Smartphone</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* SECTION 8: CLOSING CALL TO ACTION BANNER */}
+        <section className="closing-banner">
+          <p className="eyebrow" style={{ color: "var(--accent)" }}>Siap Melangkah Maju</p>
+          <h2>Seluruh Sistem Telah Siap. Mari Mulai Hari Senin.</h2>
+          <p>
+            Sistem terpadu ini siap menjadi fondasi operasional yang kokoh bagi kemajuan dan nama besar PT El Massa Tour &amp; Travel.
+          </p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", marginTop: "12px" }}>
+            <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
+              Masuk ke Dashboard Sistem
+            </Link>
+            <Link className="pitch-btn pitch-btn-ghost" href="/my-elmassa" target="_blank">
+              Simulasikan Portal Agen
             </Link>
           </div>
-        </div>
-      )}
-    </div>
+        </section>
+      </div>
+    </>
   );
 }
