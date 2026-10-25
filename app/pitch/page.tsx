@@ -208,6 +208,7 @@ export default function PitchPresentationPage() {
           padding-left: max(16px, env(safe-area-inset-left, 0px));
           padding-right: max(16px, env(safe-area-inset-right, 0px));
           margin: 0;
+          overflow-x: hidden;
         }
 
         /* KEYFRAME ANIMATIONS */
@@ -320,6 +321,7 @@ export default function PitchPresentationPage() {
           display: flex;
           flex-direction: column;
           gap: 14px;
+          min-width: 0;
         }
 
         /* TOP NAVIGATION */
@@ -337,7 +339,7 @@ export default function PitchPresentationPage() {
         .pitch-nav .logo {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           font-weight: 700;
           font-size: 1.05rem;
           color: var(--ink);
@@ -362,10 +364,39 @@ export default function PitchPresentationPage() {
           color: var(--ink);
         }
 
-        @media (max-width: 920px) {
-          .pitch-nav .links {
-            display: none;
-          }
+        /* MOBILE HORIZONTAL PILL SUBNAV */
+        .mobile-pill-nav {
+          display: none;
+          gap: 6px;
+          overflow-x: auto;
+          padding: 2px 4px 6px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+
+        .mobile-pill-nav::-webkit-scrollbar {
+          display: none;
+        }
+
+        .mobile-pill-nav a {
+          flex-shrink: 0;
+          background: var(--card);
+          color: var(--muted);
+          border: 1px solid var(--line);
+          border-radius: 20px;
+          padding: 6px 12px;
+          font-size: 0.76rem;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: all 0.15s;
+        }
+
+        .mobile-pill-nav a:hover,
+        .mobile-pill-nav a:active {
+          background: var(--ink);
+          color: #ffffff;
+          border-color: var(--ink);
         }
 
         /* BUTTONS */
@@ -409,26 +440,20 @@ export default function PitchPresentationPage() {
           border-radius: 22px;
           background: linear-gradient(130deg, var(--hero-a), var(--hero-b));
           color: #ffffff;
-          padding: clamp(32px, 5.5vw, 64px) clamp(24px, 4.5vw, 48px);
+          padding: clamp(28px, 5.5vw, 64px) clamp(20px, 4.5vw, 48px);
           display: grid;
           grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-          gap: 40px;
+          gap: 36px;
           align-items: center;
           overflow: hidden;
           position: relative;
         }
 
-        @media (max-width: 960px) {
-          .pitch-hero {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
-
         .pitch-hero h1 {
           font-weight: 500;
           letter-spacing: -0.035em;
-          font-size: clamp(2.3rem, 4.8vw, 3.8rem);
-          line-height: 1.06;
+          font-size: clamp(2rem, 4.8vw, 3.8rem);
+          line-height: 1.08;
           margin: 0;
           text-wrap: balance;
         }
@@ -436,20 +461,20 @@ export default function PitchPresentationPage() {
         .pitch-hero p.sub {
           color: rgba(255, 255, 255, 0.88);
           max-width: 48ch;
-          margin-top: 18px;
-          font-size: 1.02rem;
+          margin-top: 16px;
+          font-size: 1rem;
           line-height: 1.5;
         }
 
         .pitch-hero .ctas {
           display: flex;
-          gap: 12px;
+          gap: 10px;
           flex-wrap: wrap;
-          margin-top: 28px;
+          margin-top: 24px;
         }
 
         .pitch-trust {
-          margin-top: 32px;
+          margin-top: 28px;
           display: flex;
           align-items: center;
           gap: 12px;
@@ -460,77 +485,92 @@ export default function PitchPresentationPage() {
         .pitch-trust b {
           display: inline-grid;
           place-items: center;
-          width: 40px;
-          height: 40px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
           background: var(--ink);
           color: #ffffff;
           font-weight: 700;
           font-size: 0.82rem;
           border: 1px solid rgba(255, 255, 255, 0.2);
+          flex-shrink: 0;
         }
 
         /* DEVICE MOCKUP (HERO INTERACTIVE SIMULATOR) */
         .device-wrapper {
           position: relative;
+          width: 100%;
+          min-width: 0;
         }
 
         .device-bezel {
           background: var(--card);
           color: var(--ink);
           border-radius: 24px;
-          padding: 18px;
+          padding: 16px;
           box-shadow: 0 32px 64px -18px rgba(10, 8, 8, 0.45);
-          border: 9px solid #1f1614;
+          border: 8px solid #1f1614;
           position: relative;
-          min-height: 440px;
+          min-height: 420px;
           display: flex;
           flex-direction: column;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .device-top-bar {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 12px;
+          padding-bottom: 10px;
           border-bottom: 1px solid var(--line);
           margin-bottom: 12px;
+          gap: 8px;
+          overflow: hidden;
         }
 
         .window-dots {
           display: flex;
-          gap: 6px;
+          gap: 5px;
           align-items: center;
+          flex-shrink: 0;
         }
 
         .window-dot {
-          width: 10px;
-          height: 10px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
         }
 
         .device-modes {
           display: flex;
           background: var(--surface);
-          border-radius: 9px;
-          padding: 3px;
-          gap: 3px;
+          border-radius: 8px;
+          padding: 2px;
+          gap: 2px;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+
+        .device-modes::-webkit-scrollbar {
+          display: none;
         }
 
         .mode-tab {
           border: none;
           background: transparent;
           font: 600 0.72rem/1 var(--font);
-          padding: 6px 10px;
-          border-radius: 7px;
+          padding: 6px 9px;
+          border-radius: 6px;
           color: var(--muted);
           cursor: pointer;
           transition: all 0.15s;
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 4px;
           white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .mode-tab[data-active="true"] {
@@ -543,21 +583,22 @@ export default function PitchPresentationPage() {
         .pitch-panel {
           background: var(--surface);
           border-radius: 20px;
-          padding: clamp(26px, 4.8vw, 54px);
+          padding: clamp(24px, 4.5vw, 54px);
+          min-width: 0;
         }
 
         .panel-head {
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          margin-bottom: 30px;
+          gap: 10px;
+          margin-bottom: 26px;
         }
 
         .split-head {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 24px;
+          gap: 20px;
           flex-wrap: wrap;
         }
 
@@ -571,9 +612,9 @@ export default function PitchPresentationPage() {
         }
 
         h2 {
-          font-size: clamp(1.65rem, 2.9vw, 2.4rem);
+          font-size: clamp(1.5rem, 2.8vw, 2.35rem);
           font-weight: 500;
-          line-height: 1.16;
+          line-height: 1.18;
           letter-spacing: -0.025em;
           margin: 0;
           text-wrap: balance;
@@ -582,27 +623,28 @@ export default function PitchPresentationPage() {
         .lead {
           color: var(--muted);
           max-width: 58ch;
-          font-size: 1.02rem;
+          font-size: 0.98rem;
           margin: 0;
+          line-height: 1.5;
         }
 
         /* STATS GRID */
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-          gap: 14px;
-          margin-top: 36px;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 12px;
+          margin-top: 32px;
         }
 
         .stat-card {
           background: var(--card);
           border-radius: 14px;
-          padding: 22px;
+          padding: 20px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          gap: 32px;
-          min-height: 165px;
+          gap: 28px;
+          min-height: 155px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
           transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -613,7 +655,7 @@ export default function PitchPresentationPage() {
         }
 
         .stat-card b {
-          font-size: 2.3rem;
+          font-size: 2.1rem;
           font-weight: 500;
           letter-spacing: -0.03em;
           line-height: 1;
@@ -627,24 +669,20 @@ export default function PitchPresentationPage() {
           gap: 14px;
         }
 
-        @media (max-width: 900px) {
-          .grid-3 {
-            grid-template-columns: 1fr;
-          }
-        }
-
         .card {
           background: var(--card);
           border-radius: 14px;
-          padding: 22px;
+          padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 10px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
 
         .card h3 {
-          font-size: 1.12rem;
+          font-size: 1.1rem;
           font-weight: 600;
           letter-spacing: -0.01em;
           margin: 0;
@@ -653,7 +691,7 @@ export default function PitchPresentationPage() {
 
         .card p {
           color: var(--muted);
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           line-height: 1.5;
           margin: 0;
         }
@@ -666,20 +704,15 @@ export default function PitchPresentationPage() {
           color: var(--accent);
           display: grid;
           place-items: center;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
+          flex-shrink: 0;
         }
 
-        /* FITUR GRID & SCREEN MOCKUPS IDENTIK DENGAN ARTIFACT-DAR */
+        /* FITUR GRID & SCREEN MOCKUPS */
         .feat-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 16px;
-        }
-
-        @media (max-width: 768px) {
-          .feat-grid {
-            grid-template-columns: 1fr;
-          }
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 14px;
         }
 
         .feat-card {
@@ -688,7 +721,7 @@ export default function PitchPresentationPage() {
           padding: 14px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 12px;
           min-width: 0;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
           border: 1px solid var(--line);
@@ -697,9 +730,8 @@ export default function PitchPresentationPage() {
         .feat-screen {
           background: var(--surface);
           border-radius: 12px;
-          height: 330px;
+          min-height: 310px;
           padding: 14px;
-          overflow: hidden;
           position: relative;
           font-size: 0.8rem;
           display: flex;
@@ -721,7 +753,7 @@ export default function PitchPresentationPage() {
         .feat-chip {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
+          gap: 5px;
           padding: 3px 8px;
           background: var(--card);
           border-radius: 20px;
@@ -729,6 +761,7 @@ export default function PitchPresentationPage() {
           font-weight: 600;
           color: var(--ink);
           border: 1px solid var(--line);
+          flex-shrink: 0;
         }
 
         .feat-chip .dot {
@@ -739,14 +772,14 @@ export default function PitchPresentationPage() {
         }
 
         .feat-txt {
-          padding: 4px 8px 10px;
+          padding: 2px 6px 8px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 5px;
         }
 
         .feat-txt h3 {
-          font-size: 1.15rem;
+          font-size: 1.1rem;
           font-weight: 600;
           letter-spacing: -0.015em;
           margin: 0;
@@ -754,7 +787,7 @@ export default function PitchPresentationPage() {
 
         .feat-txt p {
           color: var(--muted);
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           line-height: 1.45;
           margin: 0;
         }
@@ -766,7 +799,7 @@ export default function PitchPresentationPage() {
           flex-direction: column;
           gap: 8px;
           overflow-y: auto;
-          padding-right: 4px;
+          padding-right: 2px;
         }
 
         .chat-bubble-u {
@@ -774,9 +807,9 @@ export default function PitchPresentationPage() {
           background: var(--ink);
           color: #ffffff;
           border-radius: 12px 12px 3px 12px;
-          padding: 8px 11px;
-          max-width: 86%;
-          font-size: 0.78rem;
+          padding: 7px 11px;
+          max-width: 90%;
+          font-size: 0.76rem;
           line-height: 1.4;
         }
 
@@ -784,12 +817,12 @@ export default function PitchPresentationPage() {
           align-self: flex-start;
           background: var(--card);
           border-radius: 12px 12px 12px 3px;
-          padding: 9px 12px;
-          width: 95%;
+          padding: 8px 11px;
+          width: 96%;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          font-size: 0.78rem;
+          gap: 5px;
+          font-size: 0.76rem;
           line-height: 1.4;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
@@ -798,20 +831,21 @@ export default function PitchPresentationPage() {
           background: var(--card);
           border: 1px solid var(--line);
           border-radius: 10px;
-          padding: 5px 6px 5px 12px;
+          padding: 4px 6px 4px 10px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          min-height: 38px;
+          gap: 6px;
+          min-height: 36px;
         }
 
         .chat-inbar input {
           flex: 1;
           border: none;
           background: transparent;
-          font: 400 0.8rem var(--font);
+          font: 400 0.78rem var(--font);
           color: var(--ink);
           outline: none;
+          min-width: 0;
         }
 
         .chat-inbar .send-btn {
@@ -824,20 +858,21 @@ export default function PitchPresentationPage() {
           place-items: center;
           border: none;
           cursor: pointer;
+          flex-shrink: 0;
         }
 
         /* KPI GRID SCREEN */
         .screen-kgrid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          margin-top: 4px;
+          gap: 6px;
+          margin-top: 2px;
         }
 
         .screen-k {
           background: var(--card);
           border-radius: 9px;
-          padding: 10px;
+          padding: 8px 10px;
           display: flex;
           flex-direction: column;
           gap: 2px;
@@ -845,23 +880,23 @@ export default function PitchPresentationPage() {
         }
 
         .screen-k b {
-          font-size: 1.15rem;
+          font-size: 1.1rem;
           font-weight: 700;
           color: var(--ink);
         }
 
         .screen-k span {
-          font-size: 0.68rem;
+          font-size: 0.66rem;
           color: var(--muted);
         }
 
         /* BARS SCREEN */
         .mbar {
           display: grid;
-          grid-template-columns: 80px minmax(0, 1fr) 42px;
-          gap: 8px;
+          grid-template-columns: 74px minmax(0, 1fr) 38px;
+          gap: 6px;
           align-items: center;
-          font-size: 0.72rem;
+          font-size: 0.7rem;
         }
 
         .mbar .tr {
@@ -884,15 +919,9 @@ export default function PitchPresentationPage() {
         /* INTERACTIVE SIMULATOR (SECTION #contoh) */
         .demo-box {
           display: grid;
-          grid-template-columns: 320px minmax(0, 1fr);
-          gap: 16px;
-          margin-top: 10px;
-        }
-
-        @media (max-width: 860px) {
-          .demo-box {
-            grid-template-columns: 1fr;
-          }
+          grid-template-columns: 310px minmax(0, 1fr);
+          gap: 14px;
+          margin-top: 8px;
         }
 
         .qs-list {
@@ -905,9 +934,9 @@ export default function PitchPresentationPage() {
           background: var(--card);
           border: 1px solid var(--line);
           border-radius: 12px;
-          padding: 14px 16px;
+          padding: 12px 14px;
           text-align: left;
-          font: 500 0.88rem/1.4 var(--font);
+          font: 500 0.86rem/1.35 var(--font);
           color: var(--ink);
           cursor: pointer;
           transition: all 0.15s;
@@ -923,48 +952,49 @@ export default function PitchPresentationPage() {
         .ans-card {
           background: var(--card);
           border-radius: 16px;
-          padding: 24px;
+          padding: 22px;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 18px;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+          min-width: 0;
         }
 
         .ans-card h3 {
-          font-size: 1.25rem;
+          font-size: 1.2rem;
           font-weight: 600;
           margin: 0 0 6px 0;
         }
 
         .ans-card p.sum {
           color: var(--muted);
-          font-size: 0.92rem;
-          margin: 0 0 16px 0;
+          font-size: 0.88rem;
+          margin: 0 0 14px 0;
           line-height: 1.5;
         }
 
         .kpi-row {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 12px;
-          margin: 14px 0;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 10px;
+          margin: 12px 0;
         }
 
         .kpi-card {
           background: var(--surface);
-          border-radius: 12px;
-          padding: 14px;
+          border-radius: 10px;
+          padding: 12px;
         }
 
         .kpi-card b {
           display: block;
-          font-size: 1.35rem;
+          font-size: 1.25rem;
           font-weight: 700;
           color: var(--ink);
         }
 
         .kpi-card span {
-          font-size: 0.76rem;
+          font-size: 0.74rem;
           color: var(--muted);
         }
 
@@ -972,7 +1002,7 @@ export default function PitchPresentationPage() {
           background: #fff8f5;
           border-left: 4px solid var(--accent);
           border-radius: 12px;
-          padding: 16px;
+          padding: 14px;
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -990,14 +1020,8 @@ export default function PitchPresentationPage() {
           display: grid;
           grid-template-columns: 140px minmax(0, 1fr);
           gap: 6px 12px;
-          font-size: 0.85rem;
+          font-size: 0.84rem;
           margin: 0;
-        }
-
-        @media (max-width: 600px) {
-          .rec-box dl {
-            grid-template-columns: 1fr;
-          }
         }
 
         .rec-box dt {
@@ -1018,29 +1042,17 @@ export default function PitchPresentationPage() {
           gap: 12px;
         }
 
-        @media (max-width: 960px) {
-          .steps-row {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        @media (max-width: 540px) {
-          .steps-row {
-            grid-template-columns: 1fr;
-          }
-        }
-
         .step-card {
           background: var(--card);
           border-radius: 14px;
-          padding: 18px;
+          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
 
         .step-card .n {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.12em;
           text-transform: uppercase;
@@ -1048,13 +1060,13 @@ export default function PitchPresentationPage() {
         }
 
         .step-card h3 {
-          font-size: 1.05rem;
+          font-size: 1rem;
           font-weight: 600;
           margin: 0;
         }
 
         .step-card p {
-          font-size: 0.82rem;
+          font-size: 0.8rem;
           color: var(--muted);
           margin: 0;
           line-height: 1.45;
@@ -1066,27 +1078,29 @@ export default function PitchPresentationPage() {
           background: var(--card);
           border-radius: 14px;
           padding: 6px;
+          -webkit-overflow-scrolling: touch;
         }
 
         table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 0.88rem;
+          font-size: 0.86rem;
           text-align: left;
         }
 
         th {
-          padding: 12px 16px;
+          padding: 10px 14px;
           font-weight: 600;
           color: var(--muted);
           border-bottom: 1px solid var(--line);
-          font-size: 0.78rem;
+          font-size: 0.76rem;
           text-transform: uppercase;
           letter-spacing: 0.08em;
+          white-space: nowrap;
         }
 
         td {
-          padding: 14px 16px;
+          padding: 12px 14px;
           border-bottom: 1px solid var(--line);
           color: var(--ink);
         }
@@ -1100,17 +1114,17 @@ export default function PitchPresentationPage() {
           border-radius: 20px;
           background: linear-gradient(135deg, #1c1917, #292524);
           color: #ffffff;
-          padding: clamp(36px, 6vw, 64px) clamp(24px, 5vw, 48px);
+          padding: clamp(32px, 5vw, 60px) clamp(18px, 4vw, 44px);
           display: flex;
           flex-direction: column;
           align-items: center;
           text-align: center;
-          gap: 16px;
+          gap: 14px;
         }
 
         .closing-banner h2 {
           color: #ffffff;
-          font-size: clamp(2rem, 4vw, 3rem);
+          font-size: clamp(1.8rem, 4vw, 2.9rem);
           max-width: 24ch;
         }
 
@@ -1118,7 +1132,250 @@ export default function PitchPresentationPage() {
           color: rgba(255, 255, 255, 0.8);
           max-width: 50ch;
           margin: 0;
-          font-size: 1rem;
+          font-size: 0.95rem;
+        }
+
+        /* ========================================================
+           RESPONSIVE MOBILE BREAKPOINTS (<= 860px, <= 640px, <= 480px)
+           ======================================================== */
+        @media (max-width: 920px) {
+          .pitch-nav .links {
+            display: none;
+          }
+          .mobile-pill-nav {
+            display: flex;
+          }
+          .pitch-hero {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 28px;
+          }
+          .grid-3 {
+            grid-template-columns: 1fr;
+          }
+          .demo-box {
+            grid-template-columns: 1fr;
+          }
+          .steps-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 640px) {
+          body {
+            padding-block: 10px 32px;
+            padding-left: max(10px, env(safe-area-inset-left, 0px));
+            padding-right: max(10px, env(safe-area-inset-right, 0px));
+          }
+
+          .pitch-container {
+            gap: 10px;
+          }
+
+          .pitch-nav {
+            padding: 8px 12px;
+            border-radius: 12px;
+          }
+
+          .pitch-nav .logo span {
+            font-size: 0.85rem;
+          }
+
+          .pitch-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 0.8rem;
+          }
+
+          .pitch-hero {
+            padding: 24px 16px;
+            border-radius: 18px;
+            gap: 22px;
+          }
+
+          .pitch-hero h1 {
+            font-size: clamp(1.85rem, 7.5vw, 2.45rem);
+            line-height: 1.1;
+          }
+
+          .pitch-hero p.sub {
+            font-size: 0.92rem;
+            margin-top: 12px;
+          }
+
+          .pitch-hero .ctas {
+            flex-direction: column;
+            width: 100%;
+          }
+
+          .pitch-hero .ctas .pitch-btn {
+            width: 100%;
+          }
+
+          .pitch-trust {
+            margin-top: 20px;
+            font-size: 0.78rem;
+          }
+
+          /* DEVICE BEZEL PADA MOBILE */
+          .device-bezel {
+            border: 4px solid #1f1614;
+            padding: 10px;
+            border-radius: 16px;
+            min-height: auto;
+          }
+
+          .device-top-bar {
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+          }
+
+          .mode-tab {
+            padding: 5px 7px;
+            font-size: 0.65rem;
+            gap: 3px;
+          }
+
+          .pitch-panel {
+            padding: 20px 14px;
+            border-radius: 16px;
+          }
+
+          .panel-head {
+            margin-bottom: 20px;
+            gap: 6px;
+          }
+
+          h2 {
+            font-size: clamp(1.4rem, 5.8vw, 1.85rem);
+            line-height: 1.2;
+          }
+
+          .lead {
+            font-size: 0.88rem;
+          }
+
+          /* STATS GRID 2-KOLOM PADA MOBILE */
+          .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 24px;
+          }
+
+          .stats-grid > :last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+          }
+
+          .stat-card {
+            padding: 14px;
+            min-height: auto;
+            gap: 16px;
+            border-radius: 12px;
+          }
+
+          .stat-card b {
+            font-size: 1.6rem;
+          }
+
+          .stat-card span {
+            font-size: 0.72rem !important;
+          }
+
+          /* FITUR GRID & SCREEN PADA MOBILE */
+          .feat-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 10px;
+          }
+
+          .feat-card {
+            padding: 12px;
+            border-radius: 14px;
+          }
+
+          .feat-screen {
+            padding: 10px;
+            min-height: 290px;
+          }
+
+          /* SIMULATOR RESPONSE PADA MOBILE */
+          .ans-card {
+            padding: 16px;
+            border-radius: 14px;
+          }
+
+          .kpi-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+          }
+
+          .kpi-card {
+            padding: 9px;
+          }
+
+          .kpi-card b {
+            font-size: 1.05rem;
+          }
+
+          .kpi-card span {
+            font-size: 0.68rem;
+          }
+
+          .rec-box {
+            padding: 12px;
+          }
+
+          .rec-box dl {
+            grid-template-columns: 1fr;
+            gap: 2px;
+          }
+
+          .rec-box dd {
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+          }
+
+          /* STEPS PADA MOBILE */
+          .steps-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
+          }
+
+          .step-card {
+            padding: 12px;
+          }
+
+          /* CLOSING BANNER */
+          .closing-banner {
+            padding: 28px 14px;
+            border-radius: 16px;
+          }
+
+          .closing-banner .pitch-btn {
+            width: 100%;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .pitch-nav .logo span {
+            display: none;
+          }
+
+          .mode-tab span {
+            display: none;
+          }
+
+          .mode-tab {
+            padding: 6px;
+          }
+
+          .sim-bar-grid {
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 4px 6px !important;
+          }
+
+          .sim-bar-title {
+            grid-column: 1 / -1 !important;
+            font-size: 0.78rem !important;
+          }
         }
       `}</style>
 
@@ -1126,7 +1383,7 @@ export default function PitchPresentationPage() {
         {/* TOP NAVIGATION BAR */}
         <nav className="pitch-nav" aria-label="Navigasi">
           <Link className="logo" href="#atas">
-            <div className="relative h-8 w-28 shrink-0">
+            <div className="relative h-7 w-24 sm:h-8 sm:w-28 shrink-0">
               <Image
                 src="/logo-el-massa-horizontal.png"
                 alt="El Massa Logo"
@@ -1152,11 +1409,24 @@ export default function PitchPresentationPage() {
           </Link>
         </nav>
 
+        {/* MOBILE HORIZONTAL PILL SUBNAV (KHUSUS TAMPILAN HP) */}
+        <div className="mobile-pill-nav" aria-label="Navigasi Cepat Mobile">
+          <a href="#atas">Top</a>
+          <a href="#kebutuhan">Kebutuhan</a>
+          <a href="#prinsip">6 Prinsip</a>
+          <a href="#ekosistem">3 Gerbang</a>
+          <a href="#fitur">6 Layar Mockup</a>
+          <a href="#contoh">Simulasi Alur</a>
+          <a href="#cara">5 Langkah</a>
+          <a href="#jadwal">Kesiapan Senin</a>
+          <a href="#akses">Hak Akses</a>
+        </div>
+
         {/* HERO SECTION DENGAN REALISTIC MULTI-DEVICE MOCKUP & ANIMASI */}
         <header className="pitch-hero" id="atas">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-pink-400/30 bg-pink-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-pink-300">
-              <Sparkles className="h-3.5 w-3.5 text-pink-400" />
+            <div className="mb-3 sm:mb-4 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-pink-400/30 bg-pink-500/10 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-pink-300">
+              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-pink-400" />
               Sistem Terpadu PT El Massa Tour &amp; Travel
             </div>
             <h1>
@@ -1204,9 +1474,10 @@ export default function PitchPresentationPage() {
                     data-active={heroDeviceMode === "admin"}
                     onClick={() => setHeroDeviceMode("admin")}
                     className="mode-tab"
+                    title="Admin Web Kantor"
                   >
-                    <Monitor className="h-3.5 w-3.5" />
-                    Admin Kantor
+                    <Monitor className="h-3.5 w-3.5 shrink-0" />
+                    <span>Admin Kantor</span>
                   </button>
                   <button
                     type="button"
@@ -1214,9 +1485,10 @@ export default function PitchPresentationPage() {
                     data-active={heroDeviceMode === "agen"}
                     onClick={() => setHeroDeviceMode("agen")}
                     className="mode-tab"
+                    title="HP Agen (My El Massa)"
                   >
-                    <Smartphone className="h-3.5 w-3.5" />
-                    HP Agen (My El Massa)
+                    <Smartphone className="h-3.5 w-3.5 shrink-0" />
+                    <span>HP Agen</span>
                   </button>
                   <button
                     type="button"
@@ -1224,9 +1496,10 @@ export default function PitchPresentationPage() {
                     data-active={heroDeviceMode === "umrahme"}
                     onClick={() => setHeroDeviceMode("umrahme")}
                     className="mode-tab"
+                    title="UmrahMe Jamaah"
                   >
-                    <Heart className="h-3.5 w-3.5" />
-                    UmrahMe
+                    <Heart className="h-3.5 w-3.5 shrink-0" />
+                    <span>UmrahMe</span>
                   </button>
                   <button
                     type="button"
@@ -1234,63 +1507,64 @@ export default function PitchPresentationPage() {
                     data-active={heroDeviceMode === "kuitansi"}
                     onClick={() => setHeroDeviceMode("kuitansi")}
                     className="mode-tab"
+                    title="Kwitansi KW Resmi"
                   >
-                    <ReceiptText className="h-3.5 w-3.5" />
-                    Kwitansi KW
+                    <ReceiptText className="h-3.5 w-3.5 shrink-0" />
+                    <span>Kwitansi</span>
                   </button>
                 </div>
               </div>
 
               {/* MOCKUP CONTENT 1: ADMIN WEB KANTOR */}
               {heroDeviceMode === "admin" && (
-                <div className="anim-rise flex flex-col gap-3">
-                  <div className="flex items-center justify-between rounded-lg bg-stone-100 p-2.5 text-xs font-semibold text-stone-800">
-                    <span className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 anim-pulse-green"></span>
-                      Kantor Pusat: Booking Real-Time
+                <div className="anim-rise flex flex-col gap-2.5 sm:gap-3">
+                  <div className="flex items-center justify-between rounded-lg bg-stone-100 p-2 sm:p-2.5 text-xs font-semibold text-stone-800">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 anim-pulse-green shrink-0"></span>
+                      Kantor: Booking Real-Time
                     </span>
-                    <span className="rounded bg-white px-2 py-0.5 text-[11px] font-bold text-stone-600 shadow-xs">
+                    <span className="rounded bg-white px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-stone-600 shadow-xs shrink-0">
                       14 Seat Sisa
                     </span>
                   </div>
 
-                  <div className="space-y-2 rounded-xl border border-stone-200 bg-stone-50/50 p-3 text-xs">
-                    <div className="flex justify-between font-medium text-stone-500">
-                      <span>Paket Umrah 01 Oktober 2026</span>
+                  <div className="space-y-1.5 sm:space-y-2 rounded-xl border border-stone-200 bg-stone-50/50 p-2.5 sm:p-3 text-xs">
+                    <div className="flex justify-between font-medium text-stone-500 text-[11px] sm:text-xs">
+                      <span>Paket 01 Okt 2026</span>
                       <span className="font-bold text-stone-900">45 Pax Target</span>
                     </div>
                     {/* PROGRESS BAR DENGAN ANIMASI */}
-                    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-stone-200">
+                    <div className="relative h-2 sm:h-2.5 w-full overflow-hidden rounded-full bg-stone-200">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-pink-600 to-rose-500 transition-all duration-1000 ease-out"
                         style={{ width: "69%" }}
                       ></div>
                     </div>
-                    <div className="flex justify-between text-[11px] text-stone-600">
+                    <div className="flex justify-between text-[10px] sm:text-[11px] text-stone-600">
                       <span>31 Terisi (DP Masuk)</span>
                       <span className="font-bold text-rose-600">69% Terpenuhi</span>
                     </div>
                   </div>
 
                   {/* MINI TABLE BOOKING TERBARU */}
-                  <div className="rounded-xl border border-stone-200 bg-white p-2.5 shadow-xs">
-                    <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                  <div className="rounded-xl border border-stone-200 bg-white p-2 sm:p-2.5 shadow-xs">
+                    <div className="mb-1.5 flex items-center justify-between text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400">
                       <span>Booking Terbaru</span>
                       <span className="text-emerald-600">3 Menit Lalu</span>
                     </div>
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-2 text-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-2 text-xs gap-1 sm:gap-2">
                       <div>
                         <p className="font-semibold text-stone-800">Hj. Siti Aminah + 1</p>
-                        <p className="text-[11px] text-stone-500">Agen: Ustadz Ahmad Sobri (AG-01)</p>
+                        <p className="text-[10px] sm:text-[11px] text-stone-500">Agen: Ust. Ahmad (AG-01)</p>
                       </div>
-                      <span className="rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">
-                        DP Rp 10.000.000 (Lunas)
+                      <span className="self-start sm:self-auto rounded-md bg-emerald-50 px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-bold text-emerald-700">
+                        DP Rp 10 Juta (Lunas)
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-auto rounded-xl border border-pink-200 bg-pink-50/70 p-2.5 text-xs text-pink-950">
-                    <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-pink-600">
+                  <div className="mt-auto rounded-xl border border-pink-200 bg-pink-50/70 p-2 sm:p-2.5 text-[11px] sm:text-xs text-pink-950">
+                    <span className="mb-0.5 block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-pink-600">
                       Aksi Otomatis Sistem
                     </span>
                     Kwitansi KW-2610-0012 terbit otomatis, komisi agen Rp 3.000.000 masuk dompet mitra, dan akun UmrahMe jamaah aktif.
@@ -1300,26 +1574,26 @@ export default function PitchPresentationPage() {
 
               {/* MOCKUP CONTENT 2: SMARTPHONE MY EL MASSA (AGEN) */}
               {heroDeviceMode === "agen" && (
-                <div className="anim-rise mx-auto flex w-full max-w-[320px] flex-col gap-3 rounded-2xl border-4 border-stone-800 bg-white p-3 shadow-md">
+                <div className="anim-rise mx-auto flex w-full max-w-full sm:max-w-[320px] flex-col gap-2.5 sm:gap-3 rounded-2xl border-2 sm:border-4 border-stone-800 bg-white p-2.5 sm:p-3 shadow-md">
                   {/* PHONE NOTCH / STATUS */}
                   <div className="flex items-center justify-between px-1 text-[10px] font-bold text-stone-500">
                     <span>09:14</span>
-                    <div className="h-3 w-16 rounded-full bg-stone-800"></div>
+                    <div className="h-2.5 sm:h-3 w-12 sm:w-16 rounded-full bg-stone-800"></div>
                     <span>5G 100%</span>
                   </div>
 
                   {/* AGENT IDENTITY */}
-                  <div className="rounded-xl bg-gradient-to-r from-stone-900 to-stone-800 p-3 text-white shadow-xs">
+                  <div className="rounded-xl bg-gradient-to-r from-stone-900 to-stone-800 p-2.5 sm:p-3 text-white shadow-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-stone-400">Kode Agen: AG-ELMASSA-01</span>
-                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                      <span className="text-[9px] sm:text-[10px] text-stone-400">Kode: AG-ELMASSA-01</span>
+                      <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-emerald-300">
                         Aktif 🟢
                       </span>
                     </div>
-                    <p className="mt-1 font-bold text-sm">Ust. H. Ahmad Sobri</p>
-                    <div className="mt-2 border-t border-stone-700/80 pt-2 flex justify-between items-baseline">
-                      <span className="text-[11px] text-stone-300">Saldo Komisi:</span>
-                      <span className="text-base font-extrabold text-pink-400">Rp 12.500.000</span>
+                    <p className="mt-1 font-bold text-xs sm:text-sm">Ust. H. Ahmad Sobri</p>
+                    <div className="mt-1.5 sm:mt-2 border-t border-stone-700/80 pt-1.5 flex justify-between items-baseline">
+                      <span className="text-[10px] sm:text-[11px] text-stone-300">Saldo Komisi:</span>
+                      <span className="text-sm sm:text-base font-extrabold text-pink-400">Rp 12.500.000</span>
                     </div>
                   </div>
 
@@ -1333,7 +1607,7 @@ export default function PitchPresentationPage() {
                     </button>
                     <button
                       type="button"
-                      className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-bold text-stone-700"
+                      className="rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-xs font-bold text-stone-700"
                     >
                       Brosur PDF
                     </button>
@@ -1341,32 +1615,32 @@ export default function PitchPresentationPage() {
 
                   {/* AGENT FEED */}
                   <div className="rounded-xl border border-stone-100 bg-stone-50 p-2 text-xs">
-                    <div className="flex justify-between text-[11px] font-semibold text-stone-600">
+                    <div className="flex justify-between text-[10px] sm:text-[11px] font-semibold text-stone-600">
                       <span>Paket Oktober</span>
                       <span className="text-pink-600">14 Seat Tersedia</span>
                     </div>
-                    <p className="mt-0.5 text-[11px] text-stone-400">Komisi: Rp 1.500.000 / pax</p>
+                    <p className="mt-0.5 text-[10px] sm:text-[11px] text-stone-400">Komisi: Rp 1.500.000 / pax</p>
                   </div>
                 </div>
               )}
 
               {/* MOCKUP CONTENT 3: UMRAHME (JAMAAH) */}
               {heroDeviceMode === "umrahme" && (
-                <div className="anim-rise mx-auto flex w-full max-w-[320px] flex-col gap-3 rounded-2xl border-4 border-stone-800 bg-white p-3 shadow-md">
+                <div className="anim-rise mx-auto flex w-full max-w-full sm:max-w-[320px] flex-col gap-2.5 sm:gap-3 rounded-2xl border-2 sm:border-4 border-stone-800 bg-white p-2.5 sm:p-3 shadow-md">
                   <div className="flex items-center justify-between px-1 text-[10px] font-bold text-stone-500">
                     <span>09:14</span>
-                    <div className="h-3 w-16 rounded-full bg-stone-800"></div>
+                    <div className="h-2.5 sm:h-3 w-12 sm:w-16 rounded-full bg-stone-800"></div>
                     <span className="text-purple-600 font-bold">UmrahMe</span>
                   </div>
 
                   {/* ITINERARY COUNTDOWN */}
-                  <div className="rounded-xl bg-gradient-to-r from-purple-900 to-indigo-900 p-3 text-white shadow-xs">
-                    <span className="text-[10px] uppercase tracking-wider text-purple-300">
+                  <div className="rounded-xl bg-gradient-to-r from-purple-900 to-indigo-900 p-2.5 sm:p-3 text-white shadow-xs">
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-purple-300">
                       Menuju Baitullah
                     </span>
-                    <p className="mt-0.5 text-lg font-bold">Hj. Siti Aminah</p>
-                    <p className="text-xs text-purple-200">Paket Reguler 12 Hari • Keberangkatan 01 Okt</p>
-                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-purple-100">
+                    <p className="mt-0.5 text-base sm:text-lg font-bold">Hj. Siti Aminah</p>
+                    <p className="text-[11px] sm:text-xs text-purple-200">Paket Reguler 12 Hari • 01 Okt</p>
+                    <div className="mt-1.5 sm:mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-purple-100">
                       <Clock className="h-3 w-3" /> 23 Hari Menuju Manasik Akbar
                     </div>
                   </div>
@@ -1374,88 +1648,88 @@ export default function PitchPresentationPage() {
                   {/* TRIP HIGHLIGHTS */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="rounded-lg border border-stone-200 bg-stone-50 p-2">
-                      <div className="flex items-center gap-1 font-bold text-stone-800">
-                        <Plane className="h-3.5 w-3.5 text-purple-600" /> Penerbangan
+                      <div className="flex items-center gap-1 font-bold text-stone-800 text-[11px]">
+                        <Plane className="h-3.5 w-3.5 text-purple-600 shrink-0" /> Terbang
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500">Saudia SV-819 (Direct JED)</p>
+                      <p className="mt-0.5 text-[10px] text-stone-500">Saudia SV-819</p>
                     </div>
                     <div className="rounded-lg border border-stone-200 bg-stone-50 p-2">
-                      <div className="flex items-center gap-1 font-bold text-stone-800">
-                        <Hotel className="h-3.5 w-3.5 text-purple-600" /> Hotel Makkah
+                      <div className="flex items-center gap-1 font-bold text-stone-800 text-[11px]">
+                        <Hotel className="h-3.5 w-3.5 text-purple-600 shrink-0" /> Hotel
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500">Elaf Kinda (Depan Pelataran)</p>
+                      <p className="mt-0.5 text-[10px] text-stone-500">Elaf Kinda (5★)</p>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-center text-xs font-bold text-emerald-800">
-                    ✓ Paspor &amp; Vaksin Meningitis Terverifikasi
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-1.5 sm:p-2 text-center text-[10px] sm:text-xs font-bold text-emerald-800">
+                    ✓ Paspor &amp; Vaksin Terverifikasi
                   </div>
                 </div>
               )}
 
               {/* MOCKUP CONTENT 4: KWITANSI RESMI BERSTEMPEL */}
               {heroDeviceMode === "kuitansi" && (
-                <div className="anim-rise relative flex flex-col gap-2 rounded-xl border border-stone-300 bg-white p-4 shadow-sm">
+                <div className="anim-rise relative flex flex-col gap-2 rounded-xl border border-stone-300 bg-white p-3 sm:p-4 shadow-sm overflow-hidden">
                   {/* KWITANSI HEADER */}
-                  <div className="flex items-center justify-between border-b border-stone-200 pb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded bg-amber-700"></div>
-                      <div>
-                        <p className="font-extrabold text-xs text-stone-900 leading-none">PT EL MASSA TOUR &amp; TRAVEL</p>
-                        <p className="text-[9px] text-stone-500">Izin Umrah Kemenag No. U.412 Tahun 2020</p>
+                  <div className="flex items-center justify-between border-b border-stone-200 pb-1.5 sm:pb-2">
+                    <div className="flex items-center gap-2 truncate">
+                      <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-amber-700 shrink-0"></div>
+                      <div className="truncate">
+                        <p className="font-extrabold text-[11px] sm:text-xs text-stone-900 leading-none truncate">PT EL MASSA TOUR &amp; TRAVEL</p>
+                        <p className="text-[8px] sm:text-[9px] text-stone-500 truncate">Izin Umrah Kemenag U.412</p>
                       </div>
                     </div>
-                    <span className="rounded bg-stone-100 px-2 py-0.5 text-[11px] font-mono font-bold text-stone-700">
+                    <span className="rounded bg-stone-100 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-mono font-bold text-stone-700 shrink-0">
                       KW-2610-0012
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 py-1 text-[11px]">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px]">
                     <div>
-                      <span className="text-stone-400">Telah Diterima Dari:</span>
+                      <span className="text-stone-400 block text-[9px] sm:text-[10px]">Telah Diterima Dari:</span>
                       <p className="font-bold text-stone-800">Hj. Siti Aminah</p>
                     </div>
                     <div>
-                      <span className="text-stone-400">Untuk Pembayaran:</span>
-                      <p className="font-bold text-stone-800">DP Umrah 01 Okt 2026 (2 Pax)</p>
+                      <span className="text-stone-400 block text-[9px] sm:text-[10px]">Untuk Pembayaran:</span>
+                      <p className="font-bold text-stone-800 truncate">DP Umrah 01 Okt</p>
                     </div>
                   </div>
 
                   <div className="rounded-lg bg-stone-50 p-2">
-                    <span className="text-[10px] text-stone-400 block">Jumlah Uang:</span>
-                    <span className="text-base font-extrabold text-stone-900">Rp 10.000.000</span>
-                    <p className="text-[10px] italic text-stone-600 mt-0.5">
+                    <span className="text-[9px] sm:text-[10px] text-stone-400 block">Jumlah Uang:</span>
+                    <span className="text-sm sm:text-base font-extrabold text-stone-900">Rp 10.000.000</span>
+                    <p className="text-[9px] sm:text-[10px] italic text-stone-600 mt-0.5">
                       Terbilang: &quot;Sepuluh Juta Rupiah&quot;
                     </p>
                   </div>
 
-                  {/* STEMPEL WATERMARK RESMI */}
-                  <div className="anim-stamp absolute bottom-6 right-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-rose-600/80 bg-rose-50/40 text-center text-[10px] font-extrabold uppercase text-rose-700 shadow-xs pointer-events-none">
+                  {/* STEMPEL WATERMARK RESMI (UKURAN RESPONSIF DI MOBILE) */}
+                  <div className="anim-stamp absolute bottom-3 right-3 sm:bottom-6 sm:right-6 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-dashed border-rose-600/80 bg-rose-50/50 text-center text-[8px] sm:text-[10px] font-extrabold uppercase text-rose-700 shadow-xs pointer-events-none">
                     <span>
                       PT EL MASSA
                       <br />
                       ★ LUNAS ★
                       <br />
-                      KASIR PUSAT
+                      KASIR
                     </span>
                   </div>
 
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-stone-400 pt-1 border-t border-stone-100">
+                  <div className="mt-1 sm:mt-2 flex items-center justify-between text-[9px] sm:text-[10px] text-stone-400 pt-1 border-t border-stone-100">
                     <span className="flex items-center gap-1">
                       <QrCode className="h-3 w-3 text-stone-700" /> Tervalidasi Sistem
                     </span>
-                    <span>Dicetak: 25 Okt 2026 09:14</span>
+                    <span>25 Okt 09:14</span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* FLOATING PILL BADGE DECORATION */}
-            <div className="anim-float absolute -bottom-4 -left-4 hidden md:flex items-center gap-2 rounded-xl border border-stone-200 bg-white/95 px-3 py-2 text-xs font-bold text-stone-800 shadow-lg backdrop-blur-md">
+            {/* FLOATING PILL BADGE DECORATION (DESKTOP ONLY) */}
+            <div className="anim-float absolute -bottom-4 -left-4 hidden lg:flex items-center gap-2 rounded-xl border border-stone-200 bg-white/95 px-3 py-2 text-xs font-bold text-stone-800 shadow-lg backdrop-blur-md">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 anim-pulse-green"></span>
               Live Sync Cloud Supabase
             </div>
-            <div className="anim-float absolute -top-4 -right-4 hidden md:flex items-center gap-2 rounded-xl border border-stone-200 bg-white/95 px-3 py-2 text-xs font-bold text-pink-700 shadow-lg backdrop-blur-md">
+            <div className="anim-float absolute -top-4 -right-4 hidden lg:flex items-center gap-2 rounded-xl border border-stone-200 bg-white/95 px-3 py-2 text-xs font-bold text-pink-700 shadow-lg backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-pink-500" />
               Anti-Bocor Kasir 100%
             </div>
@@ -1551,7 +1825,7 @@ export default function PitchPresentationPage() {
 
         {/* SECTION 3: THE TRIPLE ENGINE ARCHITECTURE */}
         <section className="pitch-panel" id="ekosistem">
-          <div className="split-head" style={{ marginBottom: "28px" }}>
+          <div className="split-head" style={{ marginBottom: "24px" }}>
             <div className="panel-head" style={{ margin: 0 }}>
               <p className="eyebrow">Arsitektur Ekosistem 3 Sudut</p>
               <h2>The Triple-Engine: Tiga gerbang saling mengunci secara sinergis</h2>
@@ -1566,7 +1840,7 @@ export default function PitchPresentationPage() {
               <h3>My El Massa (Portal Agen)</h3>
               <p>Diakses agen/mitra di mana saja lewat smartphone. Melihat katalog paket aktif, sisa kuota seat, dan mendaftarkan jamaah mandiri.</p>
               <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/my-elmassa" target="_blank" className="pitch-btn pitch-btn-accent" style={{ minHeight: "36px", fontSize: "0.82rem" }}>
+                <Link href="/my-elmassa" target="_blank" className="pitch-btn pitch-btn-accent" style={{ minHeight: "36px", fontSize: "0.82rem", width: "100%" }}>
                   Buka Portal Agen ↗
                 </Link>
               </div>
@@ -1577,7 +1851,7 @@ export default function PitchPresentationPage() {
               <h3>El Massa Web (Kantor Pusat)</h3>
               <p>Pusat kendali staf admin, kasir keuangan, dan operasional. Verifikasi DP, terbitkan invoice &amp; kuitansi, cetak surat Kemenag, dan atur stok.</p>
               <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/dashboard" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "var(--ink)", color: "#fff" }}>
+                <Link href="/dashboard" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "var(--ink)", color: "#fff", width: "100%" }}>
                   Buka Web Kantor
                 </Link>
               </div>
@@ -1588,7 +1862,7 @@ export default function PitchPresentationPage() {
               <h3>UmrahMe (Aplikasi Jamaah)</h3>
               <p>Aplikasi mobile jamaah resmi. Login mandiri pasca-DP untuk memantau jadwal manasik, hotel, muthawwif, dan upload paspor sendiri.</p>
               <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/umrahme" target="_blank" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "#7e22ce", color: "#fff" }}>
+                <Link href="/umrahme" target="_blank" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "#7e22ce", color: "#fff", width: "100%" }}>
                   Buka Menu UmrahMe ↗
                 </Link>
               </div>
@@ -1596,7 +1870,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 4: PANEL FITUR & MOCKUP SCREEN ANIMATIF (IDENTIK DENGAN ARTIFACT-DAR) */}
+        {/* SECTION 4: PANEL FITUR & MOCKUP SCREEN ANIMATIF */}
         <section className="pitch-panel" id="fitur">
           <div className="panel-head">
             <p className="eyebrow">Mockup &amp; Layar Aplikasi</p>
@@ -1613,14 +1887,14 @@ export default function PitchPresentationPage() {
                 <div className="feat-stop">
                   <span>Asisten Operasional El Massa</span>
                   <span className="feat-chip">
-                    <span className="dot"></span>Data Live
+                    <span className="dot"></span>Live
                   </span>
                 </div>
                 <div className="chat-msgs">
                   {chatAnswers.map((m, i) => (
                     <div key={i} className={m.role === "user" ? "chat-bubble-u" : "chat-bubble-s"}>
                       <span>{m.text}</span>
-                      <small className="text-[10px] opacity-70 block text-right">{m.time}</small>
+                      <small className="text-[9px] opacity-70 block text-right">{m.time}</small>
                     </div>
                   ))}
                 </div>
@@ -1629,7 +1903,7 @@ export default function PitchPresentationPage() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Tanya sisa seat / komisi / paspor..."
+                    placeholder="Tanya kuota / komisi / paspor..."
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && chatInput.trim()) {
                         handleSendChatPrompt(chatInput);
@@ -1642,23 +1916,24 @@ export default function PitchPresentationPage() {
                     onClick={() => {
                       if (chatInput.trim()) handleSendChatPrompt(chatInput);
                     }}
+                    aria-label="Kirim pertanyaan"
                   >
                     <Send className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 {/* PROMPT CHIPS */}
-                <div className="flex gap-1.5 overflow-x-auto pt-1">
+                <div className="flex gap-1.5 overflow-x-auto pt-1 -webkit-overflow-scrolling-touch">
                   <button
                     type="button"
                     onClick={() => handleSendChatPrompt("Cek saldo komisi Ustadz Ahmad")}
-                    className="rounded bg-white px-2 py-0.5 text-[10px] font-semibold text-stone-600 border border-stone-200 shadow-2xs whitespace-nowrap"
+                    className="rounded bg-white px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-stone-600 border border-stone-200 shadow-2xs whitespace-nowrap"
                   >
                     Komisi Ustadz Ahmad
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSendChatPrompt("Cek progress paspor paket Oktober")}
-                    className="rounded bg-white px-2 py-0.5 text-[10px] font-semibold text-stone-600 border border-stone-200 shadow-2xs whitespace-nowrap"
+                    className="rounded bg-white px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-stone-600 border border-stone-200 shadow-2xs whitespace-nowrap"
                   >
                     Status Paspor Kemenag
                   </button>
@@ -1675,16 +1950,16 @@ export default function PitchPresentationPage() {
               <div className="feat-screen" aria-label="Contoh ringkasan eksekutif">
                 <div className="feat-stop">
                   <span>Executive Ringkasan Owner</span>
-                  <span className="feat-chip">Bang Azri (CEO)</span>
+                  <span className="feat-chip">Bang Azri</span>
                 </div>
                 <div className="screen-kgrid">
                   <div className="screen-k">
                     <b>39 Jamaah</b>
-                    <span>Total Jamaah Terdaftar</span>
+                    <span>Total Jamaah</span>
                   </div>
                   <div className="screen-k">
                     <b>3 Paket</b>
-                    <span>Paket Umrah Dibuka</span>
+                    <span>Paket Dibuka</span>
                   </div>
                   <div className="screen-k">
                     <b>Rp 1.34 M</b>
@@ -1692,7 +1967,7 @@ export default function PitchPresentationPage() {
                   </div>
                   <div className="screen-k">
                     <b>11.7%</b>
-                    <span>Estimasi Margin Bersih</span>
+                    <span>Margin Bersih</span>
                   </div>
                 </div>
                 {/* SEAT TRACKER BARS */}
@@ -1705,14 +1980,14 @@ export default function PitchPresentationPage() {
                     <span className="tr">
                       <i style={{ width: "69%" }}></i>
                     </span>
-                    <span className="font-bold text-pink-600">31/45</span>
+                    <span className="font-bold text-pink-600 text-right">31/45</span>
                   </div>
                   <div className="mbar">
                     <span className="truncate">15 Nov 2026</span>
                     <span className="tr">
                       <i style={{ width: "40%", background: "#f59e0b" }}></i>
                     </span>
-                    <span className="font-bold text-amber-600">18/45</span>
+                    <span className="font-bold text-amber-600 text-right">18/45</span>
                   </div>
                 </div>
               </div>
@@ -1727,30 +2002,30 @@ export default function PitchPresentationPage() {
               <div className="feat-screen" aria-label="Contoh verifikasi kasir">
                 <div className="feat-stop">
                   <span>Kasir &amp; Pembayaran</span>
-                  <span className="feat-chip">Rek. Mandiri &amp; BSI</span>
+                  <span className="feat-chip">Rek. Mandiri</span>
                 </div>
-                <div className="flex-1 flex flex-col justify-between rounded-xl bg-white p-3 border border-stone-200">
+                <div className="flex-1 flex flex-col justify-between rounded-xl bg-white p-2.5 sm:p-3 border border-stone-200">
                   <div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-semibold text-stone-700">Tagihan: Hj. Siti Aminah</span>
-                      <span className="font-bold text-pink-600">DP Rp 10 Juta</span>
+                      <span className="font-semibold text-stone-700 truncate">Hj. Siti Aminah</span>
+                      <span className="font-bold text-pink-600 shrink-0">DP Rp 10 Jt</span>
                     </div>
-                    <p className="text-[11px] text-stone-400 mt-0.5">Bukti Transfer: Bank Mandiri (No. Ref: 2610-9981)</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">Ref: Bank Mandiri 2610-9981</p>
                   </div>
 
-                  <div className="rounded-lg bg-stone-50 p-2 text-center">
+                  <div className="rounded-lg bg-stone-50 p-2 text-center my-1">
                     {isKasirVerified ? (
-                      <div className="anim-rise space-y-1">
-                        <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                          KW-2610-0012 Terbit Berstempel
+                      <div className="anim-rise space-y-0.5">
+                        <div className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                          KW-2610-0012 Terbit Lunas
                         </div>
-                        <p className="text-[10px] text-emerald-800">
-                          Akun UmrahMe jamaah aktif • Komisi Agen Rp 3.000.000 tercatat.
+                        <p className="text-[9px] sm:text-[10px] text-emerald-800">
+                          UmrahMe aktif • Komisi Rp 3 Jt tercatat.
                         </p>
                       </div>
                     ) : (
-                      <p className="text-xs text-stone-600">Uang masuk rekening kantor menunggu konfirmasi kasir.</p>
+                      <p className="text-[11px] text-stone-600">Menunggu konfirmasi kasir.</p>
                     )}
                   </div>
 
@@ -1760,7 +2035,7 @@ export default function PitchPresentationPage() {
                     className="w-full rounded-lg py-2 text-xs font-bold text-white shadow-xs transition-all"
                     style={{ background: isKasirVerified ? "#15803d" : "var(--accent)" }}
                   >
-                    {isKasirVerified ? "✓ Transaksi Sudah Terverifikasi (Reset)" : "Verifikasi DP Kasir (Klik di Sini)"}
+                    {isKasirVerified ? "✓ Terverifikasi (Klik Reset)" : "Verifikasi DP Kasir (Klik)"}
                   </button>
                 </div>
               </div>
@@ -1777,23 +2052,23 @@ export default function PitchPresentationPage() {
                   <span>Portal Agen My El Massa</span>
                   <span className="feat-chip">Akses HP</span>
                 </div>
-                <div className="rounded-xl bg-stone-900 text-white p-3 space-y-2">
+                <div className="rounded-xl bg-stone-900 text-white p-2.5 sm:p-3 space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="text-stone-400">Ustadz Ahmad (AG-01)</span>
+                    <span className="text-stone-400">Ust. Ahmad (AG-01)</span>
                     <span className="text-emerald-400 font-bold">Terverifikasi</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-[11px] text-stone-300">Komisi Belum Cair:</span>
-                    <span className="text-sm font-extrabold text-pink-400">Rp 7.000.000</span>
+                    <span className="text-[10px] sm:text-[11px] text-stone-300">Komisi Belum Cair:</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-pink-400">Rp 7.000.000</span>
                   </div>
                 </div>
 
-                <div className="space-y-1.5 rounded-xl bg-white p-2.5 border border-stone-200 text-xs">
-                  <div className="flex justify-between font-bold text-stone-800">
+                <div className="space-y-1 rounded-xl bg-white p-2.5 border border-stone-200 text-xs">
+                  <div className="flex justify-between font-bold text-stone-800 text-[11px]">
                     <span>Jamaah Terdaftar Agen:</span>
                     <span className="text-pink-600">8 Jamaah</span>
                   </div>
-                  <p className="text-[11px] text-stone-500">2 jamaah baru sedang menunggu verifikasi kasir kantor pusat.</p>
+                  <p className="text-[10px] text-stone-500">2 jamaah baru sedang menunggu verifikasi kasir.</p>
                 </div>
               </div>
               <div className="feat-txt">
@@ -1809,20 +2084,20 @@ export default function PitchPresentationPage() {
                   <span>Dokumen Resmi Kantor</span>
                   <span className="feat-chip">Kop Resmi Asli</span>
                 </div>
-                <div className="flex-1 rounded-xl bg-white p-3 border border-stone-200 flex flex-col justify-between text-xs">
+                <div className="flex-1 rounded-xl bg-white p-2.5 sm:p-3 border border-stone-200 flex flex-col justify-between text-xs">
                   <div>
-                    <div className="flex items-center gap-1.5 text-stone-900 font-bold border-b border-stone-100 pb-1.5">
-                      <FileCheck className="h-4 w-4 text-pink-600" />
+                    <div className="flex items-center gap-1.5 text-stone-900 font-bold border-b border-stone-100 pb-1.5 text-[11px] sm:text-xs">
+                      <FileCheck className="h-4 w-4 text-pink-600 shrink-0" />
                       Surat Rekomendasi Paspor Kemenag
                     </div>
-                    <div className="mt-2 space-y-1 text-[11px] text-stone-600">
+                    <div className="mt-1.5 space-y-1 text-[10px] sm:text-[11px] text-stone-600">
                       <p><strong>Nama:</strong> Hj. Siti Aminah</p>
                       <p><strong>NIK:</strong> 3201123456780001</p>
-                      <p><strong>Paket:</strong> Umrah Reguler 01 Oktober 2026</p>
+                      <p><strong>Paket:</strong> Umrah Reguler 01 Okt 2026</p>
                     </div>
                   </div>
-                  <div className="rounded bg-emerald-50 p-2 text-center text-[11px] font-bold text-emerald-800">
-                    ✓ Format Baku Imigrasi Sesuai Kemenag RI
+                  <div className="rounded bg-emerald-50 p-1.5 text-center text-[10px] font-bold text-emerald-800 mt-2">
+                    ✓ Format Baku Imigrasi Kemenag RI
                   </div>
                 </div>
               </div>
@@ -1837,19 +2112,19 @@ export default function PitchPresentationPage() {
               <div className="feat-screen" aria-label="Contoh aplikasi jamaah">
                 <div className="feat-stop">
                   <span>Pendamping Digital Jamaah</span>
-                  <span className="feat-chip">UmrahMe App</span>
+                  <span className="feat-chip">UmrahMe</span>
                 </div>
-                <div className="rounded-xl bg-purple-900 text-white p-3 space-y-1.5">
-                  <p className="text-[10px] text-purple-300 uppercase">Jadwal Perjalanan</p>
-                  <p className="font-bold text-sm">Hari 1: CGK ➔ JED ➔ Madinah</p>
-                  <p className="text-xs text-purple-200">Hotel Taiba Front (50m ke Masjid Nabawi)</p>
+                <div className="rounded-xl bg-purple-900 text-white p-2.5 sm:p-3 space-y-1">
+                  <p className="text-[9px] text-purple-300 uppercase">Jadwal Perjalanan</p>
+                  <p className="font-bold text-xs sm:text-sm">Hari 1: CGK ➔ JED ➔ Madinah</p>
+                  <p className="text-[10px] sm:text-xs text-purple-200">Hotel Taiba Front (Pelataran Nabawi)</p>
                 </div>
-                <div className="rounded-xl bg-white p-2.5 border border-stone-200 text-xs space-y-1">
-                  <div className="flex justify-between font-bold text-stone-800">
-                    <span>Muthawwif Rombongan:</span>
+                <div className="rounded-xl bg-white p-2 sm:p-2.5 border border-stone-200 text-xs space-y-0.5">
+                  <div className="flex justify-between font-bold text-stone-800 text-[11px]">
+                    <span>Muthawwif:</span>
                     <span className="text-purple-700">Ust. M. Rizky, Lc</span>
                   </div>
-                  <p className="text-[11px] text-stone-500">Audio panduan manasik dan doa tawaf siap diputar offline.</p>
+                  <p className="text-[10px] text-stone-500">Audio panduan manasik siap diputar offline.</p>
                 </div>
               </div>
               <div className="feat-txt">
@@ -1905,12 +2180,22 @@ export default function PitchPresentationPage() {
                   </div>
                 )}
 
-                {/* Render Bar Chart jika tipe skenario BARS */}
+                {/* Render Bar Chart jika tipe skenario BARS (RESPONSIF MOBILE DENGAN sim-bar-grid) */}
                 {activeScenario.type === "bars" && activeScenario.bars && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "16px 0" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "14px 0" }}>
                     {activeScenario.bars.map((b) => (
-                      <div key={b.label} style={{ display: "grid", gridTemplateColumns: "180px minmax(0, 1fr) 120px", gap: "10px", alignItems: "center", fontSize: "0.82rem" }}>
-                        <span style={{ fontWeight: 600 }}>{b.label}</span>
+                      <div
+                        key={b.label}
+                        className="sim-bar-grid"
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "180px minmax(0, 1fr) 120px",
+                          gap: "10px",
+                          alignItems: "center",
+                          fontSize: "0.82rem",
+                        }}
+                      >
+                        <span className="sim-bar-title" style={{ fontWeight: 600 }}>{b.label}</span>
                         <div style={{ height: "10px", background: "var(--track)", borderRadius: "4px", position: "relative", overflow: "hidden" }}>
                           <div
                             style={{
@@ -1929,7 +2214,7 @@ export default function PitchPresentationPage() {
                   </div>
                 )}
 
-                <p style={{ fontSize: "0.78rem", color: "var(--muted)", margin: "12px 0 0 0" }}>
+                <p style={{ fontSize: "0.76rem", color: "var(--muted)", margin: "10px 0 0 0" }}>
                   {activeScenario.src}
                 </p>
               </div>
@@ -1989,7 +2274,7 @@ export default function PitchPresentationPage() {
 
         {/* SECTION 7: KESIAPAN HARI SENIN & ROADMAP */}
         <section className="pitch-panel" id="jadwal">
-          <div className="split-head" style={{ marginBottom: "28px" }}>
+          <div className="split-head" style={{ marginBottom: "24px" }}>
             <div className="panel-head" style={{ margin: 0 }}>
               <p className="eyebrow">Kesiapan Hari Senin &amp; Roadmap</p>
               <h2>Hari Senin anak-anak kantor mulai input data. Hasilnya langsung terlihat.</h2>
@@ -2036,6 +2321,9 @@ export default function PitchPresentationPage() {
             <h2>Setiap peran memiliki akses yang aman sesuai tugas dan tanggung jawabnya</h2>
           </div>
           <div className="tablewrap">
+            <div className="text-[10px] text-stone-400 pb-1.5 md:hidden text-right italic">
+              ← Geser ke kanan untuk melihat rincian tabel →
+            </div>
             <table>
               <thead>
                 <tr>
@@ -2082,7 +2370,7 @@ export default function PitchPresentationPage() {
           <p>
             Sistem terpadu ini siap menjadi fondasi operasional yang kokoh bagi kemajuan dan nama besar PT El Massa Tour &amp; Travel.
           </p>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", marginTop: "12px" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center", marginTop: "10px", width: "100%" }}>
             <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
               Masuk ke Dashboard Sistem
             </Link>
