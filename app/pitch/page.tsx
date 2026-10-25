@@ -31,6 +31,7 @@ import {
   Luggage,
   Mails,
   MapPin,
+  Menu,
   MessageSquare,
   Monitor,
   PhoneCall,
@@ -52,6 +53,7 @@ import {
   UserCog,
   Users,
   Wallet,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -292,6 +294,9 @@ export default function PitchPresentationPage() {
   // State untuk Interactive Tab Modul Kantor
   const [activeOfficeModulIdx, setActiveOfficeModulIdx] = useState(0);
 
+  // State untuk Toggle Mobile Menu Drawer
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
   // State untuk Interactive Chat Mockup
   const [chatInput, setChatInput] = useState("");
   const [chatAnswers, setChatAnswers] = useState<Array<{ role: "user" | "sys"; text: string; time: string }>>([
@@ -480,79 +485,55 @@ export default function PitchPresentationPage() {
           min-width: 0;
         }
 
-        /* TOP NAVIGATION */
+        /* TOP STICKY NAVIGATION */
+        .pitch-nav-wrapper {
+          position: sticky;
+          top: 10px;
+          z-index: 100;
+          margin-bottom: 2px;
+        }
+
         .pitch-nav {
-          background: var(--card);
-          border-radius: 14px;
-          padding: 10px 16px 10px 20px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border-radius: 16px;
+          padding: 8px 14px 8px 18px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          gap: 14px;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.06);
+          min-height: 56px;
         }
 
         .pitch-nav .logo {
           display: flex;
           align-items: center;
           gap: 10px;
-          font-weight: 700;
-          font-size: 1.05rem;
-          color: var(--ink);
           text-decoration: none;
-          letter-spacing: -0.02em;
+          flex-shrink: 0;
         }
 
         .pitch-nav .links {
           display: flex;
-          gap: 20px;
+          align-items: center;
+          gap: 22px;
         }
 
         .pitch-nav .links a {
-          color: var(--muted);
+          color: #44403c;
           text-decoration: none;
-          font-size: 0.86rem;
-          font-weight: 500;
+          font-size: 0.84rem;
+          font-weight: 600;
+          white-space: nowrap;
           transition: color 0.15s;
+          padding: 4px 0;
         }
 
         .pitch-nav .links a:hover {
-          color: var(--ink);
-        }
-
-        /* MOBILE HORIZONTAL PILL SUBNAV */
-        .mobile-pill-nav {
-          display: none;
-          gap: 6px;
-          overflow-x: auto;
-          padding: 2px 4px 6px;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-        }
-
-        .mobile-pill-nav::-webkit-scrollbar {
-          display: none;
-        }
-
-        .mobile-pill-nav a {
-          flex-shrink: 0;
-          background: var(--card);
-          color: var(--muted);
-          border: 1px solid var(--line);
-          border-radius: 20px;
-          padding: 6px 12px;
-          font-size: 0.76rem;
-          font-weight: 600;
-          text-decoration: none;
-          white-space: nowrap;
-          transition: all 0.15s;
-        }
-
-        .mobile-pill-nav a:hover,
-        .mobile-pill-nav a:active {
-          background: var(--ink);
-          color: #ffffff;
-          border-color: var(--ink);
+          color: var(--accent);
         }
 
         /* BUTTONS */
@@ -1294,12 +1275,12 @@ export default function PitchPresentationPage() {
         /* ========================================================
            RESPONSIVE MOBILE BREAKPOINTS (<= 860px, <= 640px, <= 480px)
            ======================================================== */
-        @media (max-width: 920px) {
+        @media (max-width: 1120px) {
           .pitch-nav .links {
-            display: none;
+            display: none !important;
           }
-          .mobile-pill-nav {
-            display: flex;
+          #menu-btn-mobile {
+            display: inline-flex !important;
           }
           .pitch-hero {
             grid-template-columns: minmax(0, 1fr);
@@ -1536,49 +1517,135 @@ export default function PitchPresentationPage() {
       `}</style>
 
       <div className="pitch-container">
-        {/* TOP NAVIGATION BAR */}
-        <nav className="pitch-nav" aria-label="Navigasi">
-          <Link className="logo" href="#atas">
-            <div className="relative h-7 w-24 sm:h-8 sm:w-28 shrink-0">
-              <Image
-                src="/logo-el-massa-horizontal.png"
-                alt="El Massa Logo"
-                fill
-                className="object-contain object-left"
-                priority
-              />
-            </div>
-            <span>Transformasi Digital</span>
-          </Link>
-          <div className="links">
-            <a href="#kebutuhan">Kebutuhan</a>
-            <a href="#prinsip">Prinsip</a>
-            <a href="#modul-kantor">Modul Kantor</a>
-            <a href="#detail-umrahme">UmrahMe</a>
-            <a href="#detail-myelmassa">My El Massa</a>
-            <a href="#fitur">6 Layar Mockup</a>
-            <a href="#contoh">Simulasi</a>
-            <a href="#cara">Cara Kerja</a>
-            <a href="#akses">Hak Akses</a>
-          </div>
-          <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
-            Buka Sistem Kantor
-          </Link>
-        </nav>
+        {/* TOP STICKY NAVIGATION BAR */}
+        <div className="pitch-nav-wrapper">
+          <nav className="pitch-nav" aria-label="Navigasi Utama">
+            {/* LOGO EL MASSA */}
+            <Link className="logo" href="#atas" onClick={() => setIsMobileNavOpen(false)}>
+              <div className="relative h-7 w-26 sm:h-8 sm:w-28 shrink-0">
+                <Image
+                  src="/logo-el-massa-horizontal.png"
+                  alt="El Massa Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
+              </div>
+              <span className="hidden sm:inline-flex rounded-full bg-stone-100 border border-stone-200 px-2 py-0.5 text-[10px] font-bold text-stone-700 uppercase tracking-wider">
+                Pitch Deck
+              </span>
+            </Link>
 
-        {/* MOBILE HORIZONTAL PILL SUBNAV (KHUSUS TAMPILAN HP) */}
-        <div className="mobile-pill-nav" aria-label="Navigasi Cepat Mobile">
-          <a href="#atas">Top</a>
-          <a href="#kebutuhan">Kebutuhan</a>
-          <a href="#prinsip">6 Prinsip</a>
-          <a href="#modul-kantor">Modul Kantor (6 Modul)</a>
-          <a href="#detail-umrahme">Detail UmrahMe</a>
-          <a href="#detail-myelmassa">Detail My El Massa</a>
-          <a href="#fitur">6 Layar Mockup</a>
-          <a href="#contoh">Simulasi Alur</a>
-          <a href="#cara">5 Langkah</a>
-          <a href="#jadwal">Kesiapan Senin</a>
-          <a href="#akses">Hak Akses</a>
+            {/* DESKTOP LINKS (HANYA MUNCUL DI LAYAR DESKTOP BESAR >= 1120px) */}
+            <div className="links">
+              <a href="#kebutuhan">Kebutuhan</a>
+              <a href="#modul-kantor">6 Modul Kantor</a>
+              <a href="#detail-umrahme">UmrahMe</a>
+              <a href="#detail-myelmassa">My El Massa</a>
+              <a href="#fitur">Mockup Layar</a>
+              <a href="#contoh">Simulasi Alur</a>
+              <a href="#jadwal">Kesiapan</a>
+            </div>
+
+            {/* RIGHT ACTIONS */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Link className="pitch-btn pitch-btn-accent text-xs sm:text-sm whitespace-nowrap" href="/dashboard">
+                <span className="hidden sm:inline">Buka Sistem Kantor</span>
+                <span className="sm:hidden">Sistem Kantor</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              {/* MOBILE HAMBURGER BUTTON */}
+              <button
+                type="button"
+                onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+                className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 transition-colors"
+                style={{ display: "none" }}
+                id="menu-btn-mobile"
+                aria-label="Toggle Menu"
+              >
+                {isMobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
+          </nav>
+
+          {/* MOBILE DROPDOWN DRAWER */}
+          {isMobileNavOpen && (
+            <div className="anim-rise mt-2 rounded-2xl border border-stone-200 bg-white/95 backdrop-blur-xl p-4 shadow-xl flex flex-col gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2">Menu Navigasi Presentasi</p>
+              <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold text-stone-700">
+                <a
+                  href="#kebutuhan"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  📌 Kebutuhan &amp; Sasaran
+                </a>
+                <a
+                  href="#prinsip"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  ⚖️ 6 Prinsip
+                </a>
+                <a
+                  href="#modul-kantor"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  🏢 6 Modul Kantor
+                </a>
+                <a
+                  href="#detail-umrahme"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  🕌 Detail UmrahMe
+                </a>
+                <a
+                  href="#detail-myelmassa"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  📱 Detail My El Massa
+                </a>
+                <a
+                  href="#fitur"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  💻 6 Mockup Layar
+                </a>
+                <a
+                  href="#contoh"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  ⚡ Simulasi Alur
+                </a>
+                <a
+                  href="#cara"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  🔄 5 Langkah Kerja
+                </a>
+                <a
+                  href="#jadwal"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  📅 Kesiapan Senin
+                </a>
+                <a
+                  href="#akses"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="rounded-lg p-2.5 hover:bg-stone-100 transition-colors"
+                >
+                  🛡️ Hak Akses Peran
+                </a>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* HERO SECTION DENGAN REALISTIC MULTI-DEVICE MOCKUP & ANIMASI */}
