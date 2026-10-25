@@ -43,6 +43,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  ShieldAlert,
   ShieldCheck,
   Smartphone,
   Sparkles,
@@ -132,9 +133,164 @@ const SCENARIOS = [
   },
 ];
 
+// Data Rincian 6 Modul Kantor & Keuangan
+const OFFICE_MODULES = [
+  {
+    id: "paket-kuota",
+    number: "01",
+    title: "Manajemen Paket Umrah & Simulasi HPP / Costing",
+    tagline: "Penetapan harga berbasis HPP riil, alokasi kursi otomatis, dan proteksi margin.",
+    bullets: [
+      "Penetapan kuota target seat per paket (contoh: 45 seat) yang otomatis berkurang saat booking masuk.",
+      "Simulator kalkulator HPP: Harga Tiket Pesawat + Hotel Madinah + Hotel Makkah + Visa & Asuransi + Handling + Muthawwif + Margin Target.",
+      "Katalog paket aktif otomatis tersinkronisasi ke portal agen My El Massa secara real-time.",
+      "Fitur penutupan otomatis (Auto-Lock) jika kuota kursi paket telah terpenuhi.",
+    ],
+    path: "/paket",
+    badge: "Fondasi Bisnis",
+  },
+  {
+    id: "booking-jamaah",
+    number: "02",
+    title: "Booking Jamaah Terpadu & Manifest Maskapai",
+    tagline: "Satu pintu pendaftaran jamaah, auto-generate kode booking, dan integrasi kamar.",
+    bullets: [
+      "Kode booking instan otomatis berurutan (contoh: BK-2610-0012).",
+      "Pencatatan data keluarga & mahram, jenis kamar (Quad, Triple, Double), dan kebutuhan khusus lansia.",
+      "Deteksi kelengkapan dokumen paspor, foto KTP, kartu keluarga, dan buku nikah dalam satu layar.",
+      "Export Manifest Keberangkatan sesuai standar maskapai penerbangan (Saudia, Garuda) dan muassasah Saudi.",
+    ],
+    path: "/booking",
+    badge: "Administrasi Utama",
+  },
+  {
+    id: "kasir-kuitansi",
+    number: "03",
+    title: "Kasir Anti-Bocor (Zero Leakage) & Kuitansi Otomatis",
+    tagline: "Kwitansi resmi hanya terbit saat ada pembayaran sah yang diverifikasi kasir.",
+    bullets: [
+      "Pencatatan pembayaran DP, cicilan berkala, dan pelunasan dengan invoice resmi ber-kop.",
+      "Otomasi Kuitansi Resmi (KW-2610-XXXX) dengan kalimat terbilang Rupiah otomatis (contoh: 'Sepuluh Juta Rupiah').",
+      "Stempel digital sah dan QR Code verifikasi keaslian bukti pembayaran.",
+      "Gating System Anti-Bocor: Kwitansi kasir menjadi pemicu tunggal aktifnya akun aplikasi UmrahMe jamaah.",
+    ],
+    path: "/pembayaran",
+    badge: "Keamanan Finansial",
+  },
+  {
+    id: "surat-kemenag",
+    number: "04",
+    title: "Generator Dokumen Resmi Kemenag & Imigrasi",
+    tagline: "Otomasi surat menyurat ber-kop resmi asli El Massa tanpa perlu ketik ulang di Word.",
+    bullets: [
+      "Kop surat resmi asli motif kotak pink-coklat PT El Massa Tour & Travel (Izin Kemenag U.412).",
+      "Surat Rekomendasi Pembuatan Paspor Baru ke Kantor Imigrasi.",
+      "Surat Penambahan 3 Suku Kata Nama untuk kepatuhan visa haji/umrah Kerajaan Arab Saudi.",
+      "Surat Izin Cuti Kerja Jamaah ke kantor/instansi tempat jamaah bekerja.",
+      "Nol salah ketik: Nama, NIK, dan tanggal lahir ditarik otomatis dari database jamaah.",
+    ],
+    path: "/administrasi/surat",
+    badge: "Legalitas & Imigrasi",
+  },
+  {
+    id: "stok-gudang",
+    number: "05",
+    title: "Manajemen Gudang Perlengkapan (Metode FIFO)",
+    tagline: "Kontrol fisik mutasi koper bagasi, kain ihram, mukena, dan batik resmi El Massa.",
+    bullets: [
+      "Kartu stok digital untuk Koper Bagasi 24\", Koper Kabin 20\", Tas Paspor, Kain Ihram, Mukena, dan Batik.",
+      "Pencatatan mutasi barang masuk dari vendor dan barang keluar ke tangan jamaah.",
+      "Metode FIFO (First In, First Out) mencegah penumpukan barang lama di gudang.",
+      "Peringatan stok menipis (Low Stock Alert) sebelum rombongan diberangkatkan.",
+    ],
+    path: "/operasional/stok",
+    badge: "Logistik Fisik",
+  },
+  {
+    id: "rekap-grup",
+    number: "06",
+    title: "Rekapitulasi Keuangan Grup & Margin Laba Rombongan",
+    tagline: "Visibilitas total bagi Owner atas laba kotor riil setiap rombongan keberangkatan.",
+    bullets: [
+      "Total Penerimaan Uang Kasir Jamaah dikurangi Realisasi Beban Riil (Tiket + Hotel + Visa + Bus + Muthawwif + Handling).",
+      "Perhitungan margin laba kotor (Gross Margin) dan persentase keuntungan rombongan secara riil.",
+      "Monitoring sisa piutang jamaah yang belum melunasi menjelang batas waktu penutupan.",
+      "Memberikan kepastian kesehatan finansial rombongan sebelum terbang ke Arab Saudi.",
+    ],
+    path: "/pembayaran/rekap-grup",
+    badge: "Owner Dashboard",
+  },
+];
+
+// Data Rincian Fitur UmrahMe
+const UMRAHME_FEATURES = [
+  {
+    title: "1. Digital Itinerary & Timeline Harian",
+    desc: "Jadwal detail dari Hari 1 (CGK ➔ JED ➔ Madinah) sampai Hari 12 (Kepulangan). Jamaah tahu persis kapan jadwal ziarah Raudhah, ziarah Makkah-Madinah, waktu manasik, dan waktu ibadah bebas.",
+    tag: "Kepastian Waktu",
+  },
+  {
+    title: "2. Info Penerbangan & Boarding Pass Alert",
+    desc: "Detail maskapai (Saudia Airlines / Garuda), kode penerbangan (SV-819), terminal keberangkatan Bandara Soekarno-Hatta, jam check-in, dan batas bagasi 2x23 kg jamaah tercantum rapi.",
+    tag: "Kenyamanan Terbang",
+  },
+  {
+    title: "3. Akomodasi Hotel & Alokasi Kamar (Rooming)",
+    desc: "Nama hotel Makkah & Madinah, bintang hotel, jarak langkah kaki ke pelataran Masjidil Haram/Nabawi, serta nama teman satu kamar (Quad/Triple/Double) langsung tampil di HP jamaah.",
+    tag: "Anti-Bingung Hotel",
+  },
+  {
+    title: "4. Audio Panduan Doa & Manasik Offline",
+    desc: "Kumpulan audio doa tawaf, sa'i, tahallul, dan niat ihram yang bisa diputar di Tanah Suci tanpa kuota internet. Dilengkapi teks Arab, transliterasi Latin, dan terjemahan bahasa Indonesia.",
+    tag: "Khusyuk Ibadah",
+  },
+  {
+    title: "5. Tombol Darurat & Kontak Muthawwif WhatsApp",
+    desc: "Tombol panggilan darurat satu-klik untuk langsung menghubungi Muthawwif (Ustadz pembimbing) dan Tour Leader rombongan via WhatsApp jika jamaah terpisah dari rombongan di Masjidil Haram.",
+    tag: "Keamanan Jamaah",
+  },
+  {
+    title: "6. Upload Mandiri Dokumen & Paspor Jamaah",
+    desc: "Jamaah atau keluarganya dapat mengunggah foto paspor, buku nikah, dan kartu vaksin meningitis secara mandiri dari smartphone, langsung tersimpan aman di database cloud kantor.",
+    tag: "Mandiri & Praktis",
+  },
+];
+
+// Data Rincian Fitur My El Massa
+const MY_ELMASSA_FEATURES = [
+  {
+    title: "1. Dompet Komisi Agen Transparan (Rp 1.500.000 / Pax)",
+    desc: "Agen memantau saldo komisi riil, komisi per jamaah yang didaftarkan, riwayat komisi yang telah dicairkan, dan saldo siap tarik. Mengeliminasi kecurigaan atau selisih komisi manual.",
+    tag: "Hak Agen Terkunci",
+  },
+  {
+    title: "2. Pendaftaran Mandiri Calon Jamaah dari HP",
+    desc: "Agen cukup mengisi formulir ringkas: Nama jamaah, NIK, No WA, dan paket yang diminati. Data langsung masuk ke menu Booking kantor pusat dan kuota kursi paket otomatis berkurang.",
+    tag: "Kecepatan Closing",
+  },
+  {
+    title: "3. Katalog Paket & Kuota Kursi Real-Time",
+    desc: "Agen melihat langsung sisa kursi paket yang masih tersedia tanpa perlu bertanya bolak-balik via WhatsApp ke admin kantor pusat ('Mbak, paket Oktober masih ada sisa kursi?').",
+    tag: "Real-Time Seat",
+  },
+  {
+    title: "4. Pelacakan Status Jamaah Binaan (Tracking)",
+    desc: "Agen dapat memantau apakah jamaah binaannya sudah mentransfer DP ke kasir, apakah kuitansi resmi sudah terbit, dan apakah akun UmrahMe jamaah sudah aktif.",
+    tag: "Transparansi Penuh",
+  },
+  {
+    title: "5. Pusat Media Promosi & Brosur Resmi",
+    desc: "Agen dapat mengunduh materi promosi, flyer resmi ber-logo El Massa, dan rincian harga paket untuk langsung dibagikan ke majelis taklim, keluarga, atau status WhatsApp.",
+    tag: "Dukungan Penjualan",
+  },
+];
+
 export default function PitchPresentationPage() {
   // State untuk Hero Interactive Device Switcher
   const [heroDeviceMode, setHeroDeviceMode] = useState<"admin" | "agen" | "umrahme" | "kuitansi">("admin");
+
+  // State untuk Interactive Tab Modul Kantor
+  const [activeOfficeModulIdx, setActiveOfficeModulIdx] = useState(0);
 
   // State untuk Interactive Chat Mockup
   const [chatInput, setChatInput] = useState("");
@@ -349,13 +505,13 @@ export default function PitchPresentationPage() {
 
         .pitch-nav .links {
           display: flex;
-          gap: 22px;
+          gap: 20px;
         }
 
         .pitch-nav .links a {
           color: var(--muted);
           text-decoration: none;
-          font-size: 0.88rem;
+          font-size: 0.86rem;
           font-weight: 500;
           transition: color 0.15s;
         }
@@ -1397,11 +1553,12 @@ export default function PitchPresentationPage() {
           <div className="links">
             <a href="#kebutuhan">Kebutuhan</a>
             <a href="#prinsip">Prinsip</a>
-            <a href="#ekosistem">3 Gerbang</a>
-            <a href="#fitur">Layar &amp; Mockup</a>
-            <a href="#contoh">Coba Alur</a>
+            <a href="#modul-kantor">Modul Kantor</a>
+            <a href="#detail-umrahme">UmrahMe</a>
+            <a href="#detail-myelmassa">My El Massa</a>
+            <a href="#fitur">6 Layar Mockup</a>
+            <a href="#contoh">Simulasi</a>
             <a href="#cara">Cara Kerja</a>
-            <a href="#jadwal">Kesiapan Senin</a>
             <a href="#akses">Hak Akses</a>
           </div>
           <Link className="pitch-btn pitch-btn-accent" href="/dashboard">
@@ -1414,7 +1571,9 @@ export default function PitchPresentationPage() {
           <a href="#atas">Top</a>
           <a href="#kebutuhan">Kebutuhan</a>
           <a href="#prinsip">6 Prinsip</a>
-          <a href="#ekosistem">3 Gerbang</a>
+          <a href="#modul-kantor">Modul Kantor (6 Modul)</a>
+          <a href="#detail-umrahme">Detail UmrahMe</a>
+          <a href="#detail-myelmassa">Detail My El Massa</a>
           <a href="#fitur">6 Layar Mockup</a>
           <a href="#contoh">Simulasi Alur</a>
           <a href="#cara">5 Langkah</a>
@@ -1446,8 +1605,8 @@ export default function PitchPresentationPage() {
                 Tes Portal Agen HP
                 <ExternalLink className="h-4 w-4" />
               </Link>
-              <a className="pitch-btn pitch-btn-ghost" href="#fitur">
-                Lihat Mockup Layar
+              <a className="pitch-btn pitch-btn-ghost" href="#modul-kantor">
+                Pelajari Fitur Detail
               </a>
             </div>
             <div className="pitch-trust">
@@ -1823,54 +1982,178 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 3: THE TRIPLE ENGINE ARCHITECTURE */}
-        <section className="pitch-panel" id="ekosistem">
-          <div className="split-head" style={{ marginBottom: "24px" }}>
+        {/* SECTION 3: BEDAH DETAIL FITUR SISTEM KANTOR (MODUL PER MODUL) */}
+        <section className="pitch-panel" id="modul-kantor">
+          <div className="split-head" style={{ marginBottom: "26px" }}>
             <div className="panel-head" style={{ margin: 0 }}>
-              <p className="eyebrow">Arsitektur Ekosistem 3 Sudut</p>
-              <h2>The Triple-Engine: Tiga gerbang saling mengunci secara sinergis</h2>
+              <p className="eyebrow">Bedah Fitur Sistem Kantor</p>
+              <h2>Enam Modul Inti: Otomasi Dari Pendaftaran Hingga Rekap Laba</h2>
             </div>
-            <p className="lead" style={{ maxWidth: "38ch" }}>
-              Memastikan data mengalir lancar dari calon jamaah di daerah, diproses kantor pusat, hingga terbang ke tanah suci.
+            <p className="lead" style={{ maxWidth: "42ch" }}>
+              Seluruh modul saling mengunci (*integrated*). Satu input di kasir atau operasional otomatis memperbarui kuitansi, manifest, kuota kursi, dan laporan pimpinan.
             </p>
           </div>
-          <div className="grid-3">
-            <div className="card" style={{ border: "1px solid #fbcfe8", background: "#fffafc" }}>
-              <span className="eyebrow" style={{ color: "var(--accent)" }}>Gerbang 1 • Mobile Mitra</span>
-              <h3>My El Massa (Portal Agen)</h3>
-              <p>Diakses agen/mitra di mana saja lewat smartphone. Melihat katalog paket aktif, sisa kuota seat, dan mendaftarkan jamaah mandiri.</p>
-              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/my-elmassa" target="_blank" className="pitch-btn pitch-btn-accent" style={{ minHeight: "36px", fontSize: "0.82rem", width: "100%" }}>
-                  Buka Portal Agen ↗
-                </Link>
-              </div>
-            </div>
 
-            <div className="card" style={{ border: "1px solid #fed7aa", background: "#fffdf9" }}>
-              <span className="eyebrow" style={{ color: "#c2410c" }}>Gerbang 2 • Command Center</span>
-              <h3>El Massa Web (Kantor Pusat)</h3>
-              <p>Pusat kendali staf admin, kasir keuangan, dan operasional. Verifikasi DP, terbitkan invoice &amp; kuitansi, cetak surat Kemenag, dan atur stok.</p>
-              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/dashboard" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "var(--ink)", color: "#fff", width: "100%" }}>
-                  Buka Web Kantor
-                </Link>
-              </div>
-            </div>
+          {/* TAB SELECTOR MODUL KANTOR */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -webkit-overflow-scrolling-touch mb-4">
+            {OFFICE_MODULES.map((m, idx) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setActiveOfficeModulIdx(idx)}
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shrink-0 border ${
+                  activeOfficeModulIdx === idx
+                    ? "bg-stone-900 text-white border-stone-900 shadow-sm"
+                    : "bg-white text-stone-600 border-stone-200 hover:bg-stone-50"
+                }`}
+              >
+                <span className="rounded bg-pink-500/20 px-1.5 py-0.5 text-[10px] text-pink-400 font-mono">
+                  {m.number}
+                </span>
+                <span>{m.title.split("&")[0]}</span>
+              </button>
+            ))}
+          </div>
 
-            <div className="card" style={{ border: "1px solid #e9d5ff", background: "#faf5ff" }}>
-              <span className="eyebrow" style={{ color: "#7e22ce" }}>Gerbang 3 • Mobile Jamaah</span>
-              <h3>UmrahMe (Aplikasi Jamaah)</h3>
-              <p>Aplikasi mobile jamaah resmi. Login mandiri pasca-DP untuk memantau jadwal manasik, hotel, muthawwif, dan upload paspor sendiri.</p>
-              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--line)" }}>
-                <Link href="/umrahme" target="_blank" className="pitch-btn" style={{ minHeight: "36px", fontSize: "0.82rem", background: "#7e22ce", color: "#fff", width: "100%" }}>
-                  Buka Menu UmrahMe ↗
-                </Link>
+          {/* ACTIVE MODULE DETAIL SHOWCASE */}
+          {(() => {
+            const m = OFFICE_MODULES[activeOfficeModulIdx];
+            return (
+              <div className="anim-rise rounded-2xl border border-stone-200 bg-white p-5 sm:p-7 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-4 mb-4">
+                  <div>
+                    <span className="rounded-full bg-pink-50 px-2.5 py-1 text-[11px] font-bold text-pink-700 uppercase tracking-wider">
+                      Modul {m.number} • {m.badge}
+                    </span>
+                    <h3 className="mt-2 text-lg sm:text-xl font-bold text-stone-900">{m.title}</h3>
+                    <p className="text-sm text-stone-500 mt-0.5">{m.tagline}</p>
+                  </div>
+                  <Link
+                    href={m.path}
+                    className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-stone-800 transition-colors"
+                  >
+                    Buka Modul Ini <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {m.bullets.map((b, i) => (
+                    <div key={i} className="flex items-start gap-2.5 rounded-xl bg-stone-50 p-3.5 text-xs text-stone-700">
+                      <CheckCircle2 className="h-4 w-4 text-pink-600 shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </section>
+
+        {/* SECTION 4: BEDAH DETAIL "UMRAHME" (APLIKASI JAMAAH) */}
+        <section className="pitch-panel" id="detail-umrahme" style={{ background: "#faf5ff", border: "1px solid #e9d5ff" }}>
+          <div className="split-head" style={{ marginBottom: "26px" }}>
+            <div className="panel-head" style={{ margin: 0 }}>
+              <div className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-800">
+                <Heart className="h-3.5 w-3.5 text-purple-600" /> Ekosistem Jamaah Digital
+              </div>
+              <h2 className="mt-2 text-purple-950">UmrahMe: Pengalaman Ibadah Modern di Genggaman Jamaah</h2>
+            </div>
+            <p className="lead text-purple-800/80" style={{ maxWidth: "42ch" }}>
+              Jamaah tidak lagi membawa buku panduan tebal atau bertanya jadwal berulang kali. Seluruh panduan manasik, nomor kamar hotel, jadwal penerbangan, dan kontak muthawwif ada di HP jamaah.
+            </p>
+          </div>
+
+          {/* GATING CALLOUT BOX */}
+          <div className="mb-6 rounded-xl border border-purple-200 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-bold text-xs sm:text-sm text-purple-950">Mekanisme Gating Kasir (Anti-Bocor)</p>
+                <p className="text-[11px] sm:text-xs text-stone-500">
+                  Akun UmrahMe jamaah TERKUNCI secara otomatis sebelum kasir kantor memverifikasi transfer DP. Mencegah jamaah tanpa komitmen masuk ke fasilitas manasik.
+                </p>
               </div>
             </div>
+            <Link
+              href="/umrahme"
+              target="_blank"
+              className="rounded-lg bg-purple-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-purple-800 transition-colors shrink-0"
+            >
+              Lihat Menu UmrahMe ↗
+            </Link>
+          </div>
+
+          {/* 6 FITUR LENGKAP UMRAHME */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {UMRAHME_FEATURES.map((f, i) => (
+              <div key={i} className="rounded-xl border border-purple-100 bg-white p-4 shadow-xs flex flex-col justify-between gap-3">
+                <div>
+                  <span className="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
+                    {f.tag}
+                  </span>
+                  <h4 className="mt-2 font-bold text-sm text-purple-950">{f.title}</h4>
+                  <p className="mt-1 text-xs text-stone-600 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* SECTION 4: PANEL FITUR & MOCKUP SCREEN ANIMATIF */}
+        {/* SECTION 5: BEDAH DETAIL "MY EL MASSA" (PORTAL AGEN MANDIRI) */}
+        <section className="pitch-panel" id="detail-myelmassa" style={{ background: "#fffafc", border: "1px solid #fbcfe8" }}>
+          <div className="split-head" style={{ marginBottom: "26px" }}>
+            <div className="panel-head" style={{ margin: 0 }}>
+              <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-pink-800">
+                <Smartphone className="h-3.5 w-3.5 text-pink-600" /> Portal Mandiri Mitra &amp; Agen
+              </div>
+              <h2 className="mt-2 text-stone-900">My El Massa: Senjata Penjualan Mitra Daerah Tanpa Ribet</h2>
+            </div>
+            <p className="lead text-stone-600" style={{ maxWidth: "42ch" }}>
+              Ujung tombak penjualan El Massa kini memiliki portal web mandiri di smartphone. Tidak perlu tanya sisa kursi bolak-balik via WA, dan komisi agen Rp 1.500.000/pax tercatat transparan.
+            </p>
+          </div>
+
+          {/* CALLOUT BOX LOGIN MITRA */}
+          <div className="mb-6 rounded-xl border border-pink-200 bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center shrink-0">
+                <Handshake className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-bold text-xs sm:text-sm text-stone-900">Akses Cepat Web-App HP (Tanpa Perlu Install)</p>
+                <p className="text-[11px] sm:text-xs text-stone-500">
+                  Agen login menggunakan Kode Agen Resmi (contoh: <code className="bg-stone-100 px-1 py-0.5 rounded font-mono">AG-ELMASSA-01</code>) dan PIN keamanan.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/my-elmassa"
+              target="_blank"
+              className="rounded-lg bg-pink-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-pink-700 transition-colors shrink-0"
+            >
+              Uji Coba Portal Agen ↗
+            </Link>
+          </div>
+
+          {/* 5 FITUR LENGKAP MY EL MASSA */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {MY_ELMASSA_FEATURES.map((f, i) => (
+              <div key={i} className="rounded-xl border border-pink-100 bg-white p-4 shadow-xs flex flex-col justify-between gap-3">
+                <div>
+                  <span className="rounded bg-pink-50 px-2 py-0.5 text-[10px] font-bold text-pink-700">
+                    {f.tag}
+                  </span>
+                  <h4 className="mt-2 font-bold text-sm text-stone-900">{f.title}</h4>
+                  <p className="mt-1 text-xs text-stone-600 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 6: PANEL FITUR & MOCKUP SCREEN ANIMATIF */}
         <section className="pitch-panel" id="fitur">
           <div className="panel-head">
             <p className="eyebrow">Mockup &amp; Layar Aplikasi</p>
@@ -2135,7 +2418,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 5: COBA SENDIRI (INTERACTIVE SIMULATOR) */}
+        {/* SECTION 7: COBA SENDIRI (INTERACTIVE SIMULATOR) */}
         <section className="pitch-panel" id="contoh">
           <div className="panel-head">
             <p className="eyebrow">Coba Sendiri Alur Operasional</p>
@@ -2237,7 +2520,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 6: CARA KERJANYA (5 LANGKAH OPERASIONAL) */}
+        {/* SECTION 8: CARA KERJANYA (5 LANGKAH OPERASIONAL) */}
         <section className="pitch-panel" id="cara">
           <div className="panel-head">
             <p className="eyebrow">Cara Kerjanya</p>
@@ -2272,7 +2555,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 7: KESIAPAN HARI SENIN & ROADMAP */}
+        {/* SECTION 9: KESIAPAN HARI SENIN & ROADMAP */}
         <section className="pitch-panel" id="jadwal">
           <div className="split-head" style={{ marginBottom: "24px" }}>
             <div className="panel-head" style={{ margin: 0 }}>
@@ -2314,7 +2597,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 8: MATRIKS HAK AKSES SISTEM */}
+        {/* SECTION 10: MATRIKS HAK AKSES SISTEM */}
         <section className="pitch-panel" id="akses">
           <div className="panel-head">
             <p className="eyebrow">Tata Kelola &amp; Hak Akses</p>
@@ -2363,7 +2646,7 @@ export default function PitchPresentationPage() {
           </div>
         </section>
 
-        {/* SECTION 9: CLOSING CALL TO ACTION BANNER */}
+        {/* SECTION 11: CLOSING CALL TO ACTION BANNER */}
         <section className="closing-banner">
           <p className="eyebrow" style={{ color: "var(--accent)" }}>Siap Melangkah Maju</p>
           <h2>Seluruh Sistem Telah Siap. Mari Mulai Hari Senin.</h2>
