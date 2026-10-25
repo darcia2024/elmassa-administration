@@ -101,6 +101,7 @@ const navGroups = [
     label: "Kontrol",
     items: [
       { label: "Laporan", icon: BarChart3, href: "/laporan" },
+      { label: "Pitch & Presentasi", icon: Sparkles, href: "/pitch" },
       { label: "Identitas Perusahaan", icon: Building2, href: "/pengaturan/identitas" },
       { label: "Pengaturan", icon: Settings, href: "/pengaturan" },
     ],
@@ -122,6 +123,7 @@ const allowedRolesPerItem: Record<string, string[]> = {
   "/dokumen/invoice": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
   "/dokumen": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Admin Master"],
   "/laporan": ["CEO / Admin Master", "Sub-User Keuangan", "Admin Master"],
+  "/pitch": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/pengaturan/identitas": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan/hak-akses": ["CEO / Admin Master", "Admin Master"],
   "/pengaturan": ["CEO / Admin Master", "Admin Master"],
