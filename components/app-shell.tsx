@@ -31,6 +31,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plane,
+  PlayCircle,
   Plus,
   ReceiptText,
   Search,
@@ -50,6 +51,7 @@ const navGroups = [
     label: "Menu Utama",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", aliases: ["/"] },
+      { label: "Video Tutorial", icon: PlayCircle, href: "/tutorial" },
       // Two distinct things: the departure GROUPS (flyer, itinerary, payments,
       // manifest) and the operational AGENDA around them (manasik, handling,
       // settlement deadlines).
@@ -112,6 +114,7 @@ const navItems = navGroups.flatMap((group) => group.items);
 
 const allowedRolesPerItem: Record<string, string[]> = {
   "/dashboard": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
+  "/tutorial": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Keuangan", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/paket": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/jadwal": ["CEO / Admin Master", "Sub-User Operasional", "Sub-User Sales & CRM", "Sub-User Lapangan", "Admin Master"],
   "/pelanggan": ["CEO / Admin Master", "Sub-User Sales & CRM", "Admin Master"],

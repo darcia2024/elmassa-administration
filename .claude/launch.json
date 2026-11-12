@@ -7,6 +7,12 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "el-massa-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/tutorial-recorder/dev-demo.mjs"],
+      "port": 3100
     }
   ]
 }

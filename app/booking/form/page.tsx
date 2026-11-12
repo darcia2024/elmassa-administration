@@ -21,7 +21,7 @@ export default function BookingFormPage() {
   // Tanggal hari ini, bukan tanggal tetap di masa lalu.
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentStatus, setPaymentStatus] = useState("DP");
-  const [paidAmount, setPaidAmount] = useState(500000000);
+  const [paidAmount, setPaidAmount] = useState(5000000);
   const [isSuccessToast, setIsSuccessToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

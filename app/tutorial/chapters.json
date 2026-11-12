@@ -1,0 +1,707 @@
+{
+  "01-login-dashboard": {
+    "duration": 74,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Buka alamat sistem El Massa, lalu masukkan email staf Anda.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Ketik password akun staf. Jangan bagikan password ke orang lain.",
+        "t": 8.6
+      },
+      {
+        "step": "3",
+        "text": "Klik “Masuk ke Dashboard”.",
+        "t": 12.5
+      },
+      {
+        "step": "4",
+        "text": "Ini Dashboard: ringkasan grup, seat, jamaah, dan pemasukan.",
+        "t": 16.7
+      },
+      {
+        "step": "5",
+        "text": "Grup keberangkatan aktif tampil di sini, termasuk grup Desember.",
+        "t": 27.6
+      },
+      {
+        "step": "6",
+        "text": "Gulir ke bawah untuk melihat booking terbaru dan status bayarnya.",
+        "t": 33.6
+      },
+      {
+        "step": "7",
+        "text": "Cari jamaah, booking, atau invoice dari kolom pencarian di atas.",
+        "t": 43.1
+      },
+      {
+        "step": "8",
+        "text": "Lonceng menampilkan notifikasi: pembayaran baru, dokumen kurang, jatuh tempo.",
+        "t": 50
+      },
+      {
+        "step": "9",
+        "text": "Semua menu ada di sidebar kiri, dikelompokkan per bagian kerja.",
+        "t": 55.9
+      },
+      {
+        "step": "10",
+        "text": "Selesai bekerja? Klik tombol keluar di pojok kanan atas.",
+        "t": 64
+      }
+    ]
+  },
+  "02-jadwal-keberangkatan-hpp": {
+    "duration": 81,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Menu Jadwal Keberangkatan berisi semua grup, dikelompokkan per bulan.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Untuk membuka grup baru, klik “Hitung HPP & Buat Paket”.",
+        "t": 13.7
+      },
+      {
+        "step": "3",
+        "text": "Isi nama paket, durasi, target jamaah, dan lama menginap.",
+        "t": 18.2
+      },
+      {
+        "step": "4",
+        "text": "Tentukan tanggal berangkat dan pulang.",
+        "t": 25.9
+      },
+      {
+        "step": "5",
+        "text": "Angka di atas (HPP, profit, harga jual) langsung menghitung ulang.",
+        "t": 31.5
+      },
+      {
+        "step": "6",
+        "text": "Gulir ke bawah: atur rute & maskapai, harga tiket, dan hotel.",
+        "t": 37.6
+      },
+      {
+        "step": "7",
+        "text": "Isi nama hotel Makkah & Madinah beserta tarif per malam (SAR).",
+        "t": 44.7
+      },
+      {
+        "step": "8",
+        "text": "Lanjutkan ke biaya visa, handling, perlengkapan, dan margin keuntungan.",
+        "t": 50
+      },
+      {
+        "step": "9",
+        "text": "Sudah sesuai? Klik “Simpan & Terbitkan ke Katalog Paket”.",
+        "t": 55.5
+      },
+      {
+        "step": "10",
+        "text": "Periksa nama, kategori, tanggal, DP minimum, lalu klik “Terbitkan Paket Sekarang”.",
+        "t": 59.6
+      },
+      {
+        "step": "11",
+        "text": "Paket berhasil terbit. Buka katalog untuk melihat grup barunya.",
+        "t": 65.6
+      },
+      {
+        "step": "12",
+        "text": "Klik “Kelola Grup” untuk mengatur flyer, itinerary, pembayaran, dan manifest grup.",
+        "t": 75.8
+      }
+    ]
+  },
+  "03-kelola-grup": {
+    "duration": 57,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Dari Jadwal Keberangkatan, klik “Kelola Grup” pada grup Desember.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Bagian atas: tanggal, maskapai, harga, kuota, seat terisi, dan sisa seat.",
+        "t": 8.6
+      },
+      {
+        "step": "3",
+        "text": "Tab “Flyer & HPP”: ganti poster/banner dan teks brosur yang dibagikan ke jamaah.",
+        "t": 13.9
+      },
+      {
+        "step": "4",
+        "text": "Tab “Itinerary Grup”: susun jadwal harian perjalanan grup ini.",
+        "t": 21.4
+      },
+      {
+        "step": "5",
+        "text": "Tab “Data Pembayaran”: siapa sudah lunas, DP, atau belum bayar.",
+        "t": 28.6
+      },
+      {
+        "step": "6",
+        "text": "Tab “Manifest Jamaah”: daftar peserta, paspor, dan kamar per kota.",
+        "t": 36.1
+      },
+      {
+        "step": "7",
+        "text": "Butuh ubah harga atau biaya? Buka lagi kalkulator lewat “Ubah HPP”.",
+        "t": 43.9
+      }
+    ]
+  },
+  "04-input-booking": {
+    "duration": 88,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Menu Booking menampilkan semua transaksi beserta total, terbayar, dan sisa tagihan.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Klik “Buat Booking Baru” untuk mendaftarkan jamaah.",
+        "t": 9.4
+      },
+      {
+        "step": "3",
+        "text": "Isi nama pemesan/rombongan dan nomor WhatsApp-nya.",
+        "t": 13.3
+      },
+      {
+        "step": "4",
+        "text": "Pilih paket & tanggal keberangkatan — di sini grup Desember 2026.",
+        "t": 19.6
+      },
+      {
+        "step": "5",
+        "text": "Masukkan nominal DP yang sudah diterima (boleh 0 jika belum bayar).",
+        "t": 23.8
+      },
+      {
+        "step": "6",
+        "text": "Tulis nama peserta sesuai paspor, nomor paspor, dan HP jamaah.",
+        "t": 27.6
+      },
+      {
+        "step": "7",
+        "text": "Ada anggota keluarga? Klik “Tambah Jamaah” untuk baris berikutnya.",
+        "t": 36.1
+      },
+      {
+        "step": "8",
+        "text": "Ringkasan di kiri menghitung total tagihan dan sisa secara otomatis.",
+        "t": 44.2
+      },
+      {
+        "step": "9",
+        "text": "Klik “Simpan & Terbit Booking”.",
+        "t": 49.6
+      },
+      {
+        "step": "10",
+        "text": "Booking baru muncul paling atas. DP otomatis tercatat sebagai pembayaran.",
+        "t": 55.7
+      },
+      {
+        "step": "11",
+        "text": "Gunakan pencarian & filter status untuk menemukan booking dengan cepat.",
+        "t": 61.1
+      },
+      {
+        "step": "12",
+        "text": "Klik nama pemesan untuk membuka detail booking.",
+        "t": 65.9
+      },
+      {
+        "step": "13",
+        "text": "Di detail: peserta, riwayat bayar, kirim tagihan via WhatsApp, dan cetak invoice.",
+        "t": 70.2
+      }
+    ]
+  },
+  "05-database-jamaah": {
+    "duration": 87,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Database Jamaah merangkum seat, kelengkapan data, dan status bayar rombongan.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Gulir ke daftar jamaah. Filter yang datanya belum lengkap.",
+        "t": 9.5
+      },
+      {
+        "step": "3",
+        "text": "Untuk menambah jamaah baru, klik “Tambah Jamaah”.",
+        "t": 18.5
+      },
+      {
+        "step": "4",
+        "text": "Pilih program keberangkatan — jamaah langsung masuk grup Desember.",
+        "t": 22.5
+      },
+      {
+        "step": "5",
+        "text": "Isi biodata sesuai KTP/paspor. Kolom bertanda * wajib untuk manifest.",
+        "t": 26.8
+      },
+      {
+        "step": "6",
+        "text": "Lengkapi NIK, nomor paspor, tempat & tanggal terbit, dan masa berlakunya.",
+        "t": 39.2
+      },
+      {
+        "step": "7",
+        "text": "Isi alamat, nomor HP, dan kontak darurat keluarga.",
+        "t": 51.1
+      },
+      {
+        "step": "8",
+        "text": "Klik “Simpan Jamaah”. Data yang masih kurang akan ditandai otomatis.",
+        "t": 58.6
+      },
+      {
+        "step": "9",
+        "text": "Bagian atas menunjukkan data & dokumen apa saja yang belum ada.",
+        "t": 64.9
+      },
+      {
+        "step": "10",
+        "text": "Unggah KK, KTP, paspor, pas foto, dan bukti vaksin lewat tombol “Upload”.",
+        "t": 70.1
+      },
+      {
+        "step": "11",
+        "text": "Atau kirim link pendataan ke jamaah via WhatsApp, biar mereka isi sendiri.",
+        "t": 75.1
+      }
+    ]
+  },
+  "06-pembayaran-kuitansi": {
+    "duration": 74,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Menu Verifikasi Pembayaran: semua setoran jamaah yang perlu dicek kasir.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Klik “Cek Bukti & Verifikasi” pada transfer yang masuk.",
+        "t": 9.1
+      },
+      {
+        "step": "3",
+        "text": "Cocokkan nama pengirim, nominal, tanggal, dan nomor referensi dengan mutasi bank.",
+        "t": 13.2
+      },
+      {
+        "step": "4",
+        "text": "Sudah cocok? Klik “Setujui & Verifikasi”. Kalau tidak, pilih “Minta Revisi”.",
+        "t": 18.1
+      },
+      {
+        "step": "5",
+        "text": "Jamaah bayar tunai di kantor? Klik “Catat Pembayaran”.",
+        "t": 32.6
+      },
+      {
+        "step": "6",
+        "text": "Pilih kode booking — sisa tagihannya langsung terlihat.",
+        "t": 37.3
+      },
+      {
+        "step": "7",
+        "text": "Isi tanggal, nominal setoran, dan metode pembayaran.",
+        "t": 41.5
+      },
+      {
+        "step": "8",
+        "text": "Klik “Terbitkan Kuitansi Pembayaran”. Nomor kuitansi dibuat otomatis.",
+        "t": 50.6
+      },
+      {
+        "step": "9",
+        "text": "Semua kuitansi ada di menu Kwitansi. Pilih satu untuk melihat pratinjau.",
+        "t": 56.1
+      },
+      {
+        "step": "10",
+        "text": "Klik “Cetak” atau “Unduh PDF” untuk dikirim ke jamaah.",
+        "t": 62.8
+      }
+    ]
+  },
+  "07-invoice": {
+    "duration": 40,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Menu Invoice menampilkan semua tagihan beserta status lunasnya.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Klik “Buat Invoice 1-Klik”.",
+        "t": 6.2
+      },
+      {
+        "step": "3",
+        "text": "Pilih kode booking jamaah dan tentukan tanggal jatuh tempo pelunasan.",
+        "t": 9.8
+      },
+      {
+        "step": "4",
+        "text": "Klik “Terbitkan Invoice”. Nominal & sisa tagihan diambil otomatis dari booking.",
+        "t": 15.9
+      },
+      {
+        "step": "5",
+        "text": "Invoice baru masuk daftar. Klik untuk membuka dan mencetaknya.",
+        "t": 21.3
+      },
+      {
+        "step": "6",
+        "text": "Invoice siap dicetak atau diunduh PDF, lengkap dengan rekening pembayaran.",
+        "t": 29.1
+      }
+    ]
+  },
+  "08-manifest": {
+    "duration": 53,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Manifest berisi seluruh peserta per keberangkatan, diambil otomatis dari booking.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Pilih keberangkatan — di sini grup Desember 2026.",
+        "t": 9.3
+      },
+      {
+        "step": "3",
+        "text": "Isi nomor e-visa, masa berlaku, dan nomor e-tiket langsung di tabel.",
+        "t": 13.4
+      },
+      {
+        "step": "4",
+        "text": "Atur tipe kamar dan status dokumen jamaah.",
+        "t": 21.8
+      },
+      {
+        "step": "5",
+        "text": "Klik tombol simpan di ujung baris.",
+        "t": 27.5
+      },
+      {
+        "step": "6",
+        "text": "Cari jamaah dengan cepat lewat kolom pencarian.",
+        "t": 31.7
+      },
+      {
+        "step": "7",
+        "text": "Selesai? Export ke Siskopatuh (.xlsm), manifest maskapai (.xlsx), atau cetak.",
+        "t": 37.5
+      }
+    ]
+  },
+  "09-surat-menyurat": {
+    "duration": 48,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Semua surat keluar tersimpan di arsip ini, dikelompokkan per jenis.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Klik “Terbitkan Surat” untuk membuat surat baru.",
+        "t": 6.2
+      },
+      {
+        "step": "3",
+        "text": "Pilih jenis surat, misalnya Rekomendasi Pembuatan Paspor.",
+        "t": 10
+      },
+      {
+        "step": "4",
+        "text": "Ambil data jamaah dari booking — nama & data lain terisi otomatis.",
+        "t": 14
+      },
+      {
+        "step": "5",
+        "text": "Lengkapi yang masih kosong: NIK, tempat & tanggal lahir, alamat.",
+        "t": 19
+      },
+      {
+        "step": "6",
+        "text": "Isi nama penandatangan, lalu klik “Terbitkan & Cetak”.",
+        "t": 29.6
+      },
+      {
+        "step": "7",
+        "text": "Surat terbit dengan nomor urut otomatis, lengkap dengan kop & stempel.",
+        "t": 38
+      }
+    ]
+  },
+  "10-kalender-kegiatan": {
+    "duration": 51,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Keberangkatan, kepulangan, dan batas pelunasan muncul otomatis dari data grup.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Pindah bulan untuk melihat jadwal grup Desember.",
+        "t": 6.6
+      },
+      {
+        "step": "3",
+        "text": "Filter per jenis kegiatan: keberangkatan, manasik, atau pelunasan.",
+        "t": 10.9
+      },
+      {
+        "step": "4",
+        "text": "Tambahkan manasik atau handling dengan “Tambah Kegiatan”.",
+        "t": 16.8
+      },
+      {
+        "step": "5",
+        "text": "Klik “Tambah Kegiatan” untuk menyimpan.",
+        "t": 34.4
+      },
+      {
+        "step": "6",
+        "text": "Butuh tampilan daftar? Pilih mode “Daftar”.",
+        "t": 38.8
+      }
+    ]
+  },
+  "11-keuangan-grup": {
+    "duration": 70,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Pemasukan dihitung otomatis dari pembayaran jamaah di kasir.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Tab “Piutang & Jatuh Tempo” menunjukkan jamaah yang harus ditagih.",
+        "t": 9
+      },
+      {
+        "step": "3",
+        "text": "Catat setiap pengeluaran: klik “Catat Pengeluaran”.",
+        "t": 13.7
+      },
+      {
+        "step": "4",
+        "text": "Klik “Simpan Pengeluaran”. Selisih kas langsung diperbarui.",
+        "t": 27.1
+      },
+      {
+        "step": "5",
+        "text": "Untuk laba-rugi per rombongan, buka menu Rekap Keuangan Grup.",
+        "t": 34.7
+      },
+      {
+        "step": "6",
+        "text": "Klik “Buka Finansial Rombongan” pada grup Desember.",
+        "t": 41.2
+      },
+      {
+        "step": "7",
+        "text": "Tab 1: pemasukan & status bayar tiap jamaah di grup ini.",
+        "t": 45.7
+      },
+      {
+        "step": "8",
+        "text": "Tab 2: pengeluaran grup per pos HPP.",
+        "t": 49.9
+      },
+      {
+        "step": "9",
+        "text": "Tab 3: laba-rugi rombongan — omzet, biaya, dan margin.",
+        "t": 54.3
+      },
+      {
+        "step": "10",
+        "text": "Cetak laporan A4 atau export ke Excel untuk direksi.",
+        "t": 59.7
+      }
+    ]
+  },
+  "12-akun-umrahme": {
+    "duration": 46,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Setiap akun memakai 1 kuota lisensi. Sisa saldo tampil di sini.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Isi nama lengkap dan nomor paspor jamaah.",
+        "t": 9
+      },
+      {
+        "step": "3",
+        "text": "Pilih grup keberangkatannya — di sini Desember 2026.",
+        "t": 15.3
+      },
+      {
+        "step": "4",
+        "text": "Klik “Terbitkan & Auto-Generate Akun UmrahMe”.",
+        "t": 19.2
+      },
+      {
+        "step": "5",
+        "text": "Akun aktif! Kirim info login ke jamaah lewat WhatsApp.",
+        "t": 24.4
+      },
+      {
+        "step": "6",
+        "text": "Banyak jamaah sekaligus? Gunakan “Bulk Import Excel”.",
+        "t": 32.1
+      },
+      {
+        "step": "7",
+        "text": "Semua akun terbit tercatat di daftar bawah, bisa dicari & dikirim ulang.",
+        "t": 37.2
+      }
+    ]
+  },
+  "13-operasional": {
+    "duration": 63,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Data Karyawan: semua pegawai kantor, terpisah dari akun login sistem.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Klik “Tambah Karyawan” untuk menyimpan.",
+        "t": 20.4
+      },
+      {
+        "step": "3",
+        "text": "Data Agen: mitra perekrut jamaah beserta skema komisinya.",
+        "t": 24.6
+      },
+      {
+        "step": "4",
+        "text": "Stok Perlengkapan: koper, kain ihram, mukena — dengan kartu stok masuk/keluar.",
+        "t": 30.8
+      },
+      {
+        "step": "5",
+        "text": "Saat perlengkapan dibagikan ke jamaah, klik “Keluar”.",
+        "t": 37.3
+      },
+      {
+        "step": "6",
+        "text": "Klik “Catat” — sisa stok berkurang otomatis.",
+        "t": 47.8
+      },
+      {
+        "step": "7",
+        "text": "Riwayat lengkap ada di tab “Kartu Stok”.",
+        "t": 52.1
+      }
+    ]
+  },
+  "14-laporan": {
+    "duration": 41,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Laporan utama: piutang jamaah — siapa yang belum lunas dan berapa sisanya.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Saring berdasarkan periode dan status pembayaran.",
+        "t": 6.6
+      },
+      {
+        "step": "3",
+        "text": "Ingatkan jamaah langsung lewat tombol “Kirim WA”.",
+        "t": 16.7
+      },
+      {
+        "step": "4",
+        "text": "Cetak atau export ke Excel/CSV untuk rapat atau akuntan.",
+        "t": 21.4
+      },
+      {
+        "step": "5",
+        "text": "Tab lain: laporan Booking, Manifest, dan Audit Log aktivitas staf.",
+        "t": 25.9
+      },
+      {
+        "step": "6",
+        "text": "Audit Log mencatat siapa mengubah apa, kapan — berguna untuk pengecekan.",
+        "t": 34
+      }
+    ]
+  },
+  "15-pengaturan-staf-akses": {
+    "duration": 65,
+    "chapters": [
+      {
+        "step": "1",
+        "text": "Menu Pengaturan: identitas, rekening, layanan, status booking, staf, dan hak akses.",
+        "t": 4
+      },
+      {
+        "step": "2",
+        "text": "Buka “Staf Pengguna” untuk membuat akun login tim.",
+        "t": 6.6
+      },
+      {
+        "step": "3",
+        "text": "Isi nama, pilih role, divisi, cabang, email, dan nomor WhatsApp staf.",
+        "t": 12.7
+      },
+      {
+        "step": "4",
+        "text": "Ganti password awal dengan yang kuat, lalu sampaikan ke staf secara pribadi.",
+        "t": 26.2
+      },
+      {
+        "step": "5",
+        "text": "Atur menu apa saja yang boleh dibuka tiap role di “Hak Akses”.",
+        "t": 34.1
+      },
+      {
+        "step": "6",
+        "text": "Centang izin lihat / tambah / ubah / hapus per modul, lalu simpan matriks.",
+        "t": 40.2
+      },
+      {
+        "step": "7",
+        "text": "Terakhir, “Identitas Perusahaan”: logo, alamat, kontak, TTD & stempel di dokumen.",
+        "t": 49.1
+      }
+    ]
+  }
+}

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { formatRupiah } from "@/lib/format/rupiah";
 
 type BookingItem = {
   code: string;
@@ -40,6 +41,25 @@ type BookingItem = {
 };
 
 const initialBookings: BookingItem[] = [];
+
+// /api/bookings returns raw amounts only. The table, cards and WhatsApp text read
+// the *Display / paymentProgress fields, so derive them here -- without this the
+// Total/Terbayar/Sisa columns render empty and the WA message says "undefined".
+function withDisplayFields(row: BookingItem): BookingItem {
+  const total = Number(row.totalAmount) || 0;
+  const paid = Number(row.paidAmount) || 0;
+  const remaining = Number(row.remainingAmount) || 0;
+  return {
+    ...row,
+    totalAmount: total,
+    paidAmount: paid,
+    remainingAmount: remaining,
+    totalDisplay: formatRupiah(total),
+    paidDisplay: formatRupiah(paid),
+    remainingDisplay: formatRupiah(remaining),
+    paymentProgress: total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0,
+  };
+}
 
 function StatusBadge({ status }: { status: "Lunas" | "DP" | "Belum Bayar" }) {
   const styles: Record<string, { bg: string; border: string; dot: string }> = {
@@ -92,7 +112,7 @@ export default function BookingsPage() {
 
     // Paint the cached copy first so the table is not blank while the request
     // is in flight.
-    if (localBookings.length > 0) setBookings(localBookings);
+    if (localBookings.length > 0) setBookings(localBookings.map(withDisplayFields));
 
     fetch("/api/bookings")
       .then((res) => res.json())
@@ -100,7 +120,7 @@ export default function BookingsPage() {
         if (res.ok && Array.isArray(res.data)) {
           // Supabase replaces the cache outright. Merging the local copy over it
           // used to let a stale row — including one deleted elsewhere — win.
-          setBookings(res.data);
+          setBookings(res.data.map(withDisplayFields));
           try {
             localStorage.setItem("el_massa_real_bookings", JSON.stringify(res.data));
           } catch (e) {}

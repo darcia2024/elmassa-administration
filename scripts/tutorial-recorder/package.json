@@ -1,0 +1,11 @@
+{
+  "name": "el-massa-tutorial-recorder",
+  "private": true,
+  "type": "module",
+  "description": "Merekam ulang video /tutorial dari server lokal + database demo (bukan Supabase).",
+  "dependencies": {
+    "embedded-postgres": "18.6.0-beta.19",
+    "pg": "^8.23.1",
+    "playwright": "1.56.1"
+  }
+}
