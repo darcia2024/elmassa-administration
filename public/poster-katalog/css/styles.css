@@ -1,0 +1,237 @@
+/* ==========================================================================
+   GALERI PAKET EL MASSA - E-COMMERCE PRODUCT LISTING DESIGN SYSTEM
+   INSPIRED BY WINK ECOMMERCE 2025 (DOMINANT PINK & CHOCOLATE ACCENTS)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+:root {
+  /* Color Palette */
+  --el-bg: #fcf9fa;
+  --el-surface: #ffffff;
+  --el-pink-primary: #e84370;
+  --el-pink-vibrant: #fa527c;
+  --el-pink-soft: #fff0f4;
+  --el-pink-light: #fff5f8;
+  --el-pink-border: #ffd6e2;
+  
+  --el-dark: #1f1b1a;
+  --el-chocolate-dark: #2b1204;
+  --el-chocolate-primary: #54280e;
+  --el-chocolate-warm: #6d3514;
+  --el-chocolate-caramel: #87451c;
+
+  --el-border: #f0e6ea;
+  --el-border-subtle: #f7e8ee;
+}
+
+/* Base typography & resets - STRICT REGULAR 400 & GENTLE MEDIUM 500 */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+  background-color: var(--el-bg);
+}
+
+body {
+  background-color: var(--el-bg);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-weight: 400 !important;
+  color: var(--el-dark);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em;
+}
+
+/* Strict suppression of heavy/stubby bold weights */
+.font-black, .font-extrabold, .font-bold {
+  font-weight: 500 !important;
+}
+
+.font-semibold {
+  font-weight: 500 !important;
+}
+
+b, strong {
+  font-weight: 500 !important;
+}
+
+/* Custom Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #fff0f5;
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ffb8ca;
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #e84370;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* E-Commerce Product Card Styles */
+.ecom-card {
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 0.28s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform, box-shadow;
+}
+
+.ecom-card:hover {
+  transform: translateY(-3px);
+}
+
+.ecom-card:hover .ecom-image {
+  transform: scale(1.05);
+}
+
+.ecom-image {
+  transition: transform 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Checkbox Custom Style */
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #d4c4cb;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+}
+
+.custom-checkbox:checked {
+  background-color: #2b1204;
+  border-color: #2b1204;
+}
+
+.custom-checkbox:checked::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 10px;
+  color: #ffffff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Range Slider */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #2b1204;
+  cursor: pointer;
+  margin-top: -6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: #ffccd8;
+  border-radius: 99px;
+}
+
+/* Itinerary Timeline Styling */
+.itinerary-timeline {
+  position: relative;
+}
+
+.itinerary-timeline::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  bottom: 20px;
+  left: 17px;
+  width: 2px;
+  background: linear-gradient(to bottom, #e84370, #54280e 85%, transparent);
+}
+
+.itinerary-step-node {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0 3.5px #ffffff, 0 3px 8px rgba(232, 67, 112, 0.16);
+}
+
+/* Animations */
+@keyframes toastbar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.94; transform: scale(1.03); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+
+/* Line clamp helpers */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  header, nav, .no-print, button, aside {
+    display: none !important;
+  }
+  .modal-print-container {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

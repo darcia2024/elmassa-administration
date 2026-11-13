@@ -13,6 +13,12 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/manifest/generate": ["./lib/manifest/templates/**"],
   },
+  // Katalog paket publik (static HTML + Alpine.js, dulu repo elmassa-katalog)
+  // tinggal di public/poster-katalog/. Rewrite ini membuat /poster-katalog
+  // langsung membuka index.html-nya; sisa seat ditarik dari /api/public/seats.
+  async rewrites() {
+    return [{ source: "/poster-katalog", destination: "/poster-katalog/index.html" }];
+  },
 };
 
 export default nextConfig;
