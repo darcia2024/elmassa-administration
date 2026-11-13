@@ -85,6 +85,9 @@ const ROUTE_MODULE_MAP: Array<{ prefix: string; module: string | null }> = [
   { prefix: "packages", module: "paket" },
   { prefix: "payment-accounts", module: "pengaturan" },
   { prefix: "payments", module: "pembayaran" },
+  // Public read-only aggregates for the katalog site; proxy.ts lets these
+  // through without a session before this map is ever consulted.
+  { prefix: "public", module: null },
   { prefix: "receipts", module: "pembayaran" },
   { prefix: "reports", module: "laporan" },
   { prefix: "reset-all-data", module: "pengaturan" },

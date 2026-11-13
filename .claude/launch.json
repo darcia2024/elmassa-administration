@@ -13,6 +13,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/tutorial-recorder/dev-demo.mjs"],
       "port": 3100
+    },
+    {
+      "name": "elmassa-katalog",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve@14.2.4", "D:/Project Coding/elmassa-katalog", "-l", "5500"],
+      "port": 5500
     }
   ]
 }
