@@ -88,12 +88,12 @@ export default async function KatalogDetailPage({ params }: Params) {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-3xl bg-white p-6 ring-1 ring-[var(--line)]">
               <p className="text-[14px] font-semibold text-[var(--muted)]">{pkg.category}</p>
-              <h1 className="mt-1 text-[26px] font-extrabold leading-[1.1] tracking-[-0.02em]">{displayName(pkg.name)}</h1>
+              <h1 className="mt-1 text-[26px] font-semibold leading-[1.1] tracking-[-0.02em]">{displayName(pkg.name)}</h1>
               <p className="mt-2 text-[15px] text-[var(--muted)]">{dateRange(pkg.departureDate, pkg.returnDate)} · {pkg.duration}</p>
 
               <div className="mt-5 rounded-2xl bg-[var(--accent-soft)] p-4">
                 <p className="text-[13px] font-semibold text-[var(--muted)]">Harga per jamaah{pkg.meta.roomType ? ` · ${cleanText(pkg.meta.roomType).split("(")[0].trim()}` : ""}</p>
-                <p className="k-num mt-1 text-[32px] font-extrabold leading-none text-[var(--accent-ink)]">{pkg.price || shortPrice(pkg)}</p>
+                <p className="k-num mt-1 text-[32px] font-semibold leading-none text-[var(--accent-ink)]">{pkg.price || shortPrice(pkg)}</p>
                 <p className="mt-2 text-[14px] font-semibold">DP mulai {pkg.dpMinimum}</p>
               </div>
 
@@ -136,7 +136,7 @@ export default async function KatalogDetailPage({ params }: Params) {
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-10">
           <div className="space-y-6">
             <section aria-labelledby="ringkas-title" className="rounded-3xl bg-white p-6 ring-1 ring-[var(--line)] sm:p-8">
-              <h2 id="ringkas-title" className="text-[22px] font-extrabold tracking-[-0.02em]">Detail perjalanan</h2>
+              <h2 id="ringkas-title" className="text-[22px] font-semibold tracking-[-0.02em]">Detail perjalanan</h2>
               <dl className="mt-5 grid gap-x-8 gap-y-4 text-[15px] sm:grid-cols-2">
                 {facts.map(([k, v]) => (
                   <div key={k}>
@@ -157,7 +157,7 @@ export default async function KatalogDetailPage({ params }: Params) {
 
             {pkg.itinerary.length > 0 && (
               <section aria-labelledby="itin-title" className="rounded-3xl bg-white p-6 ring-1 ring-[var(--line)] sm:p-8">
-                <h2 id="itin-title" className="text-[22px] font-extrabold tracking-[-0.02em]">Itinerary {pkg.itinerary.length} hari</h2>
+                <h2 id="itin-title" className="text-[22px] font-semibold tracking-[-0.02em]">Itinerary {pkg.itinerary.length} hari</h2>
                 <ol className="mt-5 space-y-2">
                   {pkg.itinerary.map((day, i) => (
                     <li key={day.day}>
@@ -198,10 +198,10 @@ export default async function KatalogDetailPage({ params }: Params) {
 
           {(pkg.includes.length > 0 || pkg.excludes.length > 0) && (
             <section aria-labelledby="biaya-title" className="self-start rounded-3xl bg-white p-6 ring-1 ring-[var(--line)] sm:p-8">
-              <h2 id="biaya-title" className="text-[22px] font-extrabold tracking-[-0.02em]">Fasilitas</h2>
+              <h2 id="biaya-title" className="text-[22px] font-semibold tracking-[-0.02em]">Fasilitas</h2>
               {pkg.includes.length > 0 && (
                 <>
-                  <h3 className="mt-5 text-[15px] font-extrabold text-emerald-800">Sudah termasuk</h3>
+                  <h3 className="mt-5 text-[15px] font-semibold text-emerald-800">Sudah termasuk</h3>
                   <ul className="mt-2 space-y-1.5 text-[14px] leading-snug">
                     {pkg.includes.map((x) => (
                       <li key={x} className="flex gap-2"><span aria-hidden="true" className="font-bold text-emerald-700">✓</span>{x}</li>
@@ -211,7 +211,7 @@ export default async function KatalogDetailPage({ params }: Params) {
               )}
               {pkg.excludes.length > 0 && (
                 <>
-                  <h3 className="mt-6 text-[15px] font-extrabold text-[var(--accent-ink)]">Belum termasuk</h3>
+                  <h3 className="mt-6 text-[15px] font-semibold text-[var(--accent-ink)]">Belum termasuk</h3>
                   <ul className="mt-2 space-y-1.5 text-[14px] leading-snug">
                     {pkg.excludes.map((x) => (
                       <li key={x} className="flex gap-2"><span aria-hidden="true" className="font-bold text-[var(--accent-ink)]">–</span>{x}</li>
@@ -225,7 +225,7 @@ export default async function KatalogDetailPage({ params }: Params) {
 
         {others.length > 0 && (
           <section aria-labelledby="lain-title" className="mt-12">
-            <h2 id="lain-title" className="text-[22px] font-extrabold tracking-[-0.02em]">Paket lainnya</h2>
+            <h2 id="lain-title" className="text-[22px] font-semibold tracking-[-0.02em]">Paket lainnya</h2>
             <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
               {others.map((p) => (
                 <li key={p.id}>
@@ -234,7 +234,7 @@ export default async function KatalogDetailPage({ params }: Params) {
                     <div className="p-3">
                       <p className="line-clamp-2 text-[14px] font-bold leading-snug text-[var(--ink)]">{displayName(p.name)}</p>
                       <p className="mt-1 text-[12px] text-[var(--muted)]">{dateRange(p.departureDate, p.returnDate)}</p>
-                      <p className="k-num mt-2 text-[17px] font-extrabold text-[var(--accent-ink)]">{shortPrice(p)}</p>
+                      <p className="k-num mt-2 text-[17px] font-semibold text-[var(--accent-ink)]">{shortPrice(p)}</p>
                     </div>
                   </Link>
                 </li>

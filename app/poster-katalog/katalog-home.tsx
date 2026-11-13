@@ -82,14 +82,14 @@ export function KatalogHome({ packages, contact, lunasDays, includes, excludes }
             <div className="grid items-center gap-6 md:grid-cols-[1.15fr_1fr]">
               <div className="order-2 px-6 pb-8 md:order-1 md:px-10 md:py-10 lg:px-14">
                 <p className="inline-flex rounded-full bg-[var(--brand)] px-3 py-1 text-[13px] font-bold">Keberangkatan terdekat</p>
-                <h2 className="mt-4 text-[28px] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[40px]">{displayName(featured.name)}</h2>
+                <h2 className="mt-4 text-[28px] font-semibold leading-[1.08] tracking-[-0.03em] sm:text-[40px]">{displayName(featured.name)}</h2>
                 <p className="mt-3 text-[16px] text-[#e9d6cd]">
                   {dateRange(featured.departureDate, featured.returnDate)} · {featured.duration} · {featured.startPoint.replace(/^Start\s+/i, "") || "Pangkal Pinang"}
                 </p>
                 <div className="mt-6 flex flex-wrap items-end gap-x-6 gap-y-2">
                   <p>
                     <span className="block text-[13px] text-[#e9d6cd]">Mulai dari</span>
-                    <span className="k-num text-[34px] font-extrabold leading-none text-white">{shortPrice(featured)}</span>
+                    <span className="k-num text-[34px] font-semibold leading-none text-white">{shortPrice(featured)}</span>
                   </p>
                   <SeatPill remaining={featured.seats.remaining} quota={featured.seats.quota} dark />
                 </div>
@@ -127,7 +127,7 @@ export function KatalogHome({ packages, contact, lunasDays, includes, excludes }
             { t: "Seat real-time", d: "Sesuai data booking El Massa" },
           ].map((x) => (
             <li key={x.t} className="rounded-2xl bg-white px-4 py-4 ring-1 ring-[var(--line)]">
-              <p className="text-[15px] font-extrabold leading-snug">{x.t}</p>
+              <p className="text-[15px] font-semibold leading-snug">{x.t}</p>
               <p className="mt-1 text-[13px] leading-snug text-[var(--muted)]">{x.d}</p>
             </li>
           ))}
@@ -137,7 +137,7 @@ export function KatalogHome({ packages, contact, lunasDays, includes, excludes }
         <section id="paket" aria-labelledby="paket-title" className="mt-12 scroll-mt-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 id="paket-title" className="text-[26px] font-extrabold tracking-[-0.02em] sm:text-[30px]">Paket umrah</h2>
+              <h2 id="paket-title" className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">Paket umrah</h2>
               <p className="mt-1 text-[15px] text-[var(--muted)]">
                 {packages === null
                   ? "Jadwal sedang tidak bisa dimuat."
@@ -212,7 +212,7 @@ export function KatalogHome({ packages, contact, lunasDays, includes, excludes }
         {/* FAQ */}
         <section aria-labelledby="faq-title" className="mt-16 grid gap-6 rounded-3xl bg-white p-6 ring-1 ring-[var(--line)] sm:p-10 lg:grid-cols-[1fr_2fr]">
           <div>
-            <h2 id="faq-title" className="text-[26px] font-extrabold tracking-[-0.02em] sm:text-[30px]">Pertanyaan umum</h2>
+            <h2 id="faq-title" className="text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">Pertanyaan umum</h2>
             <p className="mt-2 text-[15px] text-[var(--muted)]">Belum terjawab? Tim CS kami siap membantu.</p>
             <a
               href={waGeneral}
@@ -271,7 +271,7 @@ function ProductCard({ pkg, eager }: { pkg: KatalogPackage; eager?: boolean }) {
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--ink)] sm:text-[16px]">{displayName(pkg.name)}</h3>
         <p className="mt-1 text-[13px] text-[var(--muted)]">{dateRange(pkg.departureDate, pkg.returnDate)}</p>
-        <p className="k-num mt-auto pt-3 text-[19px] font-extrabold text-[var(--accent-ink)] sm:text-[21px]">{shortPrice(pkg)}</p>
+        <p className="k-num mt-auto pt-3 text-[19px] font-semibold text-[var(--accent-ink)] sm:text-[21px]">{shortPrice(pkg)}</p>
         <p className="text-[12px] text-[var(--muted)]">DP {pkg.dpMinimum}</p>
         {tone === "open" && <SeatBar remaining={pkg.seats.remaining} quota={pkg.seats.quota} />}
       </div>
@@ -311,9 +311,9 @@ export function Poster({ pkg, thumb, priority, className = "" }: { pkg: KatalogP
   if (!src) {
     return (
       <div className={`flex flex-col justify-between bg-[var(--brand)] p-4 text-white ${className}`}>
-        <span className="text-[13px] font-extrabold tracking-[-0.02em]">el massa</span>
+        <span className="text-[13px] font-semibold tracking-[-0.02em]">el massa</span>
         <span>
-          <span className="block text-[18px] font-extrabold leading-tight tracking-[-0.02em]">{displayName(pkg.name)}</span>
+          <span className="block text-[18px] font-semibold leading-tight tracking-[-0.02em]">{displayName(pkg.name)}</span>
           <span className="mt-2 block text-[13px] font-semibold">{dateRange(pkg.departureDate, pkg.returnDate)}</span>
         </span>
       </div>

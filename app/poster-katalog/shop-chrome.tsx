@@ -32,7 +32,7 @@ export function ShopHeader({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={LOGO} alt="" width={33} height={40} className="h-9 w-auto" />
           <span className="hidden leading-tight sm:block">
-            <span className="block text-[17px] font-extrabold tracking-[-0.02em] text-[var(--ink)]">El Massa</span>
+            <span className="block text-[17px] font-semibold tracking-[-0.02em] text-[var(--ink)]">El Massa</span>
             <span className="block text-[12px] font-semibold text-[var(--muted)]">Tour &amp; Travel</span>
           </span>
         </Link>
@@ -83,7 +83,7 @@ export function ShopFooter({ contact }: { contact: KatalogContact }) {
     <footer className="mt-16 bg-[var(--stage)] text-[var(--on-dark)]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
         <div>
-          <p className="text-[20px] font-extrabold tracking-[-0.02em]">El Massa Tour &amp; Travel</p>
+          <p className="text-[20px] font-semibold tracking-[-0.02em]">El Massa Tour &amp; Travel</p>
           <p className="mt-3 max-w-[34ch] text-[15px] leading-relaxed text-[#e9d6cd]">
             {contact.legalName}. Penyelenggara perjalanan ibadah umrah resmi, berangkat dari Pangkal Pinang.
           </p>
