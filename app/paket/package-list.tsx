@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ModalTambahGroup } from "@/components/modal-tambah-group";
+import { KatalogImportBanner } from "./katalog-import-banner";
 import { ItineraryDayItem } from "@/lib/itinerary-generator";
 
 type PackageCardItem = {
@@ -385,7 +386,8 @@ export function PackageList() {
 
   return (
     <div className="space-y-6 font-sans">
-      
+      <KatalogImportBanner onImported={() => window.location.reload()} />
+
       {/* ========================================================================= */}
       {/* 🖥️ 1. DESKTOP MODE LAYOUT (100% UNTOUCHED ORIGINAL 2-COLUMN) */}
       {/* ========================================================================= */}

@@ -1,0 +1,48 @@
+/* Public katalog (/poster-katalog). Brand tokens, kept apart from the staff app. */
+.katalog {
+  --ground: #fff8f5;      /* cream: reading column */
+  --tone: #f7ece6;        /* one step darker, for surfaces on the ground */
+  --stage: #271912;       /* cocoa dark: the field the poster stands on */
+  --ink: #3c2920;         /* cocoa: all running text */
+  --muted: #6e5a51;       /* secondary notes, 4.5:1+ on --ground */
+  --brand: #d83b7d;       /* El Massa pink: the wordmark (large type) */
+  --accent: #c22c6c;      /* pink for actions: white text on it passes 4.5:1 */
+  --accent-ink: #a8215a;  /* pink text on cream, and the pressed/hover action */
+  --on-dark: #fff8f5;
+  --on-dark-muted: #e9d6cd;
+  background: var(--ground);
+  color: var(--ink);
+  font-feature-settings: "tnum" 1;
+}
+
+.katalog a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.katalog :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Entrance: heading, then text, then picture, once per section. Content is
+   visible without script; .k-in only adds the travel when JS has marked it. */
+.katalog .k-rise { transition: opacity 600ms cubic-bezier(.2,.7,.2,1), transform 600ms cubic-bezier(.2,.7,.2,1); }
+.katalog.k-js .k-rise:not(.k-in) { opacity: 0; transform: translateY(22px); }
+.katalog .k-rise[data-d="1"] { transition-delay: 70ms; }
+.katalog .k-rise[data-d="2"] { transition-delay: 140ms; }
+.katalog .k-rise[data-d="3"] { transition-delay: 210ms; }
+
+/* The poster on stage: a new departure fades and settles in. */
+@keyframes k-poster-in { from { opacity: 0; transform: scale(.975); } to { opacity: 1; transform: none; } }
+.katalog .k-poster { animation: k-poster-in 520ms cubic-bezier(.2,.7,.2,1) both; }
+
+/* Slow drift on the stage poster so the fixed half is never dead. */
+@keyframes k-drift { from { transform: scale(1); } to { transform: scale(1.035); } }
+.katalog .k-drift { animation: k-drift 14s ease-in-out infinite alternate; }
+
+/* Signature move: the wordmark settles as the first screen scrolls away. */
+@supports (animation-timeline: scroll()) {
+  @keyframes k-mark { from { transform: scale(1); } to { transform: scale(.93); } }
+  .katalog .k-mark { transform-origin: left bottom; animation: k-mark linear both; animation-timeline: scroll(root); animation-range: 0 70vh; }
+}
+
+.katalog .k-press { transition: transform 160ms ease, background-color 160ms ease, color 160ms ease; }
+.katalog .k-press:active { transform: scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .katalog .k-rise, .katalog .k-poster, .katalog .k-drift, .katalog .k-mark { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+}

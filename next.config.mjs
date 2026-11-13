@@ -13,11 +13,16 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/manifest/generate": ["./lib/manifest/templates/**"],
   },
-  // Katalog paket publik (static HTML + Alpine.js, dulu repo elmassa-katalog)
-  // tinggal di public/poster-katalog/. Rewrite ini membuat /poster-katalog
-  // langsung membuka index.html-nya; sisa seat ditarik dari /api/public/seats.
-  async rewrites() {
-    return [{ source: "/poster-katalog", destination: "/poster-katalog/index.html" }];
+  // Katalog posters: let browsers and the CDN keep them for a day instead of
+  // re-checking on every visit. A replaced poster ships under a new file name
+  // or (for uploads) a new ?v= hash, so a day-old copy is never wrong for long.
+  async headers() {
+    return [
+      {
+        source: "/poster-katalog/images/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+    ];
   },
 };
 

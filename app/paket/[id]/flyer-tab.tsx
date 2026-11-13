@@ -6,8 +6,38 @@ import { Calculator, ImageIcon, Loader2, Save, Sparkles, Upload, X } from "lucid
 import { formatIDR, type PackageDetail } from "./types";
 
 /** Base64 art lands in a TEXT column and is re-sent on every catalogue load, so
- *  an unbounded upload would quietly slow down every page that lists groups. */
+ *  an unbounded upload would quietly slow down every page that lists groups.
+ *  Uploads are therefore re-encoded to WebP in the browser first (a 3–4 MB PNG
+ *  poster ends up around 150–250 KB); this cap applies to that result. */
 const MAX_IMAGE_BYTES = 1_500_000;
+/** Raw file the browser is willing to decode before converting. */
+const MAX_SOURCE_BYTES = 20_000_000;
+const MAX_WIDTH: Record<"posterImg" | "bannerImg", number> = { posterImg: 1200, bannerImg: 1600 };
+
+/** Decode any browser-readable image and re-encode it as WebP, max `maxWidth` wide. */
+async function toWebpDataUrl(file: File, maxWidth: number): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("File ini tidak bisa dibaca sebagai gambar."));
+      el.src = url;
+    });
+    const scale = Math.min(1, maxWidth / img.naturalWidth);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Browser tidak mendukung konversi gambar.");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const webp = canvas.toDataURL("image/webp", 0.82);
+    // Very old Safari ignores the type and returns PNG; keep whichever is smaller then.
+    return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.85);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 type FlyerField = {
   key: keyof PackageDetail;
@@ -98,21 +128,22 @@ export function FlyerTab({ pkg, onSaved }: { pkg: PackageDetail; onSaved: () => 
     event.target.value = ""; // let the same file be re-picked after an error
     if (!file) return;
 
-    if (file.size > MAX_IMAGE_BYTES) {
-      setError(
-        `Gambar terlalu besar (${(file.size / 1_000_000).toFixed(1)} MB). Maksimal 1,5 MB — kompres dulu biar halaman katalog nggak berat.`,
-      );
+    if (file.size > MAX_SOURCE_BYTES) {
+      setError(`Gambar terlalu besar (${(file.size / 1_000_000).toFixed(1)} MB). Maksimal 20 MB.`);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        setDraft((prev) => ({ ...prev, [field]: reader.result as string }));
+    toWebpDataUrl(file, MAX_WIDTH[field])
+      .then((dataUrl) => {
+        // base64 is ~4/3 of the bytes it encodes
+        if (dataUrl.length * 0.75 > MAX_IMAGE_BYTES) {
+          setError("Setelah dikompres gambar masih di atas 1,5 MB. Coba gambar dengan detail lebih sedikit.");
+          return;
+        }
+        setDraft((prev) => ({ ...prev, [field]: dataUrl }));
         setError("");
-      }
-    };
-    reader.readAsDataURL(file);
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Gagal memproses gambar."));
   };
 
   const handleSave = async () => {
